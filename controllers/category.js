@@ -3,17 +3,17 @@ const slugify = require("slugify");
 
 // importing model
 const Category = require("../models/category");
-const SubCategory = require('../models/sub-category')
-
+const Product = require("../models/product");
+const SubCategory = require("../models/sub-category");
 
 exports.create = async (req, res) => {
-    console.log(req.body.name);
+    console.log(req.body.categoryName);
     try {
-        const { name } = req.body;
+        const { categoryName } = req.body;
         res.json(
             await new Category({
-                name,
-                slug: slugify(name),
+                name: categoryName,
+                slug: slugify(categoryName),
             }).save()
         );
     } catch (error) {
@@ -27,17 +27,22 @@ exports.list = async (req, res) => {
     res.json(categories);
 };
 exports.read = async (req, res) => {
-    const singleCategory = await Category.findOne({
+    const category = await Category.findOne({
         slug: req.params.slug,
     }).exec();
 
-    res.json(singleCategory);
+    const products = await Product.find({ category: category._id })
+        .populate("category")
+        .exec();
+
+    res.json({ category, products });
 };
 exports.update = async (req, res) => {
-    const { name } = req.body;
+    const { updateCategoryName } = req.body;
+    console.log(updateCategoryName);
     const updateCategory = await Category.findOneAndUpdate(
         { slug: req.params.slug },
-        { name, slug: slugify(name) },
+        { name: updateCategoryName, slug: slugify(updateCategoryName) },
         { new: true }
     );
 
@@ -55,13 +60,10 @@ exports.remove = async (req, res) => {
 };
 
 // getting sub category according to id
-exports.subCategoryOnCategory = (req, res) =>(
-    SubCategory.find({parent:req.params._id}).exec((error, data)=>{
-        if(error){
+exports.subCategoryOnCategory = (req, res) =>
+    SubCategory.find({ parent: req.params._id }).exec((error, data) => {
+        if (error) {
             console.log(error);
         }
         res.json(data);
-    })
-);
-
-
+    });

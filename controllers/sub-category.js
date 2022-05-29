@@ -1,14 +1,15 @@
-const SubCategory = require("../models/subCategory");
+const SubCategory = require("../models/sub-category");
+const Product = require("../models/product");
 const slugify = require("slugify");
 
 // creating subcategory controller
 exports.create = async (req, res) => {
     try {
-        const { name, parent } = req.body;
+        const { subCategoryName, parent } = req.body;
         const creatingSubCategory = await new SubCategory({
-            name,
+            name: subCategoryName,
             parent,
-            slug: slugify(name),
+            slug: slugify(subCategoryName),
         }).save();
         res.json(creatingSubCategory);
     } catch (error) {
@@ -27,19 +28,31 @@ exports.list = async (req, res) => {
 
 // getting single subcategory controller
 exports.read = async (req, res) => {
-    const singleSubCategory = await SubCategory.findOne({
+    const subCategory = await SubCategory.findOne({
         slug: req.params.slug,
     }).exec();
-
-    res.json(singleSubCategory);
+    const subCategoryProduct = await Product.find({
+        subCategory: subCategory._id,
+    })
+        .populate("category")
+        .populate("subCategory")
+        .exec();
+    res.json({
+        subCategory,
+        subCategoryProduct,
+    });
 };
 
 // update subcategory controller
 exports.update = async (req, res) => {
-    const { name, parent } = req.body;
+    const { updateSubCategoryName, parent } = req.body;
     const updateSubCategory = await SubCategory.findOneAndUpdate(
         { slug: req.params.slug },
-        { name, parent, slug: slugify(name) },
+        {
+            name: updateSubCategoryName,
+            parent,
+            slug: slugify(updateSubCategoryName),
+        },
         { new: true }
     );
     res.json(updateSubCategory);
@@ -56,5 +69,3 @@ exports.remove = async (req, res) => {
         res.status(400).send("Deleted Sub Category Failed");
     }
 };
-
-

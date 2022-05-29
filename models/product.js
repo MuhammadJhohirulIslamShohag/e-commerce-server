@@ -33,7 +33,7 @@ const productSchema = new Schema(
             type: ObjectId,
             ref: "Category",
         },
-        subs: [
+        subCategory: [
             {
                 type: ObjectId,
                 ref: "SubCategory",
