@@ -223,6 +223,35 @@ const handleCategoryFilter = async (req, res, category) => {
     res.json(products);
 };
 
+// rating filtering
+const handleRatingsFiltering = (req, res, star) => {
+    Product.aggregate([
+        {
+            $project: {
+                document: "$$ROOT",
+                floorAvgRatings: {
+                    $avg: "$ratings.star",
+                },
+            },
+        },
+        {
+            $match: { floorAvgRatings: star },
+        },
+    ])
+        .limit(12)
+        .exec((error, aggregates) => {
+            if (error) console.log(error);
+            console.log(aggregates);
+            Product.find({ _id: aggregates })
+                .populate("category", "_id name")
+                .populate("subCategory", "_id name")
+                .exec((error, products) => {
+                    if (error) console.log(error);
+                    res.json(products);
+                });
+        });
+};
+
 // sub-category filtering
 const handleSubCategoryFilter = async (req, res, subCategory) => {
     const products = [];
@@ -231,13 +260,50 @@ const handleSubCategoryFilter = async (req, res, subCategory) => {
             .populate("subCategory", "_id name")
             .populate("category", "_id name")
             .exec();
+        // array to object
         products.push(...product);
     }
     res.json(products);
 };
 
+// brand filtering
+const handleBrandFilter = async (req, res, brand) => {
+    let products = await Product.find({ brand })
+        .populate("subCategory", "_id name")
+        .populate("category", "_id name")
+        .exec();
+    res.json(products);
+};
+
+// color filtering
+const handleColorFilter = async (req, res, color) => {
+    let products = await Product.find({ color })
+        .populate("subCategory", "_id name")
+        .populate("category", "_id name")
+        .exec();
+    res.json(products);
+};
+
+// shipping filtering
+const handleShippingFilter = async (req, res, shipping) => {
+    const products = await Product.find({ shipping })
+        .populate("subCategory", "_id name")
+        .populate("category", "_id name")
+        .exec();
+    res.json(products);
+};
+
 exports.productFiltering = async (req, res) => {
-    const { searchQuery, price, category, subCategory } = req.body;
+    const {
+        searchQuery,
+        price,
+        category,
+        shipping,
+        subCategory,
+        star,
+        brand,
+        color,
+    } = req.body;
 
     if (searchQuery) {
         await handleSearchFiltering(req, res, searchQuery);
@@ -248,7 +314,19 @@ exports.productFiltering = async (req, res) => {
     if (category) {
         await handleCategoryFilter(req, res, category);
     }
+    if (star) {
+        handleRatingsFiltering(req, res, star);
+    }
     if (subCategory) {
         await handleSubCategoryFilter(req, res, subCategory);
+    }
+    if (brand) {
+        await handleBrandFilter(req, res, brand);
+    }
+    if (color) {
+        await handleColorFilter(req, res, color);
+    }
+    if (shipping) {
+        await handleShippingFilter(req, res, shipping);
     }
 };
