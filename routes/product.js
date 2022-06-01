@@ -15,12 +15,13 @@ const {
     remove,
     totalProducts,
     productRating,
-    relatedProduct
+    relatedProduct,
+    productFiltering,
 } = require("../controllers/product");
 
 router.post("/product", authCheck, adminCheck, create);
-router.post("/products/total", totalProducts);
 router.post("/products", list);
+router.post("/products/total", totalProducts);
 router.get("/products/:slug", read);
 router.get("/products/count/:count", productsByCount);
 router.put("/products/:slug", authCheck, adminCheck, update);
@@ -30,6 +31,7 @@ router.delete("/products/:slug", authCheck, adminCheck, remove);
 router.post("/products/ratings/:productId", authCheck, productRating);
 // related product
 router.get("/products/related/:productId", relatedProduct);
-
+// filtering
+router.post("/products/filter", productFiltering);
 
 module.exports = router;

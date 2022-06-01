@@ -62,8 +62,8 @@ exports.totalProducts = async (req, res) => {
 };
 
 exports.productsByCount = async (req, res) => {
-    console.log(req.params.slug);
-    console.log(req.params.count);
+    console.log("count", req.params.slug);
+    console.log("count", req.params.count);
     try {
         let getProductsByCount = await Product.find({})
             .limit(parseInt(req.params.count))
@@ -174,4 +174,81 @@ exports.relatedProduct = async (req, res) => {
         category: product.category,
     });
     res.json(relProduct);
+};
+
+//*** getting filter product ***
+// search filtering
+const handleSearchFiltering = async (req, res, searchQuery) => {
+    console.log("query", searchQuery);
+    try {
+        const products = await Product.find({
+            $text: { $search: searchQuery },
+        })
+            .populate("category", "_id name")
+            .populate("subCategory", "_id name")
+            .exec();
+        res.json(products);
+    } catch (error) {
+        console.log(error);
+    }
+};
+// price filtering
+const handlePriceFilter = async (req, res, price) => {
+    console.log("price", price);
+    try {
+        const products = await Product.find({
+            price: {
+                $gte: price[0],
+                $lte: price[1],
+            },
+        })
+            .populate("category", "_id name")
+            .populate("subCategory", "_id name")
+            .exec();
+        res.json(products);
+    } catch (error) {
+        console.log(error);
+    }
+};
+
+// category filtering
+const handleCategoryFilter = async (req, res, category) => {
+    console.log(category, "Category");
+    const products = await Product.find({ category })
+        .populate("category", "_id name")
+        .populate("subCategory", "_id name")
+        .exec();
+    console.log(products);
+
+    res.json(products);
+};
+
+// sub-category filtering
+const handleSubCategoryFilter = async (req, res, subCategory) => {
+    const products = [];
+    for (let i = 0; i < subCategory.length; i++) {
+        let product = await Product.find({ subCategory: subCategory[i] })
+            .populate("subCategory", "_id name")
+            .populate("category", "_id name")
+            .exec();
+        products.push(...product);
+    }
+    res.json(products);
+};
+
+exports.productFiltering = async (req, res) => {
+    const { searchQuery, price, category, subCategory } = req.body;
+
+    if (searchQuery) {
+        await handleSearchFiltering(req, res, searchQuery);
+    }
+    if (price !== undefined) {
+        await handlePriceFilter(req, res, price);
+    }
+    if (category) {
+        await handleCategoryFilter(req, res, category);
+    }
+    if (subCategory) {
+        await handleSubCategoryFilter(req, res, subCategory);
+    }
 };
