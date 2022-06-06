@@ -7,7 +7,9 @@ const {
     emptyCart,
     saveAddress,
     shippingAddress,
-    totalDiscountPrice
+    totalDiscountPrice,
+    createOrder,
+    orders
 } = require("../controllers/user");
 
 // importing middleware
@@ -21,6 +23,10 @@ router.get("/user/shipping-address", authCheck, shippingAddress); // get user sh
 router.delete("/user/cart", authCheck, emptyCart); // empty cart or delete cart
 
 // cart coupon
-router.post("/user/cart/coupon", authCheck, totalDiscountPrice)
+router.post("/user/cart/coupon", authCheck, totalDiscountPrice);
+
+// order
+router.post("/user/carts/order", authCheck, createOrder);
+router.get("/user/carts/orders", authCheck, orders)
 
 module.exports = router;

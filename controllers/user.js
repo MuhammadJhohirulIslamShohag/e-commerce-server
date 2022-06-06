@@ -2,6 +2,7 @@ const Product = require("../models/product");
 const User = require("../models/user");
 const Cart = require("../models/cart");
 const Coupon = require("../models/coupon");
+const Order = require("../models/order");
 
 exports.userCart = async (req, res) => {
     try {
@@ -122,4 +123,58 @@ exports.totalDiscountPrice = async (req, res) => {
     ).exec();
 
     res.json({ totalPriceAfterDiscount });
+};
+
+// cart order
+exports.createOrder = async (req, res) => {
+    try {
+        const { paymentIntent } = req.body.paymentIntents;
+        // who order
+        const user = await User.findOne({ email: req.user.email }).exec();
+
+        // which product carts
+        const carts = await Cart.findOne({ orderedBy: user._id }).exec();
+        const { products } = carts;
+
+        // save to the database
+        await new Order({
+            products,
+            paymentIntents: paymentIntent,
+            orderedBy: user._id,
+        }).save();
+
+        // decrement quantity and sold increment
+        const bulkOption = products.map((item) => {
+            return {
+                updateOne: {
+                    filter: {
+                        _id: item.product._id,
+                    },
+                    update: {
+                        $inc: {
+                            quantity: -item.count,
+                            sold: +item.count,
+                        },
+                    },
+                },
+            };
+        });
+
+        // update
+        let update = await Product.bulkWrite(bulkOption, {});
+        console.log(update);
+        res.json({ ok: true });
+    } catch (error) {
+        res.status(400).send("Failed To Save Order Cart To the Database!");
+    }
+};
+// getting all orders by user
+exports.orders = async (req, res) => {
+    // who is the ordered
+    const user = await User.findOne({ email: req.user.email }).exec();
+    // getting all orderes by user id
+    const allOrders = await Order.find({ orderedBy: user._id })
+        .populate("products.product")
+        .exec();
+    res.json(allOrders);
 };
