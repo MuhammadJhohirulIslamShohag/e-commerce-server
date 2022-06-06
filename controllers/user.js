@@ -162,7 +162,6 @@ exports.createOrder = async (req, res) => {
 
         // update
         let update = await Product.bulkWrite(bulkOption, {});
-        console.log(update);
         res.json({ ok: true });
     } catch (error) {
         res.status(400).send("Failed To Save Order Cart To the Database!");
