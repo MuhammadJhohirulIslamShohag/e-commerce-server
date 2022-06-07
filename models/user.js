@@ -29,8 +29,11 @@ const userSchema = new Schema(
         },
         wishList: [
             {
-                type: ObjectId,
-                ref: "Product",
+                product: {
+                    type: ObjectId,
+                    ref: "Product",
+                },
+                isWhisList: Boolean
             },
         ],
     },

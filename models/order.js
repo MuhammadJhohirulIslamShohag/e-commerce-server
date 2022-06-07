@@ -24,6 +24,7 @@ const orderSchema = new Schema({
           "Dispatched",
           "Cancelled",
           "Completed",
+          "Cash On Delivery"
         ],
     },
     orderedBy: {

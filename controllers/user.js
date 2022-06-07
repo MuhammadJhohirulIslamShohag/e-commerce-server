@@ -1,3 +1,4 @@
+const uniqid = require("uniqid");
 const Product = require("../models/product");
 const User = require("../models/user");
 const Cart = require("../models/cart");
@@ -125,7 +126,7 @@ exports.totalDiscountPrice = async (req, res) => {
     res.json({ totalPriceAfterDiscount });
 };
 
-// cart order
+// cart order by online payment
 exports.createOrder = async (req, res) => {
     try {
         const { paymentIntent } = req.body.paymentIntents;
@@ -167,6 +168,61 @@ exports.createOrder = async (req, res) => {
         res.status(400).send("Failed To Save Order Cart To the Database!");
     }
 };
+
+// create order by cash order delivery
+exports.createCashOrders = async (req, res) => {
+    const { isCashOnDelivery, isCouponed } = req.body;
+
+    // if isCashOnDelivery is true, it is going to process to the cash on delevery 
+    if(!isCashOnDelivery) return res.status(400).send("Create Cash Order is Failed!")
+    // who payment on the cash
+    const user = await User.findOne({ email: req.user.email }).exec();
+
+    // which carts
+    const userCarts = await Cart.findOne({ orderedBy: user._id }).exec();
+
+    let finalAmount = 0;
+    if (isCouponed && userCarts.totalPriceAfterDiscount) {
+        finalAmount = userCarts.totalPriceAfterDiscount * 100;
+    } else {
+        finalAmount = userCarts.cartTotal * 100;
+    }
+
+   const update =  await new Order({
+        products: userCarts.products,
+        paymentIntents: {
+            id: uniqid(),
+            amount: finalAmount,
+            currency: "usd",
+            payment_method_types: ["Cash"],
+            status: "succeeded",
+            created: Date.now(),
+        },
+        orderStatus: "Cash On Delivery",
+        orderedBy: user._id,
+    }).save();
+
+    // increment sold and decrement quantity
+    const bulkWrites = userCarts.products.map((item) => {
+        return {
+            updateOne: {
+                filter: {
+                    _id: item.product._id,
+                },
+                update: {
+                    $inc: {
+                        quantity: -item.count,
+                        sold: +item.count,
+                    },
+                },
+            },
+        };
+    });
+    await Product.bulkWrite(bulkWrites, {});
+
+    res.json({ ok: true, update});
+};
+
 // getting all orders by user
 exports.orders = async (req, res) => {
     // who is the ordered
@@ -176,4 +232,52 @@ exports.orders = async (req, res) => {
         .populate("products.product")
         .exec();
     res.json(allOrders);
+};
+
+// add to whislist
+exports.addToWhisList = async (req, res) => {
+    const { productId, isWhisList } = req.body;
+    const newWhisList = await User.findOneAndUpdate(
+        { email: req.user.email },
+        {
+            $push: {
+                wishList: {
+                    $each: [{ product: productId, isWhisList }],
+                },
+            },
+        }
+    ).exec();
+    res.json(newWhisList);
+};
+
+// get all whislits from user
+exports.whisLists = async (req, res) => {
+    const allWhisList = await User.findOne({ email: req.user.email })
+        .select("wishList")
+        .populate("wishList.product")
+        .exec();
+    res.json(allWhisList);
+};
+
+//get single wislist from user whislist
+exports.whisList = async (req, res) => {
+    const { productId } = req.body;
+    const allWhisList = await User.findOne(
+        { email: req.user.email },
+        { wishList: { $elemMatch: { product: { $in: productId } } } }
+    ).exec();
+    res.json(allWhisList);
+};
+// remove whislist
+exports.removeWhisList = async (req, res) => {
+    const { productId } = req.body;
+    const deleteWhisList = await User.findOneAndUpdate(
+        { email: req.user.email },
+        {
+            $pull: {
+                wishList: { product: productId },
+            },
+        }
+    ).exec();
+    res.json(deleteWhisList);
 };
