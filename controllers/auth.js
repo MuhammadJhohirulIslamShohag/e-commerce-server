@@ -1,7 +1,7 @@
 const User = require("../models/user");
 
 // creating auth controller
-exports.authController = async (req, res) => {
+exports.createOrUpdateUser = async (req, res) => {
     const { name, email, picture } = req.user;
 
     const user = await User.findOneAndUpdate(
@@ -9,7 +9,6 @@ exports.authController = async (req, res) => {
         { name: email.split(".")[0], picture },
         { new: true }
     );
-
     if (user) {
         res.json(user);
     } else {
