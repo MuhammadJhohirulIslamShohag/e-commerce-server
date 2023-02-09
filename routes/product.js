@@ -20,7 +20,7 @@ const {
 } = require("../controllers/product");
 
 router.post("/product", authCheck, adminCheck, create);
-router.post("/products", list);
+router.get("/products", list);
 router.post("/products/total", totalProducts);
 router.get("/products/:slug", read);
 router.get("/products/count/:count", productsByCount);

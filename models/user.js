@@ -4,17 +4,33 @@ const { ObjectId } = mongoose.Schema;
 
 const userSchema = new Schema(
     {
-        name: {
+        username: {
+            type: String,
+            required: true,
+            unique: true,
+        },
+        fullName: {
             type: String,
         },
         email: {
             type: String,
-            required: true,
             index: true,
+            required: true,
+            unique: true,
+        },
+        image: {
+            url: {
+                type: String,
+                default: "https://via.placeholder.com/200x200.png?text=Profile",
+            },
+            public_id: {
+                type: String,
+                default: `${Date.now()}`,
+            }
         },
         role: {
             type: String,
-            default: "subscriber",
+            default: "user",
         },
         cart: {
             type: Array,

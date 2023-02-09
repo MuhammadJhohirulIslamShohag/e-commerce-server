@@ -5,7 +5,7 @@ const slugify = require("slugify");
 
 exports.create = async (req, res) => {
     try {
-        // saving slug beacuse we can get slug from client
+        // saving slug because we can get slug from client
         req.body.slug = slugify(req.body.title);
         const newProduct = await new Product(req.body).save();
         res.json(newProduct);
@@ -38,16 +38,26 @@ exports.create = async (req, res) => {
 // With Pagination
 exports.list = async (req, res) => {
     try {
-        const { sort, order, page } = req.body;
-        const currentPage = page || 1;
-        const perPage = 3; // 3
-        const products = await Product.find({})
-            .skip((currentPage - 1) * perPage)
-            .populate("category")
-            .populate("subCategory")
-            .sort([[sort, order]])
-            .limit(perPage)
-            .exec();
+        const { sort, order, page } = req.query;
+        let products;
+        if (page === "undefined" || page === null) {
+            products = await Product.find({})
+                .populate("category")
+                .populate("subCategory")
+                .sort([[sort, order]])
+                .limit(10)
+                .exec();
+        } else {
+            const currentPage = page || 1;
+            const perPage = 3; // 3
+            products = await Product.find({})
+                .skip((currentPage - 1) * perPage)
+                .populate("category")
+                .populate("subCategory")
+                .sort([[sort, order]])
+                .limit(perPage)
+                .exec();
+        }
         res.json(products);
     } catch (error) {
         res.status(400).json({
@@ -62,8 +72,6 @@ exports.totalProducts = async (req, res) => {
 };
 
 exports.productsByCount = async (req, res) => {
-    console.log("count", req.params.slug);
-    console.log("count", req.params.count);
     try {
         let getProductsByCount = await Product.find({})
             .limit(parseInt(req.params.count))
@@ -194,7 +202,6 @@ const handleSearchFiltering = async (req, res, searchQuery) => {
 };
 // price filtering
 const handlePriceFilter = async (req, res, price) => {
-    console.log("price", price);
     try {
         const products = await Product.find({
             price: {
@@ -213,7 +220,6 @@ const handlePriceFilter = async (req, res, price) => {
 
 // category filtering
 const handleCategoryFilter = async (req, res, category) => {
-    console.log(category, "Category");
     const products = await Product.find({ category })
         .populate("category", "_id name")
         .populate("subCategory", "_id name")
@@ -241,7 +247,6 @@ const handleRatingsFiltering = (req, res, star) => {
         .limit(12)
         .exec((error, aggregates) => {
             if (error) console.log(error);
-            console.log(aggregates);
             Product.find({ _id: aggregates })
                 .populate("category", "_id name")
                 .populate("subCategory", "_id name")
@@ -293,6 +298,54 @@ const handleShippingFilter = async (req, res, shipping) => {
     res.json(products);
 };
 
+// sorting filtering
+const handleSortingFilter = async (req, res, sortingObject) => {
+    const { sort, order } = sortingObject;
+    const products = await Product.find({})
+        .populate("category")
+        .populate("subCategory")
+        .sort([[sort, order]])
+        .exec();
+
+    console.log(products);
+    res.json(products);
+};
+
+// mostPopular filtering
+// const handleMostPopularFilter = async (req, res, mostPopular) => {
+//     const { sort, order } = mostPopular;
+//     const products = await Product.find({})
+//         .populate("category")
+//         .populate("subCategory")
+//         .sort([[sort, order]])
+//         .exec();
+//     res.json(products);
+// };
+// // newest filtering
+// const handleNewestFilter = async (req, res, newest) => {
+//     const { sort, order } = newest;
+//     const products = await Product.find({ })
+//         .populate("subCategory", "_id name")
+//         .populate("category", "_id name")
+//         .sort([[sort, order]])
+//         .exec();
+//     res.json(products);
+// };
+// // shipping filtering
+// const handleLowestToHighestFilter = async (req, res, lowestToHighest) => {
+//     const { sort, order } = lowestToHighest;
+//     try {
+//         const products = await Product.find({})
+//             .populate("category", "_id name")
+//             .populate("subCategory", "_id name")
+//             .sort([[sort, order]])
+//             .exec();
+//         res.json(products);
+//     } catch (error) {
+//         console.log(error);
+//     }
+// };
+
 exports.productFiltering = async (req, res) => {
     const {
         searchQuery,
@@ -303,6 +356,7 @@ exports.productFiltering = async (req, res) => {
         star,
         brand,
         color,
+        sortingObject
     } = req.body;
 
     if (searchQuery) {
@@ -329,4 +383,17 @@ exports.productFiltering = async (req, res) => {
     if (shipping) {
         await handleShippingFilter(req, res, shipping);
     }
+    if (sortingObject) {
+        console.log(sortingObject);
+        await handleSortingFilter(req, res, sortingObject);
+    }
+    // if (newest) {
+    //     await handleNewestFilter(req, res, newest);
+    // }
+    // if (lowestToHighest) {
+    //     await handleLowestToHighestFilter(req, res, lowestToHighest);
+    // }
+    // if (highestToLowest) {
+    //     await handleHighestToLowestFilter(req, res, highestToLowest);
+    // }
 };

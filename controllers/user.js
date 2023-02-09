@@ -7,7 +7,7 @@ const Order = require("../models/order");
 
 exports.userCart = async (req, res) => {
     try {
-        // receving carts data from frontend
+        // receiving carts data from frontend
         const { carts } = req.body;
         // finding user who save order cart into the database
         const user = await User.findOne({ email: req.user.email }).exec();
@@ -171,9 +171,9 @@ exports.createOrder = async (req, res) => {
 
 // create order by cash order delivery
 exports.createCashOrders = async (req, res) => {
-    const { isCashOnDelivery, isCouponed } = req.body;
+    const { isCashOnDelivery, isCoupon } = req.body;
 
-    // if isCashOnDelivery is true, it is going to process to the cash on delevery 
+    // if isCashOnDelivery is true, it is going to process to the cash on delivery 
     if(!isCashOnDelivery) return res.status(400).send("Create Cash Order is Failed!")
     // who payment on the cash
     const user = await User.findOne({ email: req.user.email }).exec();
@@ -182,7 +182,7 @@ exports.createCashOrders = async (req, res) => {
     const userCarts = await Cart.findOne({ orderedBy: user._id }).exec();
 
     let finalAmount = 0;
-    if (isCouponed && userCarts.totalPriceAfterDiscount) {
+    if (isCoupon && userCarts.totalPriceAfterDiscount) {
         finalAmount = userCarts.totalPriceAfterDiscount * 100;
     } else {
         finalAmount = userCarts.cartTotal * 100;
@@ -227,51 +227,51 @@ exports.createCashOrders = async (req, res) => {
 exports.orders = async (req, res) => {
     // who is the ordered
     const user = await User.findOne({ email: req.user.email }).exec();
-    // getting all orderes by user id
+    // getting all orders by user id
     const allOrders = await Order.find({ orderedBy: user._id })
         .populate("products.product")
         .exec();
     res.json(allOrders);
 };
 
-// add to whislist
-exports.addToWhisList = async (req, res) => {
-    const { productId, isWhisList } = req.body;
-    const newWhisList = await User.findOneAndUpdate(
+// add to wishlist
+exports.addToWishList = async (req, res) => {
+    const { productId, isWishList } = req.body;
+    const newWishList = await User.findOneAndUpdate(
         { email: req.user.email },
         {
             $push: {
                 wishList: {
-                    $each: [{ product: productId, isWhisList }],
+                    $each: [{ product: productId, isWishList }],
                 },
             },
         }
     ).exec();
-    res.json(newWhisList);
+    res.json(newWishList);
 };
 
-// get all whislits from user
-exports.whisLists = async (req, res) => {
-    const allWhisList = await User.findOne({ email: req.user.email })
+// get all wishlist from user
+exports.wishListsByUser = async (req, res) => {
+    const allWishList = await User.findOne({ email: req.user.email })
         .select("wishList")
         .populate("wishList.product")
         .exec();
-    res.json(allWhisList);
+    res.json(allWishList);
 };
 
-//get single wislist from user whislist
-exports.whisList = async (req, res) => {
+//get single wishlist from user wishlist
+exports.wishList = async (req, res) => {
     const { productId } = req.body;
-    const allWhisList = await User.findOne(
+    const allWishList = await User.findOne(
         { email: req.user.email },
         { wishList: { $elemMatch: { product: { $in: productId } } } }
     ).exec();
-    res.json(allWhisList);
+    res.json(allWishList);
 };
-// remove whislist
-exports.removeWhisList = async (req, res) => {
+// remove wishlist
+exports.removeWishList = async (req, res) => {
     const { productId } = req.body;
-    const deleteWhisList = await User.findOneAndUpdate(
+    const deleteWishList = await User.findOneAndUpdate(
         { email: req.user.email },
         {
             $pull: {
@@ -279,5 +279,5 @@ exports.removeWhisList = async (req, res) => {
             },
         }
     ).exec();
-    res.json(deleteWhisList);
+    res.json(deleteWishList);
 };

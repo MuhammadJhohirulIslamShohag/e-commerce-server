@@ -11,10 +11,10 @@ const {
     createOrder,
     createCashOrders,
     orders,
-    addToWhisList,
-    whisLists,
-    whisList,
-    removeWhisList
+    addToWishList,
+    wishList,
+    wishListsByUser,
+    removeWishList,
 } = require("../controllers/user");
 
 // importing middleware
@@ -32,13 +32,13 @@ router.post("/user/cart/coupon", authCheck, totalDiscountPrice);
 
 // order
 router.post("/user/carts/order", authCheck, createOrder); // creating order by online payment
-router.post("/user/carts/order/cash", authCheck, createCashOrders);// creating order by cash payment
+router.post("/user/carts/order/cash", authCheck, createCashOrders); // creating order by cash payment
 router.get("/user/carts/orders", authCheck, orders);
 
-// whislist
-router.post("/user/whislist", authCheck, addToWhisList);
-router.post("/user/whis-list", authCheck, whisList);
-router.get("/user/whislists", authCheck, whisLists);
-router.put("/user/whislist", authCheck, removeWhisList);
+// wishlist
+router.post("/user/wishlists", authCheck, addToWishList);
+router.post("/user/wish-lists", authCheck, wishList);
+router.get("/user/wishlists", authCheck, wishListsByUser);
+router.put("/user/wishlists", authCheck, removeWishList);
 
 module.exports = router;
