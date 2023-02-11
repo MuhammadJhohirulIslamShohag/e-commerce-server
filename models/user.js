@@ -49,7 +49,7 @@ const userSchema = new Schema(
                     type: ObjectId,
                     ref: "Product",
                 },
-                isWhisList: Boolean
+                isWishList: Boolean
             },
         ],
     },
