@@ -4,7 +4,7 @@ const Order = require("../models/order");
 // get all users
 exports.allUsers = async (req, res) => {
     try {
-        const users = await User.find({ role: "user" }).exec();
+        const users = await User.find({ role: "user" }).sort("-createdAt").exec();
         console.log(users, "users");
         res.json(users);
     } catch (error) {
@@ -18,6 +18,7 @@ exports.orders = async (req, res) => {
     const allOrders = await Order.find({})
         .sort("-createdAt")
         .populate("products.product")
+        .populate('orderedBy')
         .exec();
     res.json(allOrders);
 };
