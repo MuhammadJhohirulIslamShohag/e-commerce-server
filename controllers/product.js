@@ -45,7 +45,6 @@ exports.list = async (req, res) => {
                 .populate("category")
                 .populate("subCategory")
                 .sort([[sort, order]])
-                .limit(10)
                 .exec();
         } else {
             const currentPage = page || 1;
@@ -172,7 +171,7 @@ exports.productRating = async (req, res) => {
     }
 };
 
-// geting related product
+// getting related product
 exports.relatedProduct = async (req, res) => {
     const product = await Product.findById({
         _id: req.params.productId,
