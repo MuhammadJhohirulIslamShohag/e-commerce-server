@@ -8,7 +8,7 @@ const productSchema = new Schema(
             type: String,
             trim: true,
             required: true,
-            maxlength: 32,
+            maxLength: 32,
             text: true,
         },
         slug: {
@@ -20,14 +20,20 @@ const productSchema = new Schema(
         description: {
             type: String,
             required: true,
-            maxlength: 2000,
+            maxLength: 2000,
             text: true,
         },
         price: {
             type: Number,
             required: true,
             trim: true,
-            maxlength: 32,
+            maxLength: 32,
+        },
+        discount: {
+            type: Number,
+            required: true,
+            trim: true,
+            maxLength: 32,
         },
         category: {
             type: ObjectId,
@@ -55,11 +61,11 @@ const productSchema = new Schema(
         },
         color: {
             type: String,
-            enum: ["green", "blue", "orange", "white", "black"],
+            enum: ["Green", "Blue", "Orange", "White", "Black", "Red"],
         },
         brand: {
             type: String,
-            enum: ["Apple", "Lenvo", "Mac", "Asus", "HP","Samsung"],
+            enum: ["Life-Digital", "Apple", "Lenovo", "Mac", "Asus", "HP","Samsung"],
         },
         ratings: [
             {

@@ -21,6 +21,7 @@ exports.create = async (req, res) => {
 // getting all subcategory controller
 exports.list = async (req, res) => {
     const subCategories = await SubCategory.find({})
+        .populate("parent")
         .sort({ createdAt: -1 })
         .exec();
     res.json(subCategories);

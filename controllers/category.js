@@ -1,13 +1,9 @@
-//importing slugify
 const slugify = require("slugify");
-
-// importing model
 const Category = require("../models/category");
 const Product = require("../models/product");
 const SubCategory = require("../models/sub-category");
 
 exports.create = async (req, res) => {
-    console.log(req.body.categoryName);
     try {
         const { categoryName } = req.body;
         res.json(
