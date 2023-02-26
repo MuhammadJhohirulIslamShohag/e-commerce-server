@@ -45,6 +45,10 @@ const productSchema = new Schema(
                 ref: "SubCategory",
             },
         ],
+        brand: {
+            type: ObjectId,
+            ref: "Brand",
+        },
         colors: [
             {
                 type: ObjectId,
@@ -70,18 +74,6 @@ const productSchema = new Schema(
         shipping: {
             type: String,
             enum: ["Yes", "No"],
-        },
-        brand: {
-            type: String,
-            enum: [
-                "Life-Digital",
-                "Apple",
-                "Lenovo",
-                "Mac",
-                "Asus",
-                "HP",
-                "Samsung",
-            ],
         },
         ratings: [
             {
