@@ -45,37 +45,53 @@ const productSchema = new Schema(
                 ref: "SubCategory",
             },
         ],
+        colors: [
+            {
+                type: ObjectId,
+                ref: "Color",
+            },
+        ],
+        sizes: [
+            {
+                type: ObjectId,
+                ref: "Size",
+            },
+        ],
         quantity: {
             type: Number,
         },
-        sold:{
-            type:Number,
-            default:0
+        sold: {
+            type: Number,
+            default: 0,
         },
-        images:{
-            type:Array
+        images: {
+            type: Array,
         },
         shipping: {
             type: String,
             enum: ["Yes", "No"],
         },
-        color: {
-            type: String,
-            enum: ["Green", "Blue", "Orange", "White", "Black", "Red"],
-        },
         brand: {
             type: String,
-            enum: ["Life-Digital", "Apple", "Lenovo", "Mac", "Asus", "HP","Samsung"],
+            enum: [
+                "Life-Digital",
+                "Apple",
+                "Lenovo",
+                "Mac",
+                "Asus",
+                "HP",
+                "Samsung",
+            ],
         },
         ratings: [
             {
-                star:Number,
+                star: Number,
                 postedBy: {
-                    type:ObjectId,
-                    ref: "User"
-                }
-            }
-        ]
+                    type: ObjectId,
+                    ref: "User",
+                },
+            },
+        ],
     },
     { timestamps: true }
 );
