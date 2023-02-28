@@ -91,6 +91,9 @@ exports.read = async (req, res) => {
         })
             .populate("category")
             .populate("subCategory")
+            .populate("colors")
+            .populate("sizes")
+            .populate("brand")
             .populate("ratings.postedBy")
             .exec();
         res.json(product);
