@@ -43,6 +43,9 @@ const userSchema = new Schema(
             postalCode: String,
             country: String,
         },
+        about:{
+            type: String,
+        },
         wishList: [
             {
                 product: {
