@@ -4,11 +4,37 @@ const shortid = require("shortid");
 // creating auth controller
 exports.createOrUpdateUser = async (req, res) => {
     try {
-        const user = await User.findOneAndUpdate(
-            { email:req.body.email },
-            { ...req.body, username: shortid.generate() },
-            { new: true }
-        );
+      
+        let user;
+        if(req.body.address){
+            // const previousUserInfo = await User.findOne({ email: req.body.address.email }).exec();
+            const addressObject = {
+                ...req.body.address
+            }
+            user = await User.findOneAndUpdate(
+                { email: req.body.address.email },
+               { address: addressObject, username:req.body.address?.username},
+                { new: true }
+            );
+            
+        }else{
+            if(req.body.image){
+                const imageObject = {
+                    ...req.body.image
+                }
+                user = await User.findOneAndUpdate(
+                    { email: req.body.email },
+                    { image: imageObject},
+                    { new: true }
+                ); 
+            }else{
+                user = await User.findOneAndUpdate(
+                    { email: req.body.email },
+                    { ...req.body},
+                    { new: true }
+                ); 
+            }
+        }
         if (user) {
             res.json(user);
         } else {
@@ -26,11 +52,13 @@ exports.createOrUpdateUser = async (req, res) => {
 };
 
 exports.currentUser = async (req, res) => {
-    const { email } = req.user;
-    await User.findOne({ email }).exec((error, user) => {
-        if (error) {
-            console.log(error);
-        }
+    try {
+        const { email } = req.user;
+        const user = await User.findOne({ email }).exec()
         res.json(user);
-    });
+    } catch (error) {
+        res.status(500).json({
+            error: "Something Went Wrong!",
+        });
+    }
 };

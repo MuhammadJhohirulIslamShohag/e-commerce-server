@@ -173,8 +173,9 @@ exports.createOrder = async (req, res) => {
 exports.createCashOrders = async (req, res) => {
     const { isCashOnDelivery, isCoupon } = req.body;
 
-    // if isCashOnDelivery is true, it is going to process to the cash on delivery 
-    if(!isCashOnDelivery) return res.status(400).send("Create Cash Order is Failed!")
+    // if isCashOnDelivery is true, it is going to process to the cash on delivery
+    if (!isCashOnDelivery)
+        return res.status(400).send("Create Cash Order is Failed!");
     // who payment on the cash
     const user = await User.findOne({ email: req.user.email }).exec();
 
@@ -188,7 +189,7 @@ exports.createCashOrders = async (req, res) => {
         finalAmount = userCarts.cartTotal * 100;
     }
 
-   const update =  await new Order({
+    const update = await new Order({
         products: userCarts.products,
         paymentIntents: {
             id: uniqid(),
@@ -220,7 +221,7 @@ exports.createCashOrders = async (req, res) => {
     });
     await Product.bulkWrite(bulkWrites, {});
 
-    res.json({ ok: true, update});
+    res.json({ ok: true, update });
 };
 
 // getting all orders by user
@@ -236,48 +237,64 @@ exports.orders = async (req, res) => {
 
 // add to wishlist
 exports.addToWishList = async (req, res) => {
-    const { productId, isWishList } = req.body;
-    const newWishList = await User.findOneAndUpdate(
-        { email: req.user.email },
-        {
-            $push: {
-                wishList: {
-                    $each: [{ product: productId, isWishList }],
+    try {
+        const { productId, isWishList } = req.body;
+        const newWishList = await User.findOneAndUpdate(
+            { email: req.user.email },
+            {
+                $push: {
+                    wishList: {
+                        $each: [{ product: productId, isWishList }],
+                    },
                 },
-            },
-        }
-    ).exec();
-    res.json(newWishList);
+            }
+        ).exec();
+        res.status(200).json(newWishList);
+    } catch (error) {
+        res.status(501).json({ message: "something went wrong!" });
+    }
 };
 
 // get all wishlist from user
 exports.wishListsByUser = async (req, res) => {
-    const allWishList = await User.findOne({ email: req.user.email })
-        .select("wishList")
-        .populate("wishList.product")
-        .exec();
-    res.json(allWishList);
+    try {
+        const allWishList = await User.findOne({ email: req.user.email })
+            .select("wishList")
+            .populate("wishList.product")
+            .exec();
+        res.status(200).json(allWishList);
+    } catch (error) {
+        res.status(501).json({ message: "something went wrong!" });
+    }
 };
 
 //get single wishlist from user wishlist
 exports.wishList = async (req, res) => {
-    const { productId } = req.body;
-    const allWishList = await User.findOne(
-        { email: req.user.email },
-        { wishList: { $elemMatch: { product: { $in: productId } } } }
-    ).exec();
-    res.json(allWishList);
+    try {
+        const { productId } = req.body;
+        const allWishList = await User.findOne(
+            { email: req.user.email },
+            { wishList: { $elemMatch: { product: { $in: productId } } } }
+        ).exec();
+        res.status(200).json(allWishList);
+    } catch (error) {
+        res.status(501).json({ message: "something went wrong!" });
+    }
 };
 // remove wishlist
 exports.removeWishList = async (req, res) => {
-    const { productId } = req.body;
-    const deleteWishList = await User.findOneAndUpdate(
-        { email: req.user.email },
-        {
-            $pull: {
-                wishList: { product: productId },
-            },
-        }
-    ).exec();
-    res.json(deleteWishList);
+    try {
+        const { productId } = req.body;
+        const deleteWishList = await User.findOneAndUpdate(
+            { email: req.user.email },
+            {
+                $pull: {
+                    wishList: { product: productId },
+                },
+            }
+        ).exec();
+        res.status(200).json(deleteWishList);
+    } catch (error) {
+        res.status(501).json({ message: "something went wrong!" });
+    }
 };

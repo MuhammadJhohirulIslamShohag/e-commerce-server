@@ -26,7 +26,7 @@ const userSchema = new Schema(
             public_id: {
                 type: String,
                 default: `${Date.now()}`,
-            }
+            },
         },
         role: {
             type: String,
@@ -37,13 +37,23 @@ const userSchema = new Schema(
             default: [],
         },
         address: {
-            fullName: String,
-            address: String,
-            city: String,
-            postalCode: String,
-            country: String,
+            fullName: {
+                type: String,
+            },
+            address: {
+                type: String,
+            },
+            city: {
+                type: String,
+            },
+            postalCode: {
+                type: String,
+            },
+            country: {
+                type: String,
+            },
         },
-        about:{
+        about: {
             type: String,
         },
         wishList: [
@@ -52,7 +62,7 @@ const userSchema = new Schema(
                     type: ObjectId,
                     ref: "Product",
                 },
-                isWishList: Boolean
+                isWishList: Boolean,
             },
         ],
     },
