@@ -10,8 +10,8 @@ const couponSchema = new Schema(
             uppercase: true,
             required: "Coupon-Name is required",
             unique: true,
-            minlength: [4, "To Short"],
-            maxlength: [12, "To High"],
+            minLength: [4, "To Short"],
+            maxLength: [12, "To High"],
             index: true,
         },
         discount: {

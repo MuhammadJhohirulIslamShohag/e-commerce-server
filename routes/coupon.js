@@ -11,8 +11,8 @@ const {
 } = require("../controllers/coupon");
 
 // routes
-route.post("/coupon", authCheck, adminCheck, create_coupon);
-route.get("/coupons", authCheck, adminCheck, list_of_coupon);
-route.delete("/coupons/:couponId", authCheck, adminCheck, remove_coupon);
+route.post("/coupon", authCheck, create_coupon);
+route.get("/coupons", authCheck, list_of_coupon);
+route.delete("/coupons/:couponId", authCheck, remove_coupon);
 
 module.exports = route;

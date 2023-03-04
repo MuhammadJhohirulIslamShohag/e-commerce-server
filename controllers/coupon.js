@@ -6,12 +6,11 @@ exports.create_coupon = async (req, res) => {
         const { couponName, discount, expireDate } = req.body;
         const createCoupon = await new Coupon({
             name: couponName,
-            discount,
+            discount: parseInt(discount),
             expiry: expireDate,
         }).save();
         res.json(createCoupon);
     } catch (error) {
-        console.log(error);
         res.status(400).send("Creating Coupon Filed!");
     }
 };
