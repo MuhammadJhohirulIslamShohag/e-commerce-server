@@ -1,14 +1,18 @@
 const route = require("express").Router();
 
-// importing midleware
+// importing middleware
 const { authCheck, adminCheck } = require("../middleware/auth");
 
 // importing controller
-const { create, list, remove} = require("../controllers/coupon");
+const {
+    create_coupon,
+    list_of_coupon,
+    remove_coupon,
+} = require("../controllers/coupon");
 
 // routes
-route.post("/coupon", authCheck, adminCheck, create); // creating coupon
-route.get("/coupons", authCheck, adminCheck, list); // getting all coupon
-route.delete("/coupons/:couponId", authCheck, adminCheck, remove); // delete single coupon
+route.post("/coupon", authCheck, adminCheck, create_coupon);
+route.get("/coupons", authCheck, adminCheck, list_of_coupon);
+route.delete("/coupons/:couponId", authCheck, adminCheck, remove_coupon);
 
 module.exports = route;

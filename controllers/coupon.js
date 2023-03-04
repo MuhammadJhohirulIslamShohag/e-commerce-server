@@ -1,7 +1,7 @@
 const Coupon = require("../models/coupon");
 
 // creating coupon
-exports.create = async (req, res) => {
+exports.create_coupon = async (req, res) => {
     try {
         const { couponName, discount, expireDate } = req.body;
         const createCoupon = await new Coupon({
@@ -17,7 +17,7 @@ exports.create = async (req, res) => {
 };
 
 // list of coupon
-exports.list = async (req, res) => {
+exports.list_of_coupon = async (req, res) => {
     try {
         const listOfCoupons = await Coupon.find({}).exec();
         res.json(listOfCoupons);
@@ -28,7 +28,7 @@ exports.list = async (req, res) => {
 };
 
 // removing single coupon by couponId
-exports.remove = async (req, res) => {
+exports.remove_coupon = async (req, res) => {
     try {
         const deleteCoupon = await Coupon.findOneAndDelete({
             _id: req.params.couponId,
