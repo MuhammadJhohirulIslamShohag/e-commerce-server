@@ -89,10 +89,10 @@ exports.read = async (req, res) => {
         const product = await Product.findOne({
             slug: req.params.slug,
         })
-            .populate("category")
-            .populate("subCategory")
             .populate("colors")
             .populate("sizes")
+            .populate("category")
+            .populate("subCategory")
             .populate("brand")
             .populate("ratings.postedBy")
             .exec();
@@ -359,7 +359,7 @@ exports.productFiltering = async (req, res) => {
         star,
         brand,
         color,
-        sortingObject
+        sortingObject,
     } = req.body;
 
     if (searchQuery) {

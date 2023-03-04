@@ -9,8 +9,8 @@ const subCategorySchema = new Schema(
             type: String,
             trim: true,
             required: "Name is required",
-            minlength: [3, "Too Short"],
-            maxlength: [33, "Too Long"],
+            minLength: [3, "Too Short"],
+            maxLength: [33, "Too Long"],
         },
         slug: {
             type: String,

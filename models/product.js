@@ -52,13 +52,13 @@ const productSchema = new Schema(
         colors: [
             {
                 type: ObjectId,
-                ref: "Color",
+                ref: "Colors",
             },
         ],
         sizes: [
             {
                 type: ObjectId,
-                ref: "Size",
+                ref: "Sizes",
             },
         ],
         quantity: {

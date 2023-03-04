@@ -21,4 +21,4 @@ const colorSchema = new Schema(
     { timestamps: true }
 );
 
-module.exports = mongoose.model("Color", colorSchema);
+module.exports = mongoose.model("Colors", colorSchema);

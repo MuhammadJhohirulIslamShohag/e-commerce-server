@@ -21,4 +21,4 @@ const sizeSchema = new Schema(
     { timestamps: true }
 );
 
-module.exports = mongoose.model("Size", sizeSchema);
+module.exports = mongoose.model("Sizes", sizeSchema);
