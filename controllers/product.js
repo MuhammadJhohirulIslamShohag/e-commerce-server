@@ -42,8 +42,11 @@ exports.list = async (req, res) => {
         let products;
         if (page === "undefined" || page === null) {
             products = await Product.find({})
+                .populate("colors")
+                .populate("sizes")
                 .populate("category")
                 .populate("subCategory")
+                .populate("brand")
                 .sort([[sort, order]])
                 .exec();
         } else {
@@ -51,8 +54,11 @@ exports.list = async (req, res) => {
             const perPage = 3; // 3
             products = await Product.find({})
                 .skip((currentPage - 1) * perPage)
+                .populate("colors")
+                .populate("sizes")
                 .populate("category")
                 .populate("subCategory")
+                .populate("brand")
                 .sort([[sort, order]])
                 .limit(perPage)
                 .exec();
@@ -74,8 +80,11 @@ exports.productsByCount = async (req, res) => {
     try {
         let getProductsByCount = await Product.find({})
             .limit(parseInt(req.params.count))
+            .populate("colors")
+            .populate("sizes")
             .populate("category")
             .populate("subCategory")
+            .populate("brand")
             .sort([["createdAt", "desc"]])
             .exec();
         res.json(getProductsByCount);
