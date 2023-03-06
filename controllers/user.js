@@ -28,6 +28,7 @@ exports.userCart = async (req, res) => {
             object.product = carts[i]._id;
             object.count = carts[i].count;
             object.color = carts[i].color;
+            object.size = carts[i].size;
             const priceOfProduct = await Product.findById({ _id: carts[i]._id })
                 .select("price")
                 .exec();
@@ -87,7 +88,7 @@ exports.emptyCart = async (req, res) => {
     const user = await User.findOne({ email: req.user.email }).exec();
     // delete cart which delete the the database
     const deleteCart = await Cart.findOneAndDelete({
-        orderdBy: user._id,
+        orderedBy: user._id,
     }).exec();
 
     res.json({ deleteCart, ok: true });

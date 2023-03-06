@@ -12,6 +12,7 @@ const orderSchema = new Schema({
             },
             count: Number,
             color: String,
+            size: String
         },
     ],
     paymentIntents: {},
