@@ -5,12 +5,8 @@ const slugify = require("slugify");
 // creating subcategory controller
 exports.create = async (req, res) => {
     try {
-        const { subCategoryName, parent } = req.body;
-        const creatingSubCategory = await new SubCategory({
-            name: subCategoryName,
-            parent,
-            slug: slugify(subCategoryName),
-        }).save();
+        req.body.slug = slugify(req.body.name);
+        const creatingSubCategory = await new SubCategory(req.body).save();
         res.json(creatingSubCategory);
     } catch (error) {
         console.log(error);
@@ -46,13 +42,13 @@ exports.read = async (req, res) => {
 
 // update subcategory controller
 exports.update = async (req, res) => {
-    const { updateSubCategoryName, parent } = req.body;
     const updateSubCategory = await SubCategory.findOneAndUpdate(
         { slug: req.params.slug },
         {
-            name: updateSubCategoryName,
-            parent,
-            slug: slugify(updateSubCategoryName),
+            name: req.body.name,
+            parent: req.body.parent,
+            slug: slugify(req.body.name),
+            images: req.body.images,
         },
         { new: true }
     );

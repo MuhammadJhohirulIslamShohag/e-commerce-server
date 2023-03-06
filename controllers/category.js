@@ -5,13 +5,8 @@ const SubCategory = require("../models/sub-category");
 
 exports.create = async (req, res) => {
     try {
-        const { categoryName } = req.body;
-        res.json(
-            await new Category({
-                name: categoryName,
-                slug: slugify(categoryName),
-            }).save()
-        );
+        req.body.slug = slugify(req.body.name);
+        res.json(await new Category(req.body).save());
     } catch (error) {
         console.log(error.message);
         res.status(400).send("Create category failed");
@@ -34,11 +29,13 @@ exports.read = async (req, res) => {
     res.json({ category, products });
 };
 exports.update = async (req, res) => {
-    const { updateCategoryName } = req.body;
-    console.log(updateCategoryName);
     const updateCategory = await Category.findOneAndUpdate(
         { slug: req.params.slug },
-        { name: updateCategoryName, slug: slugify(updateCategoryName) },
+        {
+            name: req.body.name,
+            slug: slugify(req.body.name),
+            images: req.body.images,
+        },
         { new: true }
     );
 

@@ -18,6 +18,9 @@ const subCategorySchema = new Schema(
             lowercase: true,
             index: true,
         },
+        images: {
+            type: Array,
+        },
         parent: {
             type: ObjectId,
             ref: "Category",
