@@ -17,17 +17,18 @@ exports.all_users = async (req, res) => {
 // get product summary
 exports.project_summary = async (req, res) => {
     try {
-        const users = await User.find({}).estimatedDocumentCount().exec();
-        const orders = await Order.find({}).estimatedDocumentCount().exec();
-        const products = await Order.find({}).estimatedDocumentCount.exec();
-        const totalEarnings = orders.reduce((acc, cur) => {
-            if (cur?.amount) {
-                return (acc += cur?.amount / 100);
+        const users = await User.estimatedDocumentCount().exec();
+        const orders = await Order.find({}).exec();
+        const products = await Product.estimatedDocumentCount();
+        const totalEarnings = orders?.reduce((acc, cur) => {
+            if (cur.paymentIntents.amount) {
+                acc += cur.paymentIntents.amount / 100;
             }
+            return acc;
         }, 0);
         res.json({
             users,
-            orders,
+            orders: orders.length,
             products,
             totalEarnings,
         });
