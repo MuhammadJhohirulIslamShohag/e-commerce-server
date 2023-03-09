@@ -3,10 +3,11 @@ const Product = require("../models/product");
 const User = require("../models/user");
 const slugify = require("slugify");
 
-exports.create = async (req, res) => {
+exports.create_new_product = async (req, res) => {
     try {
         // saving slug because we can get slug from client
         req.body.slug = slugify(req.body.title);
+
         const newProduct = await new Product(req.body).save();
         res.json(newProduct);
     } catch (error) {
@@ -18,25 +19,7 @@ exports.create = async (req, res) => {
     }
 };
 
-// exports.list = async (req, res) => {
-//     try{
-//         const {sort, order, limit} = req.body
-//         let products = await Product.find({})
-//             .limit(limit)
-//             .populate("category")
-//             .populate("subs")
-//             .sort([[sort, order]])
-//             .exec();
-//         res.json(products);
-//     }catch(error){
-//         res.status(400).json({
-//             error:error.message
-//         })
-//     }
-// };
-
-// With Pagination
-exports.list = async (req, res) => {
+exports.get_products_with_sorting = async (req, res) => {
     try {
         const { sort, order, page } = req.query;
         let products;
@@ -71,12 +54,12 @@ exports.list = async (req, res) => {
     }
 };
 
-exports.totalProducts = async (req, res) => {
+exports.get_total_products = async (req, res) => {
     let total = await Product.find({}).estimatedDocumentCount().exec();
     res.json(total);
 };
 
-exports.productsByCount = async (req, res) => {
+exports.products_by_count = async (req, res) => {
     try {
         let getProductsByCount = await Product.find({})
             .limit(parseInt(req.params.count))
@@ -93,7 +76,7 @@ exports.productsByCount = async (req, res) => {
     }
 };
 
-exports.read = async (req, res) => {
+exports.get_single_product = async (req, res) => {
     try {
         const product = await Product.findOne({
             slug: req.params.slug,
@@ -111,7 +94,7 @@ exports.read = async (req, res) => {
     }
 };
 
-exports.update = async (req, res) => {
+exports.update_product = async (req, res) => {
     try {
         if (req.body.title) {
             req.body.slug = slugify(req.body.title);
@@ -129,7 +112,7 @@ exports.update = async (req, res) => {
     }
 };
 
-exports.remove = async (req, res) => {
+exports.removed_product = async (req, res) => {
     try {
         let removeProduct = await Product.findOneAndDelete({
             slug: req.params.slug,
@@ -140,10 +123,9 @@ exports.remove = async (req, res) => {
     }
 };
 
-// start rating controller
-exports.productRating = async (req, res) => {
+exports.added_product_rating = async (req, res) => {
     try {
-        const { star } = req.body;
+        const { star, comment } = req.body;
         const product = await Product.findById({
             _id: req.params.productId,
         }).exec();
@@ -157,7 +139,13 @@ exports.productRating = async (req, res) => {
             const ratingAdded = await Product.findByIdAndUpdate(
                 { _id: product._id },
                 {
-                    $push: { ratings: { star: star, postedBy: user._id } },
+                    $push: {
+                        ratings: {
+                            star: star,
+                            comment: comment,
+                            postedBy: user._id,
+                        },
+                    },
                 },
                 { new: true }
             ).exec();
@@ -169,7 +157,10 @@ exports.productRating = async (req, res) => {
                     ratings: { $elemMatch: existingRatingObject },
                 },
                 {
-                    $set: { "ratings.$.star": star },
+                    $set: {
+                        "ratings.$.star": star,
+                        "ratings.$.comment": comment,
+                    },
                 },
                 { new: true }
             ).exec();
@@ -184,7 +175,7 @@ exports.productRating = async (req, res) => {
 };
 
 // getting related product
-exports.relatedProduct = async (req, res) => {
+exports.get_related_product = async (req, res) => {
     const product = await Product.findById({
         _id: req.params.productId,
     }).exec();
@@ -197,6 +188,7 @@ exports.relatedProduct = async (req, res) => {
 };
 
 //*** getting filter product ***
+
 // search filtering
 const handleSearchFiltering = async (req, res, searchQuery) => {
     console.log("query", searchQuery);
@@ -396,7 +388,6 @@ exports.productFiltering = async (req, res) => {
         await handleShippingFilter(req, res, shipping);
     }
     if (sortingObject) {
-        console.log(sortingObject);
         await handleSortingFilter(req, res, sortingObject);
     }
     // if (newest) {

@@ -78,6 +78,7 @@ const productSchema = new Schema(
         ratings: [
             {
                 star: Number,
+                comment:String,
                 postedBy: {
                     type: ObjectId,
                     ref: "User",
