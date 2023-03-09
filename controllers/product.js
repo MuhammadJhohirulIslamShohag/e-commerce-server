@@ -144,6 +144,7 @@ exports.added_product_rating = async (req, res) => {
                             star: star,
                             comment: comment,
                             postedBy: user._id,
+                            reviewedAt: new Date(),
                         },
                     },
                 },
