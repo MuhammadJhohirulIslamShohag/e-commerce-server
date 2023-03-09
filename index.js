@@ -27,6 +27,10 @@ const db_uri = process.env.DATABASE_URI;
 const db_name = process.env.DATABASE_NAME;
 const port = process.env.PORT || 8000;
 
+app.get("/api", (req, res) => {
+    res.send("E-Commerce-Aladin server is running");
+});
+
 app.listen(port, async () => {
     await connect(db_uri, db_name)
     console.log(`Server Is Running on Port ${port}`);
