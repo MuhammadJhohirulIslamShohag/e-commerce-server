@@ -13,7 +13,7 @@ const {
     remove_size,
 } = require("../controllers/size");
 
-// creating category routers
+// creating size routers
 router.post("/sizes", authCheck, adminCheck, create_size);
 router.get("/sizes", list_of_sizes);
 router.get("/sizes/:slug", get_single_size);

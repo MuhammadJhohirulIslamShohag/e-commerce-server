@@ -13,7 +13,7 @@ const {
     remove_color,
 } = require("../controllers/color");
 
-// creating category routers
+// creating color routers
 router.post("/colors", authCheck, adminCheck, create_color);
 router.get("/colors", list_of_colors);
 router.get("/colors/:slug", get_single_color);
