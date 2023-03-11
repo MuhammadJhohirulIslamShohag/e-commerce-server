@@ -2,7 +2,7 @@ const User = require("../models/user");
 const shortid = require("shortid");
 
 // creating auth controller
-exports.createOrUpdateUser = async (req, res) => {
+exports.create_or_update_user = async (req, res) => {
     try {
       
         let user;
@@ -51,7 +51,7 @@ exports.createOrUpdateUser = async (req, res) => {
     }
 };
 
-exports.currentUser = async (req, res) => {
+exports.current_user = async (req, res) => {
     try {
         const { email } = req.user;
         const user = await User.findOne({ email }).exec()

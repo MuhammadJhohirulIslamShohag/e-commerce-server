@@ -3,7 +3,7 @@ const Product = require("../models/product");
 const slugify = require("slugify");
 
 // creating subcategory controller
-exports.create = async (req, res) => {
+exports.create_sub_category = async (req, res) => {
     try {
         req.body.slug = slugify(req.body.name);
         const creatingSubCategory = await new SubCategory(req.body).save();
@@ -15,7 +15,7 @@ exports.create = async (req, res) => {
 };
 
 // getting all subcategory controller
-exports.list = async (req, res) => {
+exports.list_of_sub_categories = async (req, res) => {
     const subCategories = await SubCategory.find({})
         .populate("parent")
         .sort({ createdAt: -1 })
@@ -24,7 +24,7 @@ exports.list = async (req, res) => {
 };
 
 // getting single subcategory controller
-exports.read = async (req, res) => {
+exports.get_single_sub_category = async (req, res) => {
     const subCategory = await SubCategory.findOne({
         slug: req.params.slug,
     }).exec();
@@ -41,7 +41,7 @@ exports.read = async (req, res) => {
 };
 
 // update subcategory controller
-exports.update = async (req, res) => {
+exports.update_sub_category = async (req, res) => {
     const updateSubCategory = await SubCategory.findOneAndUpdate(
         { slug: req.params.slug },
         {
@@ -56,7 +56,7 @@ exports.update = async (req, res) => {
 };
 
 // removing subcategory controller
-exports.remove = async (req, res) => {
+exports.removed_sub_category = async (req, res) => {
     try {
         const deletedSubCategory = await SubCategory.findOneAndDelete({
             slug: req.params.slug,

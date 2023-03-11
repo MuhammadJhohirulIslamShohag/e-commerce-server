@@ -5,7 +5,7 @@ const Cart = require("../models/cart");
 const Coupon = require("../models/coupon");
 const Order = require("../models/order");
 
-exports.userCart = async (req, res) => {
+exports.added_user_cart = async (req, res) => {
     try {
         // receiving carts data from frontend
         const { carts } = req.body;
@@ -47,90 +47,112 @@ exports.userCart = async (req, res) => {
             cartTotal,
             orderedBy: user._id,
         }).save();
-        console.log(newCart, "New Cart");
         res.json({ ok: true });
     } catch (error) {
         res.status(400).send("Failed To Save Cart To the Database!");
     }
 };
 
-exports.getUserCart = async (req, res) => {
-    // to get user object who added cart
-    const user = await User.findOne({ email: req.user.email }).exec();
-    // get cart which saves in the database
-    const cart = await Cart.find({ orderedBy: user._id })
-        .populate("products.product", "_id title price")
-        .exec();
-    res.json(cart);
+exports.get_user_cart = async (req, res) => {
+    try {
+        // to get user object who added cart
+        const user = await User.findOne({ email: req.user.email }).exec();
+        // get cart which saves in the database
+        const cart = await Cart.find({ orderedBy: user._id })
+            .populate("products.product", "_id title price")
+            .exec();
+        res.json(cart);
+    } catch (error) {
+        res.status(500).json({ message: "something went wrong!" });
+    }
 };
 
-exports.saveAddress = async (req, res) => {
-    // save address into user
-    const userAddressAdded = await User.findOneAndUpdate(
-        { email: req.user.email },
-        {
-            address: req.body,
-        },
-        { new: true }
-    ).exec();
-    res.json(userAddressAdded);
-};
-exports.shippingAddress = async (req, res) => {
-    // getting shipping address from user
-    const userShippingAddress = await User.findOne({
-        email: req.user.email,
-    }).exec();
-    res.json(userShippingAddress);
+exports.save_user_address = async (req, res) => {
+    try {
+        // save address into user
+        const userAddressAdded = await User.findOneAndUpdate(
+            { email: req.user.email },
+            {
+                address: req.body,
+            },
+            { new: true }
+        ).exec();
+        res.json(userAddressAdded);
+    } catch (error) {
+        res.status(500).json({ message: "something went wrong!" });
+    }
 };
 
-exports.emptyCart = async (req, res) => {
-    // to get user who delete the cart
-    const user = await User.findOne({ email: req.user.email }).exec();
-    // delete cart which delete the the database
-    const deleteCart = await Cart.findOneAndDelete({
-        orderedBy: user._id,
-    }).exec();
+exports.shipping_address = async (req, res) => {
+    try {
+        // getting shipping address from user
+        const userShippingAddress = await User.findOne({
+            email: req.user.email,
+        }).exec();
+        res.json(userShippingAddress);
+    } catch (error) {
+        res.status(500).json({ message: "something went wrong!" });
+    }
+};
 
-    res.json({ deleteCart, ok: true });
+exports.empty_cart = async (req, res) => {
+    try {
+        // to get user who delete the cart
+        const user = await User.findOne({ email: req.user.email }).exec();
+        // delete cart which delete the the database
+        const deleteCart = await Cart.findOneAndDelete({
+            orderedBy: user._id,
+        }).exec();
+
+        res.json({ deleteCart, ok: true });
+    } catch (error) {
+        res.status(500).json({ message: "something went wrong!" });
+    }
 };
 
 // getting discount price
-exports.totalDiscountPrice = async (req, res) => {
-    const { couponName } = req.body;
-    // checking is it valid coupon or not
-    const validationCoupon = await Coupon.findOne({ name: couponName }).exec();
-    if (validationCoupon === null) {
-        return res.json({
-            error: "Invalid Coupon",
-        });
+exports.total_discount_price = async (req, res) => {
+    try {
+        const { couponName } = req.body;
+        // checking is it valid coupon or not
+        const validationCoupon = await Coupon.findOne({
+            name: couponName,
+        }).exec();
+        if (validationCoupon === null) {
+            return res.json({
+                error: "Invalid Coupon",
+            });
+        }
+
+        // get user who want to process ordering
+        const user = await User.findOne({ email: req.user.email }).exec();
+        // getting carts by the userId
+        const carts = await Cart.findOne({ orderedBy: user._id })
+            .populate("products.product", "_id title price")
+            .exec();
+        const { cartTotal } = carts;
+        // calculate totalAfterDiscount
+        const totalPriceAfterDiscount =
+            cartTotal - (cartTotal * validationCoupon.discount) / 100;
+
+        await Cart.findOneAndUpdate(
+            { orderedBy: user._id },
+            {
+                totalPriceAfterDiscount,
+            },
+            { new: true }
+        ).exec();
+
+        res.json({ totalPriceAfterDiscount });
+    } catch (error) {
+        res.status(500).json({ message: "something went wrong!" });
     }
-
-    // get user who want to process ordering
-    const user = await User.findOne({ email: req.user.email }).exec();
-    // getting carts by the userId
-    const carts = await Cart.findOne({ orderedBy: user._id })
-        .populate("products.product", "_id title price")
-        .exec();
-    const { cartTotal } = carts;
-    // calculate totalAfterDiscount
-    const totalPriceAfterDiscount =
-        cartTotal - (cartTotal * validationCoupon.discount) / 100;
-
-    await Cart.findOneAndUpdate(
-        { orderedBy: user._id },
-        {
-            totalPriceAfterDiscount,
-        },
-        { new: true }
-    ).exec();
-
-    res.json({ totalPriceAfterDiscount });
 };
 
 // cart order by online payment
-exports.createOrder = async (req, res) => {
+exports.create_order = async (req, res) => {
     try {
-        const { paymentIntent } = req.body.paymentIntents;
+        const { paymentIntent, paymentBy } = req.body;
         // who order
         const user = await User.findOne({ email: req.user.email }).exec();
 
@@ -143,6 +165,7 @@ exports.createOrder = async (req, res) => {
             products,
             paymentIntents: paymentIntent,
             orderedBy: user._id,
+            paymentBy,
         }).save();
 
         // decrement quantity and sold increment
@@ -171,73 +194,82 @@ exports.createOrder = async (req, res) => {
 };
 
 // create order by cash order delivery
-exports.createCashOrders = async (req, res) => {
-    const { isCashOnDelivery, isCoupon } = req.body;
+exports.create_cash_orders = async (req, res) => {
+    try {
+        const { isCashOnDelivery, isCoupon } = req.body;
 
-    // if isCashOnDelivery is true, it is going to process to the cash on delivery
-    if (!isCashOnDelivery)
-        return res.status(400).send("Create Cash Order is Failed!");
-    // who payment on the cash
-    const user = await User.findOne({ email: req.user.email }).exec();
+        // if isCashOnDelivery is true, it is going to process to the cash on delivery
+        if (!isCashOnDelivery)
+            return res.status(400).send("Create Cash Order is Failed!");
+        // who payment on the cash
+        const user = await User.findOne({ email: req.user.email }).exec();
 
-    // which carts
-    const userCarts = await Cart.findOne({ orderedBy: user._id }).exec();
+        // which carts
+        const userCarts = await Cart.findOne({ orderedBy: user._id }).exec();
 
-    let finalAmount = 0;
-    if (isCoupon && userCarts.totalPriceAfterDiscount) {
-        finalAmount = userCarts.totalPriceAfterDiscount * 100;
-    } else {
-        finalAmount = userCarts.cartTotal * 100;
-    }
+        let finalAmount = 0;
+        if (isCoupon && userCarts.totalPriceAfterDiscount) {
+            finalAmount = userCarts.totalPriceAfterDiscount * 100;
+        } else {
+            finalAmount = userCarts.cartTotal * 100;
+        }
 
-    const update = await new Order({
-        products: userCarts.products,
-        paymentIntents: {
-            id: uniqid(),
-            amount: finalAmount,
-            currency: "usd",
-            payment_method_types: ["Cash"],
-            status: "succeeded",
-            created: Date.now(),
-        },
-        orderStatus: "Cash On Delivery",
-        orderedBy: user._id,
-    }).save();
+        const update = await new Order({
+            products: userCarts.products,
+            paymentIntents: {
+                id: uniqid(),
+                amount: finalAmount,
+                currency: "usd",
+                payment_method_types: ["Cash"],
+                status: "succeeded",
+                created: Date.now(),
+            },
+            orderStatus: "Cash On Delivery",
+            orderedBy: user._id,
+        }).save();
 
-    // increment sold and decrement quantity
-    const bulkWrites = userCarts.products.map((item) => {
-        return {
-            updateOne: {
-                filter: {
-                    _id: item.product._id,
-                },
-                update: {
-                    $inc: {
-                        quantity: -item.count,
-                        sold: +item.count,
+        // increment sold and decrement quantity
+        const bulkWrites = userCarts.products.map((item) => {
+            return {
+                updateOne: {
+                    filter: {
+                        _id: item.product._id,
+                    },
+                    update: {
+                        $inc: {
+                            quantity: -item.count,
+                            sold: +item.count,
+                        },
                     },
                 },
-            },
-        };
-    });
-    await Product.bulkWrite(bulkWrites, {});
+            };
+        });
+        await Product.bulkWrite(bulkWrites, {});
 
-    res.json({ ok: true, update });
+        res.json({ ok: true, update });
+    } catch (error) {
+        res.status(500).json({ message: "something went wrong!" });
+    }
 };
 
 // getting all orders by user
-exports.orders = async (req, res) => {
-    // who is the ordered
-    const user = await User.findOne({ email: req.user.email }).exec();
-    // getting all orders by user id
-    const allOrders = await Order.find({ orderedBy: user._id })
-        .populate("products.product")
-        .exec();
-    res.json(allOrders);
+exports.list_of_orders_by_user = async (req, res) => {
+    try {
+        // who is the ordered
+        const user = await User.findOne({ email: req.user.email }).exec();
+        // getting all orders by user id
+        const allOrders = await Order.find({ orderedBy: user._id })
+            .populate("products.product")
+            .sort({ createdAt: -1 })
+            .exec();
+        res.json(allOrders);
+    } catch (error) {
+        res.status(500).json({ message: "something went wrong!" });
+    }
 };
 
 // add to wishlist
-exports.addToWishList = async (req, res) => {
+exports.add_to_wish_list = async (req, res) => {
     try {
         const { productId, isWishList } = req.body;
         const newWishList = await User.findOneAndUpdate(
@@ -257,7 +289,7 @@ exports.addToWishList = async (req, res) => {
 };
 
 // get all wishlist from user
-exports.wishListsByUser = async (req, res) => {
+exports.wish_lists_by_user = async (req, res) => {
     try {
         const allWishList = await User.findOne({ email: req.user.email })
             .select("wishList")
@@ -270,7 +302,7 @@ exports.wishListsByUser = async (req, res) => {
 };
 
 //get single wishlist from user wishlist
-exports.wishList = async (req, res) => {
+exports.get_single_wish_list = async (req, res) => {
     try {
         const { productId } = req.body;
         const allWishList = await User.findOne(
@@ -283,7 +315,7 @@ exports.wishList = async (req, res) => {
     }
 };
 // remove wishlist
-exports.removeWishList = async (req, res) => {
+exports.removed_wish_list = async (req, res) => {
     try {
         const { productId } = req.body;
         const deleteWishList = await User.findOneAndUpdate(

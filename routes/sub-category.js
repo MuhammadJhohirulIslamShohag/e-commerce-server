@@ -6,20 +6,23 @@ const { authCheck, adminCheck } = require("../middleware/auth");
 
 // importing controller
 const {
-    create,
-    list,
-    read,
-    update,
-    remove,
-    getSubCategory
+    create_sub_category,
+    list_of_sub_categories,
+    get_single_sub_category,
+    update_sub_category,
+    removed_sub_category,
 } = require("../controllers/sub-category");
 
-// sub-category routing
-router.post("/sub-category", authCheck, adminCheck, create);
-router.get("/sub-categories", list);
-router.get("/sub-categories/:slug", read);
-router.put("/sub-categories/:slug", authCheck, adminCheck, update);
-router.delete("/sub-categories/:slug", authCheck, adminCheck, remove);
-
+// sub-category routes
+router.post("/sub-category", authCheck, adminCheck, create_sub_category);
+router.get("/sub-categories", list_of_sub_categories);
+router.get("/sub-categories/:slug", get_single_sub_category);
+router.put("/sub-categories/:slug", authCheck, adminCheck, update_sub_category);
+router.delete(
+    "/sub-categories/:slug",
+    authCheck,
+    adminCheck,
+    removed_sub_category
+);
 
 module.exports = router;

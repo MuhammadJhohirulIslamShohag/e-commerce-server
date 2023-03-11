@@ -9,7 +9,7 @@ cloudinary.config({
 });
 
 // upload images controller
-exports.upload = async (req, res) => {
+exports.upload_image = async (req, res) => {
     try {
         let result = await cloudinary.uploader.upload(req.body.uploadImageFile, {
             public_id: `${Date.now()}`,
@@ -25,7 +25,7 @@ exports.upload = async (req, res) => {
 };
 
 // remove image controller
-exports.remove = (req, res) => {
+exports.removed_image = (req, res) => {
     let image_id = req.body.public_id;
     cloudinary.uploader.destroy(image_id, (err, result) => {
         if (err) return res.json({ success: false, err });

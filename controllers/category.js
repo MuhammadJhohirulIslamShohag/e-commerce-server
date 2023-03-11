@@ -3,7 +3,7 @@ const Category = require("../models/category");
 const Product = require("../models/product");
 const SubCategory = require("../models/sub-category");
 
-exports.create = async (req, res) => {
+exports.create_category = async (req, res) => {
     try {
         req.body.slug = slugify(req.body.name);
         res.json(await new Category(req.body).save());
@@ -13,11 +13,11 @@ exports.create = async (req, res) => {
     }
 };
 
-exports.list = async (req, res) => {
+exports.list_of_categories = async (req, res) => {
     const categories = await Category.find({}).sort({ createdAt: -1 }).exec();
     res.json(categories);
 };
-exports.read = async (req, res) => {
+exports.get_single_category = async (req, res) => {
     const category = await Category.findOne({
         slug: req.params.slug,
     }).exec();
@@ -28,7 +28,7 @@ exports.read = async (req, res) => {
 
     res.json({ category, products });
 };
-exports.update = async (req, res) => {
+exports.update_category = async (req, res) => {
     const updateCategory = await Category.findOneAndUpdate(
         { slug: req.params.slug },
         {
@@ -41,7 +41,7 @@ exports.update = async (req, res) => {
 
     res.json(updateCategory);
 };
-exports.remove = async (req, res) => {
+exports.removed_category = async (req, res) => {
     try {
         const deleted = await Category.findOneAndDelete({
             slug: req.params.slug,
@@ -52,8 +52,7 @@ exports.remove = async (req, res) => {
     }
 };
 
-// getting sub category according to id
-exports.subCategoryOnCategory = (req, res) =>
+exports.sub_category_based_category = (req, res) =>
     SubCategory.find({ parent: req.params._id }).exec((error, data) => {
         if (error) {
             console.log(error);
