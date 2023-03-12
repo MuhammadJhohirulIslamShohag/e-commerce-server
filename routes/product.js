@@ -5,7 +5,7 @@ const router = express.Router();
 // importing middleware
 const { authCheck, adminCheck } = require("../middleware/auth");
 
-// importing controller
+// importing controllers
 const {
     create_new_product,
     get_products_with_sorting,
@@ -19,6 +19,7 @@ const {
     productFiltering,
 } = require("../controllers/product");
 
+// creating products routers
 router.post("/product", authCheck, adminCheck, create_new_product);
 router.get("/products", get_products_with_sorting);
 router.post("/products/total", get_total_products);

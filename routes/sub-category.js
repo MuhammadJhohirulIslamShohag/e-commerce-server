@@ -4,7 +4,7 @@ const router = express.Router();
 // importing middleware
 const { authCheck, adminCheck } = require("../middleware/auth");
 
-// importing controller
+// importing controllers
 const {
     create_sub_category,
     list_of_sub_categories,
