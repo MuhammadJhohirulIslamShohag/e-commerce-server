@@ -42,8 +42,8 @@ app.all("*", (req, res) => {
     res.send("No route found!");
 });
 
-app.on("unhandledRejection", (error) => {
-   console.log(error.message)
+process.on("unhandledRejection", (error) => {
+    console.log(error.message)
     app.close(() => {
         process.exit(1)
     })
