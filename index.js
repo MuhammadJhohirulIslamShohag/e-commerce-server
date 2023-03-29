@@ -18,20 +18,33 @@ app.use(bodyParser.json({ limit: "100mb" }));
 app.use(bodyParser.urlencoded({ limit: "100mb", extended: true }));
 app.use(cors());
 
-// routes
-readdirSync("./routes").map((r) => {
-    app.use("/api", require(`./routes/${r}`));
-});
 
 const db_uri = process.env.DATABASE_URI;
 const db_name = process.env.DATABASE_NAME;
 const port = process.env.PORT || 8000;
 
-app.get("/api", (req, res) => {
-    res.send("E-Commerce-Aladin server is running");
-});
-
 app.listen(port, async () => {
     await connect(db_uri, db_name)
     console.log(`Server Is Running on Port ${port}`);
+});
+
+// routes
+readdirSync("./routes").map((r) => {
+    app.use("/api", require(`./routes/${r}`));
+});
+
+
+app.get("/", (req, res) => {
+    res.send("E-Commerce-Aladin server is running");
+});
+
+app.all("*", (req, res) => {
+    res.send("No route found!");
+});
+
+app.on("unhandledRejection", (error) => {
+   console.log(error.message)
+    app.close(() => {
+        process.exit(1)
+    })
 });
