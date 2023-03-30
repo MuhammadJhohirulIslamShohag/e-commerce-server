@@ -5,7 +5,7 @@ const bodyParser = require("body-parser");
 const cors = require("cors");
 const path = require("path");
 // const { readdirSync } = require("fs");
-const { connect } = require("./config/db/mongo");
+const connectWithMongoDB = require("./config/mongo.db.config");
 const rootRouters = require("./routes");
 require("dotenv").config({ path: path.resolve(__dirname, "./.env") });
 
@@ -19,22 +19,14 @@ app.use(bodyParser.urlencoded({ limit: "100mb", extended: true }));
 app.use(cors());
 
 const db_uri = process.env.DATABASE_URI;
-const db_name = process.env.DATABASE_NAME;
-const port = process.env.PORT || 8000;
+const PORT = process.env.PORT || 8000;
 // listening the express server
-app.listen(port, async () => {
-    await connect(db_uri, db_name);
-    console.log(`Server Is Running on Port ${port}`);
+app.listen(PORT, () => {
+    connectWithMongoDB(db_uri);
+    console.log(`Server Is Running on Port ${PORT}`);
 });
 
-process.on("unhandledRejection", (error) => {
-    console.log(error.message);
-    app.close(() => {
-        process.exit(1);
-    });
-});
-
-// // routes
+// routes
 // readdirSync("./routes").map((r) => {
 //     app.use("/api", require(`./routes/${r}`));
 // });
@@ -46,4 +38,11 @@ app.get("/", (req, res) => {
 
 app.all("*", (req, res) => {
     res.send("No route found!");
+});
+
+process.on("unhandledRejection", (error) => {
+    console.log(error.message);
+    app.close(() => {
+        process.exit(1);
+    });
 });
