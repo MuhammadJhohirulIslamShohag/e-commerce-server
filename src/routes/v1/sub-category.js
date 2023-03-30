@@ -15,7 +15,7 @@ const {
 
 // sub-category routes
 router
-    .route("/sub-categories")
+    .route("/")
     .post(authCheck, adminCheck, create_sub_category)
     .get(list_of_sub_categories);
 router

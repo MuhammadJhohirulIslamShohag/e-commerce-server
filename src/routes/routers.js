@@ -27,7 +27,6 @@ router.use("/products", productRouters);
 router.use("/sizes", sizeRouters);
 router.use("/stripe", stripeRouters);
 router.use("/subCategories", subCategoryRouters);
-router.use("/subCategories", subCategoryRouters);
 router.use("/users", userRouters);
 
 module.exports = router;
