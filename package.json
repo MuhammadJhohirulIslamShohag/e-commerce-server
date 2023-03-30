@@ -2,11 +2,11 @@
   "name": "e-commerce-server",
   "version": "1.0.0",
   "description": "",
-  "main": "index.js",
+  "main": "src/server.js",
   "scripts": {
-    "start": "node index.js",
-    "dev": "nodemon index.js",
-    "build": "node index.js"
+    "start": "node src/server.js",
+    "dev": "nodemon src/server.js",
+    "build": "node src/server.js"
   },
   "keywords": [],
   "author": "",
