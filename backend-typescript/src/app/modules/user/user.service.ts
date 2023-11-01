@@ -1,9 +1,12 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import User from './user.model';
-import ApiError from '../../../errors/ApiError';
 import httpStatus from 'http-status';
+import uniqid from 'uniqid';
+
 import Cart from '../cart/cart.model';
-import { CartItem, CartProduct } from '../cart/cart.interface';
+import User from './user.model';
+import { IUser } from './user.interface';
+import { CartItem, CartProduct, ICart } from '../cart/cart.interface';
+import ApiError from '../../../errors/ApiError';
 
 const addUserCart = async (carts: CartItem[], email: string) => {
   // finding user who save order cart into the database
@@ -64,291 +67,353 @@ const addUserCart = async (carts: CartItem[], email: string) => {
   };
 };
 
-exports.get_user_cart = async (req, res) => {
-  try {
-    // to get user object who added cart
-    const user = await User.findOne({ email: req.user.email }).exec();
-    // get cart which saves in the database
-    const cart = await Cart.find({ orderedBy: user._id })
-      .populate('products.product', '_id title price')
-      .exec();
-    res.json(cart);
-  } catch (error) {
-    res.status(500).json({ message: 'something went wrong!' });
+const getUserCart = async (email: string) => {
+  // to get user object who added cart
+  const user = await User.findOne({ email: email }).exec();
+
+  // check user is exit, if not throw error
+  if (!user) {
+    throw new ApiError(httpStatus.CONFLICT, 'User not found!');
   }
+
+  // get cart which saves in the database
+  const cart = await Cart.find({ orderedBy: user._id })
+    .populate('products.product', '_id title price')
+    .exec();
+
+  return cart;
 };
 
-exports.save_user_address = async (req, res) => {
-  try {
-    // save address into user
-    const userAddressAdded = await User.findOneAndUpdate(
-      { email: req.user.email },
-      {
-        address: req.body,
-      },
-      { new: true }
-    ).exec();
-    res.json(userAddressAdded);
-  } catch (error) {
-    res.status(500).json({ message: 'something went wrong!' });
+const saveUserAddress = async (
+  email: string,
+  payload: Pick<IUser, 'address'>
+) => {
+  // to get user object who added cart
+  const user = await User.findOne({ email: email }).exec();
+
+  // check user is exit, if not throw error
+  if (!user) {
+    throw new ApiError(httpStatus.CONFLICT, 'User not found!');
   }
+
+  // save address into user
+  const result = await User.findOneAndUpdate(
+    { email: email },
+    {
+      address: payload,
+    },
+    { new: true }
+  ).exec();
+
+  return result;
 };
 
-exports.shipping_address = async (req, res) => {
-  try {
-    // getting shipping address from user
-    const userShippingAddress = await User.findOne({
-      email: req.user.email,
-    }).exec();
-    res.json(userShippingAddress);
-  } catch (error) {
-    res.status(500).json({ message: 'something went wrong!' });
+const shippingAddress = async (email: string) => {
+  // to get user object who added cart
+  const user = await User.findOne({ email: email }).exec();
+
+  // check user is exit, if not throw error
+  if (!user) {
+    throw new ApiError(httpStatus.CONFLICT, 'User not found!');
   }
+
+  // getting shipping address from user
+  const result = await User.findOne({
+    email: email,
+  }).exec();
+
+  return result;
 };
 
-exports.empty_cart = async (req, res) => {
-  try {
-    // to get user who delete the cart
-    const user = await User.findOne({ email: req.user.email }).exec();
-    // delete cart which delete the the database
-    const deleteCart = await Cart.findOneAndDelete({
-      orderedBy: user._id,
-    }).exec();
+const emptyCart = async (email: string) => {
+  // to get user object who added cart
+  const user = await User.findOne({ email: email }).exec();
 
-    res.json({ deleteCart, ok: true });
-  } catch (error) {
-    res.status(500).json({ message: 'something went wrong!' });
+  // check user is exit, if not throw error
+  if (!user) {
+    throw new ApiError(httpStatus.CONFLICT, 'User not found!');
   }
+  // delete cart which delete the the database
+  const result = await Cart.findOneAndDelete({
+    orderedBy: user._id,
+  }).exec();
+
+  return result;
 };
 
 // getting discount price
-exports.total_discount_price = async (req, res) => {
-  try {
-    const { couponName } = req.body;
-    // checking is it valid coupon or not
-    const validationCoupon = await Coupon.findOne({
-      name: couponName,
-    }).exec();
-    if (validationCoupon === null) {
-      return res.json({
-        error: 'Invalid Coupon',
-      });
-    }
+const totalDiscountPrice = async (couponName: string, email: string) => {
+  // checking is it valid coupon or not
+  const coupon = await Coupon.findOne({
+    name: couponName,
+  }).exec();
 
-    // get user who want to process ordering
-    const user = await User.findOne({ email: req.user.email }).exec();
-    // getting carts by the userId
-    const carts = await Cart.findOne({ orderedBy: user._id })
-      .populate('products.product', '_id title price')
-      .exec();
-    const { cartTotal } = carts;
-    // calculate totalAfterDiscount
-    const totalPriceAfterDiscount =
-      cartTotal - (cartTotal * validationCoupon.discount) / 100;
-
-    await Cart.findOneAndUpdate(
-      { orderedBy: user._id },
-      {
-        totalPriceAfterDiscount,
-      },
-      { new: true }
-    ).exec();
-
-    res.json({ totalPriceAfterDiscount });
-  } catch (error) {
-    res.status(500).json({ message: 'something went wrong!' });
+  if (!coupon) {
+    throw new ApiError(httpStatus.CONFLICT, 'Invalid Coupon Id!');
   }
+
+  // get user who want to process ordering
+  const user = await User.findOne({ email: email }).exec();
+
+  // check user is exit, if not throw error
+  if (!user) {
+    throw new ApiError(httpStatus.CONFLICT, 'User not found!');
+  }
+
+  // getting carts by the userId
+  const carts = await Cart.findOne({ orderedBy: user._id })
+    .populate('products.product', '_id title price')
+    .exec();
+
+  const { cartTotal } = carts as ICart;
+
+  // calculate totalAfterDiscount
+  const totalPriceAfterDiscount =
+    cartTotal - (cartTotal * coupon.discount) / 100;
+
+  await Cart.findOneAndUpdate(
+    { orderedBy: user._id },
+    {
+      totalPriceAfterDiscount,
+    },
+    { new: true }
+  ).exec();
+
+  return totalPriceAfterDiscount;
 };
 
 // cart order by online payment
-exports.create_order = async (req, res) => {
-  try {
-    const { paymentIntent, paymentBy } = req.body;
-    // who order
-    const user = await User.findOne({ email: req.user.email }).exec();
+const createOrder = async (
+  paymentIntent: any,
+  paymentBy: any,
+  email: string
+) => {
+  // who order
+  const user = await User.findOne({ email: email }).exec();
 
-    // which product carts
-    const carts = await Cart.findOne({ orderedBy: user._id }).exec();
-    const { products } = carts;
+  // check user is exit, if not throw error
+  if (!user) {
+    throw new ApiError(httpStatus.CONFLICT, 'User not found!');
+  }
 
-    // save to the database
-    await new Order({
-      products,
-      paymentIntents: paymentIntent,
-      orderedBy: user._id,
-      paymentBy,
-    }).save();
+  // which product carts
+  const carts = await Cart.findOne({ orderedBy: user._id }).exec();
 
-    // decrement quantity and sold increment
-    const bulkOption = products.map(item => {
-      return {
-        updateOne: {
-          filter: {
-            _id: item.product._id,
-          },
-          update: {
-            $inc: {
-              quantity: -item.count,
-              sold: +item.count,
-            },
+  // check product cart is exit, if not throw error
+  if (!carts) {
+    throw new ApiError(httpStatus.CONFLICT, 'Carts Not Found!');
+  }
+
+  const { products } = carts as ICart;
+
+  // save to the database
+  await new Order({
+    products,
+    paymentIntents: paymentIntent,
+    orderedBy: user._id,
+    paymentBy,
+  }).save();
+
+  // decrement quantity and sold increment
+  const bulkOption = products.map(item => {
+    return {
+      updateOne: {
+        filter: {
+          _id: (item?.product as any)?._id,
+        },
+        update: {
+          $inc: {
+            quantity: -item.count,
+            sold: +item.count,
           },
         },
-      };
-    });
+      },
+    };
+  });
 
-    // update
-    let update = await Product.bulkWrite(bulkOption, {});
-    res.json({ ok: true });
-  } catch (error) {
-    res.status(400).send('Failed To Save Order Cart To the Database!');
-  }
+  await Product.bulkWrite(bulkOption, {});
+
+  return { ok: true };
 };
 
 // create order by cash order delivery
-exports.create_cash_orders = async (req, res) => {
-  try {
-    const { isCashOnDelivery, isCoupon } = req.body;
+const createCashOrders = async (
+  isCashOnDelivery: boolean,
+  isCoupon: boolean,
+  email: string
+) => {
+  // if isCashOnDelivery is true, it is going to process to the cash on delivery
+  if (!isCashOnDelivery) {
+    throw new ApiError(httpStatus.CONFLICT, 'Create Cash Order is Failed!');
+  }
 
-    // if isCashOnDelivery is true, it is going to process to the cash on delivery
-    if (!isCashOnDelivery)
-      return res.status(400).send('Create Cash Order is Failed!');
-    // who payment on the cash
-    const user = await User.findOne({ email: req.user.email }).exec();
+  // who payment on the cash
+  const user = await User.findOne({ email: email }).exec();
 
-    // which carts
-    const userCarts = await Cart.findOne({ orderedBy: user._id }).exec();
+  // check user is exit, if not throw error
+  if (!user) {
+    throw new ApiError(httpStatus.CONFLICT, 'User not found!');
+  }
 
-    let finalAmount = 0;
-    if (isCoupon && userCarts.totalPriceAfterDiscount) {
-      finalAmount = userCarts.totalPriceAfterDiscount * 100;
-    } else {
-      finalAmount = userCarts.cartTotal * 100;
-    }
+  // which carts
+  const userCarts = await Cart.findOne({ orderedBy: user._id }).exec();
 
-    const update = await new Order({
-      products: userCarts.products,
-      paymentIntents: {
-        id: uniqid(),
-        amount: finalAmount,
-        currency: 'usd',
-        payment_method_types: ['Cash'],
-        status: 'succeeded',
-        created: Date.now(),
-      },
-      orderStatus: 'Cash On Delivery',
-      orderedBy: user._id,
-    }).save();
+  // check user cart is exit, if not throw error
+  if (!userCarts) {
+    throw new ApiError(httpStatus.CONFLICT, 'User Cart Not Found!');
+  }
 
-    // increment sold and decrement quantity
-    const bulkWrites = userCarts.products.map(item => {
-      return {
-        updateOne: {
-          filter: {
-            _id: item.product._id,
-          },
-          update: {
-            $inc: {
-              quantity: -item.count,
-              sold: +item.count,
-            },
+  let finalAmount = 0;
+
+  if (isCoupon && userCarts && userCarts.totalPriceAfterDiscount) {
+    finalAmount = userCarts.totalPriceAfterDiscount * 100;
+  } else {
+    finalAmount = userCarts.cartTotal * 100;
+  }
+
+  const update = await new Order({
+    products: userCarts.products,
+    paymentIntents: {
+      id: uniqid(),
+      amount: finalAmount,
+      currency: 'usd',
+      payment_method_types: ['Cash'],
+      status: 'succeeded',
+      created: Date.now(),
+    },
+    orderStatus: 'Cash On Delivery',
+    orderedBy: user._id,
+  }).save();
+
+  // increment sold and decrement quantity
+  const bulkWrites = userCarts.products.map(item => {
+    return {
+      updateOne: {
+        filter: {
+          _id: (item?.product as any)?._id,
+        },
+        update: {
+          $inc: {
+            quantity: -item.count,
+            sold: +item.count,
           },
         },
-      };
-    });
-    await Product.bulkWrite(bulkWrites, {});
+      },
+    };
+  });
 
-    res.json({ ok: true, update });
-  } catch (error) {
-    res.status(500).json({ message: 'something went wrong!' });
-  }
+  await Product.bulkWrite(bulkWrites, {});
+
+  return { ok: true, update };
 };
 
 // getting all orders by user
-exports.list_of_orders_by_user = async (req, res) => {
-  try {
-    // who is the ordered
-    const user = await User.findOne({ email: req.user.email }).exec();
-    // getting all orders by user id
-    const allOrders = await Order.find({ orderedBy: user._id })
-      .populate('products.product')
-      .sort({ createdAt: -1 })
-      .exec();
-    res.json(allOrders);
-  } catch (error) {
-    res.status(500).json({ message: 'something went wrong!' });
+const listOfOrdersByUser = async (email: string) => {
+  // to get user
+  const user = await User.findOne({ email: email }).exec();
+
+  // check user is exit, if not throw error
+  if (!user) {
+    throw new ApiError(httpStatus.CONFLICT, 'User not found!');
   }
+
+  // getting all orders by user id
+  const allOrders = await Order.find({ orderedBy: user._id })
+    .populate('products.product')
+    .sort({ createdAt: -1 })
+    .exec();
+
+  return allOrders;
 };
 
-// add to wishlist
-exports.add_to_wish_list = async (req, res) => {
-  try {
-    const { productId, isWishList } = req.body;
-    const newWishList = await User.findOneAndUpdate(
-      { email: req.user.email },
-      {
-        $push: {
-          wishList: {
-            $each: [{ product: productId, isWishList }],
-          },
-        },
-      }
-    ).exec();
-    res.status(200).json(newWishList);
-  } catch (error) {
-    res.status(501).json({ message: 'something went wrong!' });
+// add to wish list
+const addToWishList = async (
+  productId: string,
+  isWishList: boolean,
+  email: string
+) => {
+  // to get user
+  const user = await User.findOne({ email: email }).exec();
+
+  // check user is exit, if not throw error
+  if (!user) {
+    throw new ApiError(httpStatus.CONFLICT, 'User not found!');
   }
+
+  const result = await User.findOneAndUpdate(
+    { email: email },
+    {
+      $push: {
+        wishList: {
+          $each: [{ product: productId, isWishList }],
+        },
+      },
+    }
+  ).exec();
+
+  return result;
 };
 
 // get all wishlist from user
-exports.wish_lists_by_user = async (req, res) => {
-  try {
-    const allWishList = await User.findOne({ email: req.user.email })
-      .select('wishList')
-      .populate('wishList.product')
-      .exec();
-    res.status(200).json(allWishList);
-  } catch (error) {
-    res.status(501).json({ message: 'something went wrong!' });
+const wishListsByUser = async (email: string) => {
+  // to get user
+  const user = await User.findOne({ email: email }).exec();
+
+  // check user is exit, if not throw error
+  if (!user) {
+    throw new ApiError(httpStatus.CONFLICT, 'User not found!');
   }
+  const result = await User.findOne({ email: email })
+    .select('wishList')
+    .populate('wishList.product')
+    .exec();
+
+  return result;
 };
 
-//get single wishlist from user wishlist
-exports.get_single_wish_list = async (req, res) => {
-  try {
-    const { productId } = req.body;
-    const allWishList = await User.findOne(
-      { email: req.user.email },
-      { wishList: { $elemMatch: { product: { $in: productId } } } }
-    ).exec();
-    res.status(200).json(allWishList);
-  } catch (error) {
-    res.status(501).json({ message: 'something went wrong!' });
+//get single wish list from user wish list
+const getSingleWishList = async (productId: string, email: string) => {
+  // to get user
+  const user = await User.findOne({ email: email }).exec();
+
+  // check user is exit, if not throw error
+  if (!user) {
+    throw new ApiError(httpStatus.CONFLICT, 'User not found!');
   }
+
+  const result = await User.findOne(
+    { email: email },
+    { wishList: { $elemMatch: { product: { $in: productId } } } }
+  ).exec();
+
+  return result;
 };
 
-// remove wishlist
-exports.removed_wish_list = async (req, res) => {
-  try {
-    const { productId } = req.body;
-    const deleteWishList = await User.findOneAndUpdate(
-      { email: req.user.email },
-      {
-        $pull: {
-          wishList: { product: productId },
-        },
-      }
-    ).exec();
-    res.status(200).json(deleteWishList);
-  } catch (error) {
-    res.status(501).json({ message: 'something went wrong!' });
-  }
+// remove wish list
+const removedWishList = async (productId: string, email: string) => {
+  const result = await User.findOneAndUpdate(
+    { email: email },
+    {
+      $pull: {
+        wishList: { product: productId },
+      },
+    }
+  ).exec();
+  return result;
 };
 
 export const UserService = {
   addUserCart,
-  getSingleUser,
-  updateUser,
-  deleteUser,
-  getUserProfile,
-  updateUserProfile,
+  getUserCart,
+  saveUserAddress,
+  shippingAddress,
+  emptyCart,
+  totalDiscountPrice,
+  removedWishList,
+  getSingleWishList,
+  wishListsByUser,
+  addToWishList,
+  listOfOrdersByUser,
+  createCashOrders,
+  createOrder,
 };

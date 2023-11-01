@@ -30,7 +30,7 @@ export type ICart = {
   ];
   cartTotal: number;
   totalPriceAfterDiscount: number;
-  CartedBy: {
+  orderedBy: {
     type: Types.ObjectId;
     ref: 'User';
   };
