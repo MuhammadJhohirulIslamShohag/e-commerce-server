@@ -1,0 +1,1 @@
+export const otpMethodEnum = ["email", "phone"]

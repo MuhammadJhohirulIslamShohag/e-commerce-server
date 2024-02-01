@@ -1,6 +1,0 @@
-/node_modules
-.env
-logs
-.vercel
-dist
-\src\config\firebaseAccountKey.json
