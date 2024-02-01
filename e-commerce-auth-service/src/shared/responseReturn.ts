@@ -3,7 +3,7 @@ import { Response } from 'express';
 type IMeta = {
   page: number;
   limit: number;
-  total: number;
+  totalPage: number;
 };
 
 type ResponseReturnType<T> = {

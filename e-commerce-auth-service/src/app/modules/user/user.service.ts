@@ -1,93 +1,112 @@
 /* eslint-disable no-unused-expressions */
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import mongoose, { SortOrder, Types } from 'mongoose';
+import mongoose, { Types } from 'mongoose';
 import httpStatus from 'http-status';
 import bcrypt from 'bcrypt';
 
+import config from '../../../config';
 import ApiError from '../../../errors/ApiError';
 import User from './user.model';
-import config from '../../../config';
+import QueryBuilder from '../../../builder/query.builder';
 
-import { IUser, ShippingAddress, UserFilters } from './user.interface';
-import { PaginationOptionType } from '../../../interfaces/pagination';
-import { IGenericResponse } from '../../../interfaces/common';
-import { paginationHelper } from '../../../helpers/paginationHelper';
+import { IUser, ShippingAddress } from './user.interface';
 import { userSearchableFields } from './user.constant';
 
 class UserServiceClass {
   #UserModel;
+  #QueryBuilder: typeof QueryBuilder;
 
   constructor() {
     this.#UserModel = User;
+    this.#QueryBuilder = QueryBuilder;
   }
 
   // get all users method
-  readonly allUsers = async (
-    paginationOption: PaginationOptionType,
-    filters: UserFilters
-  ): Promise<IGenericResponse<IUser[]>> => {
-    const { page, limit, sortBy, sortOrder, skip } =
-      paginationHelper.calculatePagination(paginationOption);
-
-    // exact search term
-    const { searchTerm, ...filterData } = filters;
-
-    const andConditions = [];
-
-    // searching specific filed with dynamic way
-    if (searchTerm) {
-      andConditions.push({
-        $or: userSearchableFields.map(field => ({
-          [field]: {
-            $regex: searchTerm,
-            $options: 'i',
-          },
-        })),
-      });
-    }
-
-    // exact filtering with dynamic way
-    if (Object.keys(filterData).length) {
-      andConditions.push({
-        $and: Object.entries(filterData).map(([field, value]) => ({
-          [field]: value,
-        })),
-      });
-    }
-
-    // dynamic sorting
-    const sortConditions: { [key: string]: SortOrder } = {};
-
-    if (sortBy && sortOrder) [(sortConditions[sortBy] = sortOrder)];
-
-    const whereConditions =
-      andConditions.length > 0 ? { $and: andConditions } : {};
+  readonly allUsers = async (query: Record<string, unknown>) => {
+    const userQuery = new this.#QueryBuilder(this.#UserModel.find(), query)
+      .search(userSearchableFields)
+      .filter()
+      .sort()
+      .paginate()
+      .fields();
 
     // result of user
-    const result = await this.#UserModel
-      .find(whereConditions)
-      .sort(sortConditions)
-      .skip(skip)
-      .limit(limit);
+    const result = await userQuery.modelQuery;
 
-    // get total user
-    const total = await this.#UserModel.countDocuments(whereConditions);
+    // get meta user
+    const meta = await userQuery.countTotal();
 
     return {
-      meta: {
-        page,
-        limit,
-        total,
-      },
-      data: result,
+      meta,
+      result,
     };
   };
+  // readonly allUsers = async (
+  //   paginationOption: PaginationOptionType,
+  //   filters: UserFilters
+  // ): Promise<IGenericResponse<IUser[]>> => {
+  //   const { page, limit, sortBy, sortOrder, skip } =
+  //     paginationHelper.calculatePagination(paginationOption);
+
+  //   // exact search term
+  //   const { searchTerm, ...filterData } = filters;
+
+  //   const andConditions = [];
+
+  //   // searching specific filed with dynamic way
+  //   if (searchTerm) {
+  //     andConditions.push({
+  //       $or: userSearchableFields.map(field => ({
+  //         [field]: {
+  //           $regex: searchTerm,
+  //           $options: 'i',
+  //         },
+  //       })),
+  //     });
+  //   }
+
+  //   // exact filtering with dynamic way
+  //   if (Object.keys(filterData).length) {
+  //     andConditions.push({
+  //       $and: Object.entries(filterData).map(([field, value]) => ({
+  //         [field]: value,
+  //       })),
+  //     });
+  //   }
+
+  //   // dynamic sorting
+  //   const sortConditions: { [key: string]: SortOrder } = {};
+
+  //   if (sortBy && sortOrder) [(sortConditions[sortBy] = sortOrder)];
+
+  //   const whereConditions =
+  //     andConditions.length > 0 ? { $and: andConditions } : {};
+
+  //   // result of user
+  //   const result = await this.#UserModel
+  //     .find(whereConditions)
+  //     .sort(sortConditions)
+  //     .skip(skip)
+  //     .limit(limit);
+
+  //   // get total user
+  //   const total = await this.#UserModel.countDocuments(whereConditions);
+
+  //   return {
+  //     meta: {
+  //       page,
+  //       limit,
+  //       total,
+  //     },
+  //     data: result,
+  //   };
+  // };
 
   // add shipping address method
   readonly addShippingAddressToUser = async (
     id: string,
     payload: ShippingAddress
-  ): Promise<IUser | null> => {
+  ) => {
     // check User is exit, if not throw error
     const isExitUser: any = await this.#UserModel.findOne({
       _id: id,
@@ -160,7 +179,7 @@ class UserServiceClass {
   readonly updateShippingAddressToUser = async (
     id: string,
     payload: Partial<ShippingAddress>
-  ): Promise<IUser | null> => {
+  ) => {
     // check User is exit, if not throw error
     const isExitUser = await this.#UserModel.findOne({
       _id: id,
@@ -239,7 +258,7 @@ class UserServiceClass {
   readonly deleteShippingAddressToUser = async (
     id: string,
     payload: string
-  ): Promise<IUser | null> => {
+  ) => {
     // check User is exit, if not throw error
     const isExitUser = await this.#UserModel.findOne({
       _id: id,
@@ -279,7 +298,7 @@ class UserServiceClass {
     id: string,
     roleData: string,
     userPayload: Partial<IUser>
-  ): Promise<IUser | null> => {
+  ) => {
     // check user is exit, if not exit return error
     const isExit = await this.#UserModel.findOne({ _id: id });
     if (!isExit) {
@@ -314,7 +333,7 @@ class UserServiceClass {
   };
 
   // delete user method
-  readonly deleteUser = async (id: string): Promise<IUser | null> => {
+  readonly deleteUser = async (id: string) => {
     // check user is exit, if not exit return error
     const isExit = await this.#UserModel.findOne({ _id: id });
     if (!isExit) {

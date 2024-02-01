@@ -6,9 +6,6 @@ import responseReturn from '../../../shared/responseReturn';
 import catchAsync from '../../../shared/catchAsync';
 
 import { UserService } from './user.service';
-import { paginationOptionFields } from '../../../constants/pagination';
-import { userFilterableFields } from './user.constant';
-import { pick } from '../../../shared/pick';
 
 class UserControllerClass {
   #UserService: typeof UserService;
@@ -19,16 +16,13 @@ class UserControllerClass {
 
   // get all users method
   readonly allUsers = catchAsync(async (req: Request, res: Response) => {
-    const paginationOptions = pick(req.query, paginationOptionFields);
-    const filters = pick(req.query, userFilterableFields);
-
-    const result = await this.#UserService.allUsers(paginationOptions, filters);
-
+    const result = await this.#UserService.allUsers(req.query);
     responseReturn(res, {
       statusCode: httpStatus.OK,
       success: true,
       message: 'All Users Retrieved Successfully!',
-      data: result,
+      meta: result.meta,
+      data: result.result,
     });
   });
 

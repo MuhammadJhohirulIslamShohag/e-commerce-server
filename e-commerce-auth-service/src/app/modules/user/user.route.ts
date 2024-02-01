@@ -53,7 +53,7 @@ class UserRoutesClass {
       );
 
     // all user
-    this.routers.get('/', auth(ENUM_USER_ROLE.ADMIN), UserController.allUsers);
+    this.routers.get('/', UserController.allUsers);
 
     // update, delete, get single user
     this.routers
