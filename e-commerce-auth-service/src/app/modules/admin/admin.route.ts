@@ -19,31 +19,29 @@ class AdminRoutesClass {
     this.routers.post(
       '/signup',
       validateRequest(AdminValidation.AdminCreateZodSchema),
-      AdminController.CreateAdmin
+      AdminController.createAdmin
     );
 
     this.routers.post(
       '/login',
       validateRequest(AdminValidation.AdminLoginZodSchema),
-      AdminController.LoginAdmin
+      AdminController.loginAdmin
     );
 
     // get all admin
-    this.routers
-      .route('/')
-      .get( AdminController.AllAdmins);
+    this.routers.route('/').get(AdminController.allAdmins);
 
     // refresh token
     this.routers.post(
       '/admin-refresh-token',
       validateRequest(AdminValidation.RefreshTokenAdminZodSchema),
-      AdminController.RefreshTokenForAdmin
+      AdminController.refreshTokenForAdmin
     );
     // refresh token
     this.routers.get(
       '/admin-refresh-token',
       validateRequest(AdminValidation.RefreshTokenAdminZodSchema),
-      AdminController.RefreshTokenForAdmin
+      AdminController.refreshTokenForAdmin
     );
 
     // password reset
@@ -51,7 +49,7 @@ class AdminRoutesClass {
       '/reset-password',
       validateRequest(AdminValidation.ResetAdminPasswordZodSchema),
       auth(ENUM_USER_ROLE.ADMIN),
-      AdminController.AdminPasswordReset
+      AdminController.adminPasswordReset
     );
 
     // update and get single admin, delete
@@ -60,10 +58,10 @@ class AdminRoutesClass {
       .patch(
         auth(ENUM_USER_ROLE.ADMIN),
         validateRequest(AdminValidation.AdminUpdateZodSchema),
-        AdminController.UpdateAdmin
+        AdminController.updateAdmin
       )
-      .get(auth(ENUM_USER_ROLE.ADMIN), AdminController.GetSingleAdmin)
-      .delete(auth(ENUM_USER_ROLE.ADMIN), AdminController.DeleteAdmin);
+      .get(auth(ENUM_USER_ROLE.ADMIN), AdminController.getSingleAdmin)
+      .delete(auth(ENUM_USER_ROLE.ADMIN), AdminController.deleteAdmin);
   }
 }
 

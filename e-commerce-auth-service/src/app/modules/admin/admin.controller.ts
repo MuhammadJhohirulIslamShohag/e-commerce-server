@@ -6,12 +6,9 @@ import catchAsync from '../../../shared/catchAsync';
 import responseReturn from '../../../shared/responseReturn';
 import ApiError from '../../../errors/ApiError';
 import config from '../../../config';
+
 import { CreateReturnResponse, IAdmin } from './admin.interface';
 import { AdminService } from './admin.service';
-import { pick } from '../../../shared/pick';
-import { paginationOptionFields } from '../../../constants/pagination';
-import { adminFilterableFields } from './admin.constant';
-import { IGenericResponse } from '../../../interfaces/common';
 
 class AdminControllerClass {
   #AdminService: typeof AdminService;
@@ -20,10 +17,10 @@ class AdminControllerClass {
     this.#AdminService = service;
   }
 
-  // create admin
-  readonly CreateAdmin = catchAsync(async (req: Request, res: Response) => {
+  // create admin method
+  readonly createAdmin = catchAsync(async (req: Request, res: Response) => {
     const { ...adminData } = req.body;
-    const result = await this.#AdminService.CreateAdmin(adminData);
+    const result = await this.#AdminService.createAdmin(adminData);
 
     // if not created admin, throw error
     if (!result) {
@@ -39,7 +36,7 @@ class AdminControllerClass {
     res.cookie('refreshToken', result?.refreshToken, cookieOptions);
     res.cookie('accessToken', result?.accessToken, cookieOptions);
 
-    responseReturn<Pick<CreateReturnResponse, 'accessToken'> | null>(res, {
+    responseReturn(res, {
       statusCode: httpStatus.OK,
       success: true,
       message: 'Admin Created Successfully!',
@@ -49,10 +46,10 @@ class AdminControllerClass {
     });
   });
 
-  // login admin
-  readonly LoginAdmin = catchAsync(async (req: Request, res: Response) => {
+  // login admin method
+  readonly loginAdmin = catchAsync(async (req: Request, res: Response) => {
     const { ...loginData } = req.body;
-    const result = await this.#AdminService.LoginAdmin(loginData);
+    const result = await this.#AdminService.loginAdmin(loginData);
 
     // if not created admin, throw error
     if (!result) {
@@ -68,10 +65,7 @@ class AdminControllerClass {
     res.cookie('refreshToken', result?.refreshToken, cookieOptions);
     res.cookie('accessToken', result?.accessToken, cookieOptions);
 
-    responseReturn<Pick<
-      CreateReturnResponse,
-      'accessToken' | 'userInfo'
-    > | null>(res, {
+    responseReturn(res, {
       statusCode: httpStatus.OK,
       success: true,
       message: 'Admin login Successfully!',
@@ -82,30 +76,25 @@ class AdminControllerClass {
     });
   });
 
-  // get all admins
-  readonly AllAdmins = catchAsync(async (req: Request, res: Response) => {
-    const paginationOptions = pick(req.query, paginationOptionFields);
-    const filters = pick(req.query, adminFilterableFields);
+  // get all admins method
+  readonly allAdmins = catchAsync(async (req: Request, res: Response) => {
+    const result = await this.#AdminService.allAdmins(req.query);
 
-    const result = await this.#AdminService.AllAdmins(
-      paginationOptions,
-      filters
-    );
-
-    responseReturn<IGenericResponse<IAdmin[]>>(res, {
+    responseReturn(res, {
       statusCode: httpStatus.OK,
       success: true,
       message: 'All Admins Retrieved Successfully!',
-      data: result,
+      meta: result?.meta,
+      data: result.result,
     });
   });
 
-  // get single admin user
-  readonly GetSingleAdmin = catchAsync(async (req: Request, res: Response) => {
+  // get single admin user method
+  readonly getSingleAdmin = catchAsync(async (req: Request, res: Response) => {
     const adminId = req.params.id;
-    const result = await this.#AdminService.GetSingleAdmin(adminId);
+    const result = await this.#AdminService.getSingleAdmin(adminId);
 
-    responseReturn<IAdmin | null>(res, {
+    responseReturn(res, {
       statusCode: httpStatus.OK,
       success: true,
       message: 'Single Admin Retrieved Successfully!',
@@ -113,16 +102,16 @@ class AdminControllerClass {
     });
   });
 
-  // update admin
-  readonly UpdateAdmin = catchAsync(async (req: Request, res: Response) => {
+  // update admin method
+  readonly updateAdmin = catchAsync(async (req: Request, res: Response) => {
     const adminId = req.params.id;
     const { ...updateAdminData } = req.body;
-    const result = await this.#AdminService.UpdateAdmin(
+    const result = await this.#AdminService.updateAdmin(
       adminId,
       updateAdminData
     );
 
-    responseReturn<IAdmin | null>(res, {
+    responseReturn(res, {
       statusCode: httpStatus.OK,
       success: true,
       message: 'Admin Updated Successfully!',
@@ -130,10 +119,10 @@ class AdminControllerClass {
     });
   });
 
-  // delete admin
-  readonly DeleteAdmin = catchAsync(async (req: Request, res: Response) => {
+  // delete admin method
+  readonly deleteAdmin = catchAsync(async (req: Request, res: Response) => {
     const adminId = req.params.id;
-    const result = await this.#AdminService.DeleteAdmin(adminId);
+    const result = await this.#AdminService.deleteAdmin(adminId);
 
     responseReturn<IAdmin | null>(res, {
       statusCode: httpStatus.OK,
@@ -143,11 +132,11 @@ class AdminControllerClass {
     });
   });
 
-  // refresh token
-  readonly RefreshTokenForAdmin = catchAsync(
+  // refresh token method
+  readonly refreshTokenForAdmin = catchAsync(
     async (req: Request, res: Response) => {
       const { refreshToken } = req.cookies;
-      const result = await this.#AdminService.RefreshTokenForAdmin(
+      const result = await this.#AdminService.refreshTokenForAdmin(
         refreshToken
       );
 
@@ -170,12 +159,12 @@ class AdminControllerClass {
     }
   );
 
-  // admin password reset
-  readonly AdminPasswordReset = catchAsync(
+  // admin password reset method
+  readonly adminPasswordReset = catchAsync(
     async (req: Request, res: Response) => {
       const { ...userData } = req.body;
       const user = req.user as JwtPayload;
-      const result = await this.#AdminService.AdminPasswordReset(
+      const result = await this.#AdminService.adminPasswordReset(
         user,
         userData
       );

@@ -1,31 +1,30 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable no-unused-expressions */
+import bcrypt from 'bcrypt';
 import httpStatus from 'http-status';
 import { JwtPayload, Secret } from 'jsonwebtoken';
-import bcrypt from 'bcrypt';
-import { SortOrder } from 'mongoose';
 
 import ApiError from '../../../errors/ApiError';
-import { AdminFilters, CreateReturnResponse, IAdmin } from './admin.interface';
+import { IAdmin } from './admin.interface';
 import Admin from './admin.model';
 import config from '../../../config';
-import { PaginationOptionType } from '../../../interfaces/pagination';
-import { IGenericResponse } from '../../../interfaces/common';
-import { paginationHelper } from '../../../helpers/paginationHelper';
+import QueryBuilder from '../../../builder/query.builder';
+
 import { adminSearchableFields } from './admin.constant';
 import { jwtHelpers } from '../../../helpers/jwtHelpers';
 import { passwordHelpers } from '../../../helpers/passwordHelper';
 
 class AdminServiceClass {
   #AdminModel;
+  #QueryBuilder: typeof QueryBuilder;
+
   constructor() {
     this.#AdminModel = Admin;
+    this.#QueryBuilder = QueryBuilder;
   }
 
-  // create admin
-  readonly CreateAdmin = async (
-    payload: IAdmin
-  ): Promise<CreateReturnResponse | null> => {
+  // create admin method
+  readonly createAdmin = async (payload: IAdmin) => {
     // check already Admin exit, if not, throw error
     const isExitAdmin = await this.#AdminModel.isExitAdmin({
       email: payload?.email,
@@ -67,10 +66,8 @@ class AdminServiceClass {
     };
   };
 
-  // login admin
-  readonly LoginAdmin = async (
-    payload: IAdmin
-  ): Promise<CreateReturnResponse | null> => {
+  // login admin method
+  readonly loginAdmin = async (payload: IAdmin) => {
     const { email } = payload;
     if (!email && !payload?.password) {
       throw new ApiError(httpStatus.CONFLICT, `Invalid credentials!`);
@@ -135,79 +132,32 @@ class AdminServiceClass {
     };
   };
 
-  // get all admins
-  readonly AllAdmins = async (
-    paginationOption: PaginationOptionType,
-    filters: AdminFilters
-  ): Promise<IGenericResponse<IAdmin[]>> => {
-    const { page, limit, sortBy, sortOrder, skip } =
-      paginationHelper.calculatePagination(paginationOption);
-
-    // exact search term
-    const { searchTerm, ...filterData } = filters;
-
-    const andConditions = [];
-
-    // searching specific filed with dynamic way
-    if (searchTerm) {
-      andConditions.push({
-        $or: adminSearchableFields.map(field => ({
-          [field]: {
-            $regex: searchTerm,
-            $options: 'i',
-          },
-        })),
-      });
-    }
-
-    // exact filtering with dynamic way
-    if (Object.keys(filterData).length) {
-      andConditions.push({
-        $and: Object.entries(filterData).map(([field, value]) => ({
-          [field]: value,
-        })),
-      });
-    }
-
-    // dynamic sorting
-    const sortConditions: { [key: string]: SortOrder } = {};
-
-    if (sortBy && sortOrder) [(sortConditions[sortBy] = sortOrder)];
-
-    const whereConditions =
-      andConditions.length > 0 ? { $and: andConditions } : {};
+  // get all admins method
+  readonly allAdmins = async (query: Record<string, unknown>) => {
+    const adminQuery = new this.#QueryBuilder(this.#AdminModel.find(), query)
+      .search(adminSearchableFields)
+      .filter()
+      .sort()
+      .paginate()
+      .fields();
 
     // result of admin
-    const result = await this.#AdminModel
-      .find(whereConditions)
-      .sort(sortConditions)
-      .skip(skip)
-      .limit(limit);
+    const result = await adminQuery.modelQuery;
 
-    // get total admin users
-    const total = await this.#AdminModel.countDocuments(whereConditions);
+    // get meta admin users
+    const meta = await adminQuery.countTotal();
 
-    return {
-      meta: {
-        page,
-        limit,
-        total,
-      },
-      data: result,
-    };
+    return { meta, result };
   };
 
-  // get single admin
-  readonly GetSingleAdmin = async (payload: string): Promise<IAdmin | null> => {
+  // get single admin method
+  readonly getSingleAdmin = async (payload: string): Promise<IAdmin | null> => {
     const result = await this.#AdminModel.findById(payload).exec();
     return result;
   };
 
-  // update admin
-  readonly UpdateAdmin = async (
-    id: string,
-    payload: Partial<IAdmin>
-  ): Promise<IAdmin | null> => {
+  // update admin method
+  readonly updateAdmin = async (id: string, payload: Partial<IAdmin>) => {
     // check already Admin exit, if not throw error
     const isExitAdmin = await this.#AdminModel.isExitAdmin({ id: id });
     if (!isExitAdmin) {
@@ -253,8 +203,8 @@ class AdminServiceClass {
     return result;
   };
 
-  // delete admin
-  readonly DeleteAdmin = async (payload: string): Promise<IAdmin | null> => {
+  // delete admin method
+  readonly deleteAdmin = async (payload: string): Promise<IAdmin | null> => {
     // check already Admin exit, if not throw error
     const isExitAdmin = await this.#AdminModel.isExitAdmin({ id: payload });
     if (!isExitAdmin) {
@@ -266,10 +216,8 @@ class AdminServiceClass {
     return result;
   };
 
-  // refresh token for admin
-  readonly RefreshTokenForAdmin = async (
-    token: string
-  ): Promise<CreateReturnResponse> => {
+  // refresh token for admin method
+  readonly refreshTokenForAdmin = async (token: string) => {
     // verify token
     let verifiedUser = null;
     try {
@@ -303,8 +251,8 @@ class AdminServiceClass {
     };
   };
 
-  // password reset
-  readonly AdminPasswordReset = async (
+  // password reset method
+  readonly adminPasswordReset = async (
     user: JwtPayload,
     userData: {
       email?: string;
