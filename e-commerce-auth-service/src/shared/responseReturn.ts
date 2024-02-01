@@ -3,7 +3,7 @@ import { Response } from 'express';
 type IMeta = {
   page: number;
   limit: number;
-  totalPage: number;
+  total: number;
 };
 
 type ResponseReturnType<T> = {
@@ -20,7 +20,7 @@ const responseReturn = <T>(res: Response, data: ResponseReturnType<T>) => {
     success: data?.success,
     message: data?.message,
     meta: data?.meta,
-    data: data.data,
+    data: data?.data,
   };
   return res.status(responseData.statusCode).json(responseData);
 };

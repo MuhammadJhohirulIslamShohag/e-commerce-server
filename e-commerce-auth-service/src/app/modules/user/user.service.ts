@@ -41,66 +41,6 @@ class UserServiceClass {
       result,
     };
   };
-  // readonly allUsers = async (
-  //   paginationOption: PaginationOptionType,
-  //   filters: UserFilters
-  // ): Promise<IGenericResponse<IUser[]>> => {
-  //   const { page, limit, sortBy, sortOrder, skip } =
-  //     paginationHelper.calculatePagination(paginationOption);
-
-  //   // exact search term
-  //   const { searchTerm, ...filterData } = filters;
-
-  //   const andConditions = [];
-
-  //   // searching specific filed with dynamic way
-  //   if (searchTerm) {
-  //     andConditions.push({
-  //       $or: userSearchableFields.map(field => ({
-  //         [field]: {
-  //           $regex: searchTerm,
-  //           $options: 'i',
-  //         },
-  //       })),
-  //     });
-  //   }
-
-  //   // exact filtering with dynamic way
-  //   if (Object.keys(filterData).length) {
-  //     andConditions.push({
-  //       $and: Object.entries(filterData).map(([field, value]) => ({
-  //         [field]: value,
-  //       })),
-  //     });
-  //   }
-
-  //   // dynamic sorting
-  //   const sortConditions: { [key: string]: SortOrder } = {};
-
-  //   if (sortBy && sortOrder) [(sortConditions[sortBy] = sortOrder)];
-
-  //   const whereConditions =
-  //     andConditions.length > 0 ? { $and: andConditions } : {};
-
-  //   // result of user
-  //   const result = await this.#UserModel
-  //     .find(whereConditions)
-  //     .sort(sortConditions)
-  //     .skip(skip)
-  //     .limit(limit);
-
-  //   // get total user
-  //   const total = await this.#UserModel.countDocuments(whereConditions);
-
-  //   return {
-  //     meta: {
-  //       page,
-  //       limit,
-  //       total,
-  //     },
-  //     data: result,
-  //   };
-  // };
 
   // add shipping address method
   readonly addShippingAddressToUser = async (

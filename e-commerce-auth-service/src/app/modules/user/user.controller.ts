@@ -17,6 +17,7 @@ class UserControllerClass {
   // get all users method
   readonly allUsers = catchAsync(async (req: Request, res: Response) => {
     const result = await this.#UserService.allUsers(req.query);
+    
     responseReturn(res, {
       statusCode: httpStatus.OK,
       success: true,
