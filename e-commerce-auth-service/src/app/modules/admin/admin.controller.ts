@@ -2,10 +2,10 @@ import { Request, Response } from 'express';
 import httpStatus from 'http-status';
 import { JwtPayload } from 'jsonwebtoken';
 
-import catchAsync from '../../../shared/catchAsync';
-import responseReturn from '../../../shared/responseReturn';
 import ApiError from '../../../errors/ApiError';
 import config from '../../../config';
+import catchAsync from '../../../utils/catchAsync';
+import responseReturn from '../../../utils/responseReturn';
 
 import { CreateReturnResponse, IAdmin } from './admin.interface';
 import { AdminService } from './admin.service';

@@ -4,7 +4,7 @@ import config from './config';
 import app from './app';
 
 import { database_connection } from './db/mongo.db';
-import { logger, errorLogger } from './shared/logger';
+import { logger, errorLogger } from './utils/logger';
 
 // handle uncaught exception error if any developer take mistake, work it synchronous
 process.on('uncaughtException', error => {

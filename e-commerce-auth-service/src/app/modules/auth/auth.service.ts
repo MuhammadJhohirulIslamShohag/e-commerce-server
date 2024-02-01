@@ -1,25 +1,21 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { JwtPayload, Secret } from 'jsonwebtoken';
 import bcrypt from 'bcrypt';
 import httpStatus from 'http-status';
+import { JwtPayload, Secret } from 'jsonwebtoken';
 import mongoose from 'mongoose';
 
 import config from '../../../config';
 import ApiError from '../../../errors/ApiError';
-import { emailSenderHelpers } from '../../../helpers/emailSendHelper';
-import sendSmsWithBulkSms from '../../../helpers/sendSmsHelper';
-import {
-  ICreateLoggedUserResponse,
-  ICreateUserAndOptResponse,
-  ICreateUserInfo,
-} from './auth.interface';
-import { GenerateNumberHelpers } from '../../../helpers/generateNumberHelper';
-import { jwtHelpers } from '../../../helpers/jwtHelpers';
-import User from '../user/user.model';
+import sendSmsWithBulkSms from '../../../helpers/sendSms.helper';
+import OtpEmailTemplate from '../../../utils/emailTemplate/otpemailTemplate';
 import Otp from '../otp/opt.model';
-import { IUser } from '../user/user.interface';
-import OtpEmailTemplate from '../../../shared/emailTemplate/otpemailTemplate';
+import User from '../user/user.model';
+
+import { emailSenderHelpers } from '../../../helpers/emailSend.helper';
+import { GenerateNumberHelpers } from '../../../helpers/generateNumber.helper';
+import { jwtHelpers } from '../../../helpers/jwt.helper';
 import { IOtp } from '../otp/opt.interface';
+import { IUser } from '../user/user.interface';
 
 class AuthServiceClass {
   #UserModel;
@@ -31,10 +27,7 @@ class AuthServiceClass {
   }
 
   // create user
-  readonly createUser = async (
-    provider: string,
-    payload: IUser
-  ): Promise<ICreateUserAndOptResponse> => {
+  readonly createUser = async (provider: string, payload: IUser) => {
     const query: Partial<{ email: string; phone: string }> = {};
 
     if (payload?.email) {
@@ -125,7 +118,7 @@ class AuthServiceClass {
   readonly createUserWithVerified = async (
     otpPayload: Partial<IOtp>,
     userPayload: Partial<IUser>
-  ): Promise<ICreateLoggedUserResponse<IUser>> => {
+  ) => {
     // check otp is expire or not
     const optResult = await this.#OtpModel.findOne({
       $or: [
@@ -222,7 +215,7 @@ class AuthServiceClass {
   // login user
   readonly loginUser = async (
     payload: Pick<IUser, 'email' | 'password' | 'phone'>
-  ): Promise<ICreateUserInfo<null>> => {
+  ) => {
     const { email, password, phone } = payload;
 
     const query: Partial<{ email: string; phone: string }> = {};
@@ -299,7 +292,7 @@ class AuthServiceClass {
   // login user with social
   readonly loginUserWithSocial = async (
     payload: Pick<IUser, 'email' | 'name'>
-  ): Promise<ICreateLoggedUserResponse<IUser>> => {
+  ) => {
     // check user exits or not
     const isUserExit = await this.#UserModel.isUserExit(payload?.email);
     if (isUserExit) {
@@ -337,9 +330,7 @@ class AuthServiceClass {
   };
 
   // refresh token
-  readonly refreshToken = async (
-    token: string
-  ): Promise<ICreateLoggedUserResponse<null>> => {
+  readonly refreshToken = async (token: string) => {
     // verify token
     let verifiedUser = null;
     try {
@@ -380,7 +371,7 @@ class AuthServiceClass {
   readonly forgotPassword = async (
     provider: string,
     payload: Pick<IUser, 'email' | 'phone'>
-  ): Promise<ICreateUserAndOptResponse> => {
+  ) => {
     const query: Partial<{ email: string; phone: string }> = {};
 
     if (payload?.email) {
@@ -635,7 +626,7 @@ class AuthServiceClass {
   readonly resendOtp = async (
     optPayload: Pick<IOtp, 'email' | 'phone'>,
     provider: string
-  ): Promise<ICreateUserAndOptResponse> => {
+  ) => {
     const query: Partial<{ email: string; phone: string }> = {};
 
     if (optPayload?.email) {

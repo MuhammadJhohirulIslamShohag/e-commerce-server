@@ -1,9 +1,10 @@
-import express, { Application, Request, Response, NextFunction } from 'express';
+import express, { Application, Request, Response } from 'express';
 import cors from 'cors';
 import cookieParser from 'cookie-parser';
-import httpStatus from 'http-status';
+
 import globalErrorHandler from './app/middlewares/globalErrorHandler';
 import AllRouters from './app/routes';
+import notFound from './app/middlewares/notFound';
 
 const app: Application = express();
 
@@ -25,18 +26,6 @@ app.get('/', (_req: Request, res: Response) => {
 app.use(globalErrorHandler);
 
 // not found route
-app.use((req: Request, res: Response, next: NextFunction) => {
-  res.status(httpStatus.NOT_FOUND).json({
-    statusCode: httpStatus.NOT_FOUND,
-    message: 'Not Found Route!',
-    errorMessages: [
-      {
-        path: req.originalUrl,
-        message: 'Not Found Route!',
-      },
-    ],
-  });
-  next();
-});
+app.use(notFound);
 
 export default app;

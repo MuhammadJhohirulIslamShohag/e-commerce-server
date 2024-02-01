@@ -3,11 +3,12 @@ import httpStatus from 'http-status';
 import { JwtPayload } from 'jsonwebtoken';
 
 import config from '../../../config';
-import { emailSenderHelpers } from '../../../helpers/emailSendHelper';
-import catchAsync from '../../../shared/catchAsync';
-import responseReturn from '../../../shared/responseReturn';
+import catchAsync from '../../../utils/catchAsync';
+import signUpSuccessEmailTemplate from '../../../utils/emailTemplate/signUpSuccessEmailTemplate';
+import responseReturn from '../../../utils/responseReturn';
+
+import { emailSenderHelpers } from '../../../helpers/emailSend.helper';
 import { AuthService } from './auth.service';
-import signUpSuccessEmailTemplate from '../../../shared/emailTemplate/signUpSuccessEmailTemplate';
 
 class AuthControllerClass {
   #AuthService: typeof AuthService;

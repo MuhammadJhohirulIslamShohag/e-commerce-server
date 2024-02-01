@@ -1,12 +1,17 @@
 import express, { Router } from 'express';
-import { UserRoutes } from '../modules/user/user.route';
+import { CategoryRoutes } from '../modules/category/category.route';
+import { SubCategoryRoutes } from '../modules/subCategory/subCategory.route';
 
 const router: Router = express.Router();
 
 const moduleRoutes = [
   {
-    path: '/users',
-    route: UserRoutes,
+    path: '/categories',
+    route: CategoryRoutes,
+  },
+  {
+    path: '/sub-categories',
+    route: SubCategoryRoutes,
   },
 ];
 

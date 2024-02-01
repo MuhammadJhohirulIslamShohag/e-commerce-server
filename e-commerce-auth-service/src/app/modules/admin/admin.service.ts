@@ -4,15 +4,15 @@ import bcrypt from 'bcrypt';
 import httpStatus from 'http-status';
 import { JwtPayload, Secret } from 'jsonwebtoken';
 
+import QueryBuilder from '../../../builder/query.builder';
+import config from '../../../config';
 import ApiError from '../../../errors/ApiError';
 import { IAdmin } from './admin.interface';
 import Admin from './admin.model';
-import config from '../../../config';
-import QueryBuilder from '../../../builder/query.builder';
 
+import { jwtHelpers } from '../../../helpers/jwt.helper';
+import { PasswordHelpers } from '../../../helpers/password.helper';
 import { adminSearchableFields } from './admin.constant';
-import { jwtHelpers } from '../../../helpers/jwtHelpers';
-import { passwordHelpers } from '../../../helpers/passwordHelper';
 
 class AdminServiceClass {
   #AdminModel;
@@ -170,7 +170,7 @@ class AdminServiceClass {
     // Check if the payload contains a password field
     if (password) {
       // Hash the new password
-      const hashedPassword = await passwordHelpers.hashPassword(password);
+      const hashedPassword = await PasswordHelpers.hashPassword(password);
 
       if (!hashedPassword) {
         throw new ApiError(

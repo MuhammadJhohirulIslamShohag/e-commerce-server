@@ -3,14 +3,16 @@
 /* eslint-disable no-unused-expressions */
 /* eslint-disable no-console */
 import { ErrorRequestHandler, NextFunction, Request, Response } from 'express';
-import config from '../../config';
-import { IGenericErrorMessage } from '../../interfaces/error';
-import handleValidationError from '../../errors/handleValidationError';
-import ApiError from '../../errors/ApiError';
-import { errorLogger } from '../../shared/logger';
 import { ZodError } from 'zod';
+
+import config from '../../config';
 import handleZodValidationError from '../../errors/handleZodValidationError';
 import handleCastError from '../../errors/handleCastError';
+import handleValidationError from '../../errors/handleValidationError';
+import ApiError from '../../errors/ApiError';
+
+import { IGenericErrorMessage } from '../../interfaces/error';
+import { errorLogger } from '../../utils/logger';
 
 // global error handler
 const globalErrorHandler: ErrorRequestHandler = (

@@ -6,13 +6,13 @@ const hashPassword = async (password: string): Promise<string | null> => {
   if (password) {
     hashedPassword = await bcrypt.hash(
       password,
-      Number(config.bcrypt_salt_round)
+      Number(config.bcrypt_salt_rounds)
     )
   }
 
   return hashedPassword
 }
 
-export const passwordHelpers = {
+export const PasswordHelpers = {
   hashPassword,
 }

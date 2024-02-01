@@ -1,8 +1,8 @@
-import { Request, Response } from 'express';
+import { Request, Response, NextFunction } from 'express';
 import httpStatus from 'http-status';
 
-const notFound = (req: Request, res: Response) => {
-  return res.status(httpStatus.NOT_FOUND).json({
+const notFound = (req: Request, res: Response, next: NextFunction) => {
+  res.status(httpStatus.NOT_FOUND).json({
     statusCode: httpStatus.NOT_FOUND,
     message: 'No Api Found!',
     errorMessages: [
@@ -12,6 +12,7 @@ const notFound = (req: Request, res: Response) => {
       },
     ],
   });
+  next();
 };
 
 export default notFound;
