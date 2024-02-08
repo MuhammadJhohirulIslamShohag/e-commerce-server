@@ -24,6 +24,11 @@ class SizeServiceClass {
 
     // create new size
     const result = await this.#SizeModel.create(payload);
+    
+    // if not created size, throw error
+    if (!result) {
+      throw new ApiError(httpStatus.CONFLICT, `Size Create Failed!`);
+    }
 
     return result;
   };

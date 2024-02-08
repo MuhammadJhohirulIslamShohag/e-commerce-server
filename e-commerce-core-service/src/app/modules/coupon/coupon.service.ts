@@ -27,6 +27,11 @@ class CouponServiceClass {
     }
     const result = await this.#CouponModel.create(payload);
 
+    // if not created coupon, throw error
+    if (!result) {
+      throw new ApiError(httpStatus.BAD_REQUEST, `Coupon Create Failed!`);
+    }
+    
     return result;
   };
 

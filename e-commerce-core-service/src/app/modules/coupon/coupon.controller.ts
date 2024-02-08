@@ -2,7 +2,7 @@ import { Request, Response } from 'express';
 
 import httpStatus from 'http-status';
 import catchAsync from '../../shared/catchAsync';
-import ApiError from '../../errors/ApiError';
+
 import responseReturn from '../../shared/responseReturn';
 
 import { CouponService } from './coupon.service';
@@ -18,11 +18,6 @@ class CouponControllerClass {
   readonly createCoupon = catchAsync(async (req: Request, res: Response) => {
     const { ...couponData } = req.body;
     const result = await this.#CouponService.createCoupon(couponData);
-
-    // if not created coupon, throw error
-    if (!result) {
-      throw new ApiError(httpStatus.BAD_REQUEST, `Coupon Create Failed!`);
-    }
 
     responseReturn(res, {
       statusCode: httpStatus.OK,

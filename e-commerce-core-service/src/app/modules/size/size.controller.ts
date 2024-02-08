@@ -2,7 +2,6 @@ import { Request, Response } from 'express';
 
 import httpStatus from 'http-status';
 import catchAsync from '../../shared/catchAsync';
-import ApiError from '../../errors/ApiError';
 import responseReturn from '../../shared/responseReturn';
 
 import { SizeService } from './size.service';
@@ -18,11 +17,6 @@ class SizeControllerClass {
   readonly createSize = catchAsync(async (req: Request, res: Response) => {
     const { ...sizeData } = req.body;
     const result = await this.#SizeService.createSize(sizeData);
-
-    // if not created size, throw error
-    if (!result) {
-      throw new ApiError(httpStatus.CONFLICT, `Size Create Failed!`);
-    }
 
     responseReturn(res, {
       statusCode: httpStatus.OK,

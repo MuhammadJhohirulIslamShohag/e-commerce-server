@@ -1,5 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
-/* eslint-disable @typescript-eslint/no-this-alias */
 import { Schema, model } from 'mongoose'
 import { couponStatus } from './coupon.constant'
 import { CouponModel, ICoupon } from './coupon.interface'
