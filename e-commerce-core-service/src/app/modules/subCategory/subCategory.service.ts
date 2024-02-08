@@ -1,4 +1,3 @@
-/* eslint-disable no-unused-expressions */
 import httpStatus from 'http-status';
 import mongoose from 'mongoose';
 
@@ -33,7 +32,7 @@ class SubCategoryServiceClass {
 
     // create new sub category
     const result = await this.#SubCategoryModel.create(payload);
-    
+
     // if not created sub category, throw error
     if (!result) {
       throw new ApiError(httpStatus.BAD_REQUEST, `Sub Category Create Failed!`);
@@ -156,7 +155,7 @@ class SubCategoryServiceClass {
     return result;
   };
 
-  // get categories from sub category method
+  // get sub categories under categories from category method
   readonly allSubCategoriesUnderCategories = async () => {
     const result = await this.#SubCategoryModel.aggregate([
       {

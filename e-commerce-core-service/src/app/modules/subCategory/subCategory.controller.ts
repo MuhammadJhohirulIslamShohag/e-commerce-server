@@ -17,7 +17,7 @@ class SubCategoryControllerClass {
   readonly createSubCategory = catchAsync(
     async (req: Request, res: Response) => {
       const { ...subCategoryData } = req.body;
-      
+
       const result = await this.#SubCategoryService.createSubCategory(
         subCategoryData
       );
@@ -25,7 +25,7 @@ class SubCategoryControllerClass {
       responseReturn(res, {
         statusCode: httpStatus.OK,
         success: true,
-        message: 'SubCategory Created Successfully!',
+        message: 'Sub Category Created Successfully!',
         data: result,
       });
     }
@@ -103,7 +103,7 @@ class SubCategoryControllerClass {
     }
   );
 
-  // get subcategories from category method
+  // get sub categories under categories from category method
   readonly allSubCategoriesUnderCategories = catchAsync(
     async (_req: Request, res: Response) => {
       const result =
@@ -112,7 +112,7 @@ class SubCategoryControllerClass {
       responseReturn(res, {
         statusCode: httpStatus.OK,
         success: true,
-        message: 'All  Categories Retrieved Successfully!',
+        message: 'All Sub Categories Under Categories Retrieved Successfully!',
         data: result,
       });
     }

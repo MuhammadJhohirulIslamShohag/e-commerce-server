@@ -15,8 +15,8 @@ class CategoryControllerClass {
 
   // create category method
   readonly createCategory = catchAsync(async (req: Request, res: Response) => {
-    const { ...CategoryData } = req.body;
-    const result = await this.#CategoryService.createCategory(CategoryData);
+    const { ...categoryData } = req.body;
+    const result = await this.#CategoryService.createCategory(categoryData);
 
     responseReturn(res, {
       statusCode: httpStatus.OK,
@@ -42,6 +42,7 @@ class CategoryControllerClass {
   readonly getSingleCategory = catchAsync(
     async (req: Request, res: Response) => {
       const categoryId = req.params.id;
+      
       const result = await this.#CategoryService.getSingleCategory(categoryId);
 
       responseReturn(res, {
