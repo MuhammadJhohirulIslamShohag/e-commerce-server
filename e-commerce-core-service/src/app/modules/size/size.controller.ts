@@ -1,11 +1,10 @@
 import { Request, Response } from 'express';
-import httpStatus from 'http-status';
 
+import httpStatus from 'http-status';
 import catchAsync from '../../shared/catchAsync';
 import ApiError from '../../errors/ApiError';
 import responseReturn from '../../shared/responseReturn';
 
-import { ISize } from './size.interface';
 import { SizeService } from './size.service';
 
 class SizeControllerClass {
@@ -16,7 +15,7 @@ class SizeControllerClass {
   }
 
   // create size controller
-  createSize = catchAsync(async (req: Request, res: Response) => {
+  readonly createSize = catchAsync(async (req: Request, res: Response) => {
     const { ...sizeData } = req.body;
     const result = await this.#SizeService.createSize(sizeData);
 
@@ -35,7 +34,7 @@ class SizeControllerClass {
 
   // get all sizes controller
   readonly allSizes = catchAsync(async (req: Request, res: Response) => {
-    const result = await SizeService.allSizes(req.query);
+    const result = await this.#SizeService.allSizes(req.query);
 
     responseReturn(res, {
       statusCode: httpStatus.OK,
@@ -49,9 +48,9 @@ class SizeControllerClass {
   // get single Size user controller
   readonly getSingleSize = catchAsync(async (req: Request, res: Response) => {
     const sizeId = req.params.id;
-    const result = await SizeService.getSingleSize(sizeId);
+    const result = await this.#SizeService.getSingleSize(sizeId);
 
-    responseReturn<ISize | null>(res, {
+    responseReturn(res, {
       statusCode: httpStatus.OK,
       success: true,
       message: 'Single Size Retrieved Successfully!',
@@ -63,9 +62,9 @@ class SizeControllerClass {
   readonly updateSize = catchAsync(async (req: Request, res: Response) => {
     const sizeId = req.params.id;
     const { ...updateSizeData } = req.body;
-    const result = await SizeService.updateSize(sizeId, updateSizeData);
+    const result = await this.#SizeService.updateSize(sizeId, updateSizeData);
 
-    responseReturn<ISize | null>(res, {
+    responseReturn(res, {
       statusCode: httpStatus.OK,
       success: true,
       message: 'Size Updated Successfully!',
@@ -76,9 +75,9 @@ class SizeControllerClass {
   // delete Size controller
   readonly deleteSize = catchAsync(async (req: Request, res: Response) => {
     const sizeId = req.params.id;
-    const result = await SizeService.deleteSize(sizeId);
+    const result = await this.#SizeService.deleteSize(sizeId);
 
-    responseReturn<ISize | null>(res, {
+    responseReturn(res, {
       statusCode: httpStatus.OK,
       success: true,
       message: 'Size Removed Successfully!',

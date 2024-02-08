@@ -15,15 +15,15 @@ class SizeServiceClass {
     this.#QueryBuilder = QueryBuilder;
   }
   // create size service
-  readonly createSize = async (payload: ISize): Promise<ISize | null> => {
+  readonly createSize = async (payload: ISize) => {
     // check already size exit, if not, throw error
-    const isExitSize = await Size.findOne({ name: payload?.name });
+    const isExitSize = await this.#SizeModel.findOne({ name: payload?.name });
     if (isExitSize) {
-      throw new ApiError(httpStatus.CONFLICT, `Size Is Already Exit!`);
+      throw new ApiError(httpStatus.BAD_REQUEST, `Size Is Already Exit!`);
     }
 
     // create new size
-    const result = await Size.create(payload);
+    const result = await this.#SizeModel.create(payload);
 
     return result;
   };
@@ -52,22 +52,19 @@ class SizeServiceClass {
   // get single size service
   readonly getSingleSize = async (payload: string) => {
     // check size is exit, if not, throw error
-    const isExitSize = await Size.findById(payload);
+    const isExitSize = await this.#SizeModel.findById(payload);
     if (!isExitSize) {
       throw new ApiError(httpStatus.NOT_FOUND, `Size Is Not Exit!`);
     }
 
-    const result = await Size.findById(payload).exec();
+    const result = await this.#SizeModel.findById(payload).exec();
     return result;
   };
 
   // update size service
-  readonly updateSize = async (
-    id: string,
-    payload: Partial<ISize>
-  ): Promise<ISize | null> => {
+  readonly updateSize = async (id: string, payload: Partial<ISize>) => {
     // check already size exit, if not throw error
-    const isExitSize = await Size.findById({ _id: id });
+    const isExitSize = await this.#SizeModel.findById({ _id: id });
     if (!isExitSize) {
       throw new ApiError(httpStatus.NOT_FOUND, 'Size Not Found!');
     }
@@ -75,23 +72,27 @@ class SizeServiceClass {
     const updatedSizeData: Partial<ISize> = { ...payload };
 
     // update the size
-    const result = await Size.findOneAndUpdate({ _id: id }, updatedSizeData, {
-      new: true,
-    });
+    const result = await this.#SizeModel.findOneAndUpdate(
+      { _id: id },
+      updatedSizeData,
+      {
+        new: true,
+      }
+    );
 
     return result;
   };
 
   // delete size service
-  readonly deleteSize = async (payload: string): Promise<ISize | null> => {
+  readonly deleteSize = async (payload: string) => {
     // check already size exit, if not throw error
-    const isExitSize = await Size.findById({ _id: payload });
+    const isExitSize = await this.#SizeModel.findById({ _id: payload });
     if (!isExitSize) {
       throw new ApiError(httpStatus.NOT_FOUND, 'Size Not Found!');
     }
 
     // delete the size
-    const result = await Size.findByIdAndDelete(payload);
+    const result = await this.#SizeModel.findByIdAndDelete(payload);
     return result;
   };
 }
