@@ -17,5 +17,8 @@ export default {
     aws_email_pass: process.env.AWS_EMAIL_PASS,
     aws_email_user: process.env.AWS_EMAIL_USER,
     aws_email_host: process.env.AWS_EMAIL_HOST,
+    aws_access_key_id: process.env.AWS_ACCESS_KEY_ID,
+    aws_secret_access_key: process.env.AWS_SECRET_ACCESS_KEY,
+    aws_bucket_name: process.env.AWS_BUCKET_NAME,
   },
 };
