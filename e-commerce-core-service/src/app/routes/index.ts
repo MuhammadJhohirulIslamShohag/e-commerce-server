@@ -4,6 +4,7 @@ import { SubCategoryRoutes } from '../modules/subCategory/subCategory.route';
 import { SizeRoutes } from '../modules/size/size.route';
 import { CouponRoutes } from '../modules/coupon/coupon.route';
 import { BrandRoutes } from '../modules/brand/brand.route';
+import { ColorRoutes } from '../modules/color/color.route';
 
 const router: Router = express.Router();
 
@@ -27,6 +28,10 @@ const moduleRoutes = [
   {
     path: '/brands',
     route: BrandRoutes,
+  },
+  {
+    path: '/colors',
+    route: ColorRoutes,
   },
 ];
 

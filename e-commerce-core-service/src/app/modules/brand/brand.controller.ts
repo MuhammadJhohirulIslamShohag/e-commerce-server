@@ -16,6 +16,7 @@ class BrandControllerClass {
   // create brand controller
   readonly createBrand = catchAsync(async (req: Request, res: Response) => {
     const { ...brandData } = req.body;
+    
     const result = await this.#BrandService.createBrand(brandData);
 
     responseReturn(res, {
@@ -42,6 +43,7 @@ class BrandControllerClass {
   // get single brand user controller
   readonly getSingleBrand = catchAsync(async (req: Request, res: Response) => {
     const brandId = req.params.id;
+
     const result = await this.#BrandService.getSingleBrand(brandId);
 
     responseReturn(res, {
@@ -56,6 +58,7 @@ class BrandControllerClass {
   readonly updateBrand = catchAsync(async (req: Request, res: Response) => {
     const brandId = req.params.id;
     const { ...updateBrandData } = req.body;
+
     const result = await this.#BrandService.updateBrand(
       brandId,
       updateBrandData
@@ -72,6 +75,7 @@ class BrandControllerClass {
   // delete brand controller
   readonly deleteBrand = catchAsync(async (req: Request, res: Response) => {
     const brandId = req.params.id;
+
     const result = await this.#BrandService.deleteBrand(brandId);
 
     responseReturn(res, {

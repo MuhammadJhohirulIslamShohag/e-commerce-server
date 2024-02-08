@@ -17,6 +17,7 @@ class CouponControllerClass {
   // create Coupon controller
   readonly createCoupon = catchAsync(async (req: Request, res: Response) => {
     const { ...couponData } = req.body;
+
     const result = await this.#CouponService.createCoupon(couponData);
 
     responseReturn(res, {
@@ -43,6 +44,7 @@ class CouponControllerClass {
   // get single Coupon user controller
   readonly getSingleCoupon = catchAsync(async (req: Request, res: Response) => {
     const couponId = req.params.id;
+
     const result = await this.#CouponService.getSingleCoupon(couponId);
 
     responseReturn(res, {
@@ -57,6 +59,7 @@ class CouponControllerClass {
   readonly updateCoupon = catchAsync(async (req: Request, res: Response) => {
     const couponId = req.params.id;
     const { ...updateCouponData } = req.body;
+
     const result = await this.#CouponService.updateCoupon(
       couponId,
       updateCouponData
@@ -73,6 +76,7 @@ class CouponControllerClass {
   // delete coupon controller
   readonly deleteCoupon = catchAsync(async (req: Request, res: Response) => {
     const couponId = req.params.id;
+    
     const result = await this.#CouponService.deleteCoupon(couponId);
 
     responseReturn(res, {

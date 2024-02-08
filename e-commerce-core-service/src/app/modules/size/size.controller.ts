@@ -16,6 +16,7 @@ class SizeControllerClass {
   // create size controller
   readonly createSize = catchAsync(async (req: Request, res: Response) => {
     const { ...sizeData } = req.body;
+
     const result = await this.#SizeService.createSize(sizeData);
 
     responseReturn(res, {
@@ -42,6 +43,7 @@ class SizeControllerClass {
   // get single Size user controller
   readonly getSingleSize = catchAsync(async (req: Request, res: Response) => {
     const sizeId = req.params.id;
+
     const result = await this.#SizeService.getSingleSize(sizeId);
 
     responseReturn(res, {
@@ -56,6 +58,7 @@ class SizeControllerClass {
   readonly updateSize = catchAsync(async (req: Request, res: Response) => {
     const sizeId = req.params.id;
     const { ...updateSizeData } = req.body;
+
     const result = await this.#SizeService.updateSize(sizeId, updateSizeData);
 
     responseReturn(res, {
@@ -69,6 +72,7 @@ class SizeControllerClass {
   // delete Size controller
   readonly deleteSize = catchAsync(async (req: Request, res: Response) => {
     const sizeId = req.params.id;
+    
     const result = await this.#SizeService.deleteSize(sizeId);
 
     responseReturn(res, {

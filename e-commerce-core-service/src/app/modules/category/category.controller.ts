@@ -16,6 +16,7 @@ class CategoryControllerClass {
   // create category method
   readonly createCategory = catchAsync(async (req: Request, res: Response) => {
     const { ...categoryData } = req.body;
+    
     const result = await this.#CategoryService.createCategory(categoryData);
 
     responseReturn(res, {
@@ -75,6 +76,7 @@ class CategoryControllerClass {
   // delete category method
   readonly deleteCategory = catchAsync(async (req: Request, res: Response) => {
     const categoryId = req.params.id;
+
     const result = await this.#CategoryService.deleteCategory(categoryId);
 
     responseReturn(res, {
