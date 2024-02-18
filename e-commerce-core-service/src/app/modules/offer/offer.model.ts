@@ -1,7 +1,6 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
-/* eslint-disable @typescript-eslint/no-this-alias */
 import { Schema, model } from 'mongoose'
 import validator from 'validator'
+
 import { OfferModel, IOffer } from './offer.interface'
 
 // offer schema

@@ -1,93 +1,95 @@
-import { Request, Response } from 'express'
-import httpStatus from 'http-status'
-import { paginationOptionFields } from '../../../constants/pagination'
-import ApiError from '../../../errors/ApiError'
-import { IGenericResponse } from '../../../interfaces/common'
-import catchAsync from '../../../shared/catchAsync'
-import { pick } from '../../../shared/pick'
-import responseReturn from '../../../shared/responseReturn'
-import { offerFilterableFields } from './offer.constant'
-import { IOffer } from './offer.interface'
-import { OfferService } from './offer.service'
+import { Request, Response } from 'express';
+import httpStatus from 'http-status';
 
-// create Offer controller
-const createOffer = catchAsync(async (req: Request, res: Response) => {
-  const { ...offerData } = req.body
-  
-  const result = await OfferService.createOffer(offerData)
+import { OfferService } from './offer.service';
+import catchAsync from '../../shared/catchAsync';
+import ApiError from '../../errors/ApiError';
+import responseReturn from '../../shared/responseReturn';
 
-  // if not created Offer, throw error
-  if (!result) {
-    throw new ApiError(httpStatus.CONFLICT, `Offer Create Failed!`)
+class OfferControllerClass {
+  #OfferService: typeof OfferService;
+
+  constructor(service: typeof OfferService) {
+    this.#OfferService = service;
   }
 
-  responseReturn<IOffer | null>(res, {
-    statusCode: httpStatus.OK,
-    success: true,
-    message: 'Offer Created Successfully!',
-    data: result,
-  })
-})
+  // create offer controller
+  readonly createOffer = catchAsync(async (req: Request, res: Response) => {
+    const { ...offerData } = req.body;
 
-// get all Offers controller
-const allOffers = catchAsync(async (req: Request, res: Response) => {
-  const paginationOptions = pick(req.query, paginationOptionFields)
-  const filters = pick(req.query, offerFilterableFields)
+    const result = await this.#OfferService.createOffer(offerData);
 
-  const result = await OfferService.allOffers(paginationOptions, filters)
+    // if not created offer, throw error
+    if (!result) {
+      throw new ApiError(httpStatus.BAD_REQUEST, `Offer Create Failed!`);
+    }
 
-  responseReturn<IGenericResponse<IOffer[]>>(res, {
-    statusCode: httpStatus.OK,
-    success: true,
-    message: 'All Offers Retrieved Successfully!',
-    data: result,
-  })
-})
+    responseReturn(res, {
+      statusCode: httpStatus.OK,
+      success: true,
+      message: 'Offer Created Successfully!',
+      data: result,
+    });
+  });
 
-// get single Offer user controller
-const getSingleOffer = catchAsync(async (req: Request, res: Response) => {
-  const offerId = req.params.id
-  const result = await OfferService.getSingleOffer(offerId)
+  // get all offers controller
+  readonly allOffers = catchAsync(async (req: Request, res: Response) => {
+    const result = await this.#OfferService.allOffers(req.query);
 
-  responseReturn<IOffer | null>(res, {
-    statusCode: httpStatus.OK,
-    success: true,
-    message: 'Single Offer Retrieved Successfully!',
-    data: result,
-  })
-})
+    responseReturn(res, {
+      statusCode: httpStatus.OK,
+      success: true,
+      message: 'All Offers Retrieved Successfully!',
+      data: result.result,
+      meta: result.meta,
+    });
+  });
 
-// update Offer controller
-const updateOffer = catchAsync(async (req: Request, res: Response) => {
-  const offerId = req.params.id
-  const { ...updateOfferData } = req.body
-  const result = await OfferService.updateOffer(offerId, updateOfferData)
+  // get single offer user controller
+  readonly getSingleOffer = catchAsync(async (req: Request, res: Response) => {
+    const offerId = req.params.id;
+    
+    const result = await this.#OfferService.getSingleOffer(offerId);
 
-  responseReturn<IOffer | null>(res, {
-    statusCode: httpStatus.OK,
-    success: true,
-    message: 'Offer Updated Successfully!',
-    data: result,
-  })
-})
+    responseReturn(res, {
+      statusCode: httpStatus.OK,
+      success: true,
+      message: 'Single Offer Retrieved Successfully!',
+      data: result,
+    });
+  });
 
-// delete Offer controller
-const deleteOffer = catchAsync(async (req: Request, res: Response) => {
-  const offerId = req.params.id
-  const result = await OfferService.deleteOffer(offerId)
+  // update offer controller
+  readonly updateOffer = catchAsync(async (req: Request, res: Response) => {
+    const offerId = req.params.id;
+    const { ...updateOfferData } = req.body;
 
-  responseReturn<IOffer | null>(res, {
-    statusCode: httpStatus.OK,
-    success: true,
-    message: 'Offer Removed Successfully!',
-    data: result,
-  })
-})
+    const result = await this.#OfferService.updateOffer(
+      offerId,
+      updateOfferData
+    );
 
-export const OfferController = {
-  createOffer,
-  allOffers,
-  updateOffer,
-  getSingleOffer,
-  deleteOffer,
+    responseReturn(res, {
+      statusCode: httpStatus.OK,
+      success: true,
+      message: 'Offer Updated Successfully!',
+      data: result,
+    });
+  });
+
+  // delete offer controller
+  readonly deleteOffer = catchAsync(async (req: Request, res: Response) => {
+    const offerId = req.params.id;
+
+    const result = await this.#OfferService.deleteOffer(offerId);
+
+    responseReturn(res, {
+      statusCode: httpStatus.OK,
+      success: true,
+      message: 'Offer Removed Successfully!',
+      data: result,
+    });
+  });
 }
+
+export const OfferController = new OfferControllerClass(OfferService);

@@ -1,34 +1,41 @@
-import express from 'express'
-import validateRequest from '../../middleware/validateRequest'
-import { OfferValidation } from './offer.validation'
-import { OfferController } from './offer.controller'
-import { auth } from '../../middleware/auth'
-import { USER_ROLE_ENUM } from '../../../enum/user'
+import express, { Router } from 'express';
 
-const router = express.Router()
+import validateRequest from '../../middlewares/validateRequest';
 
-// create and get all Offers routes
-router
-  .route('/')
-  .post(
-    auth(USER_ROLE_ENUM.ADMIN, USER_ROLE_ENUM.SUPERADMIN),
-    validateRequest(OfferValidation.offerCreateZodSchema),
-    OfferController.createOffer
-  )
-  .get(OfferController.allOffers)
+import { OfferValidation } from './offer.validation';
+import { OfferController } from './offer.controller';
 
-// update and get single Offer, delete routes
-router
-  .route('/:id')
-  .patch(
-    auth(USER_ROLE_ENUM.ADMIN, USER_ROLE_ENUM.SUPERADMIN),
-    validateRequest(OfferValidation.offerUpdateZodSchema),
-    OfferController.updateOffer
-  )
-  .get(OfferController.getSingleOffer)
-  .delete(
-    auth(USER_ROLE_ENUM.ADMIN, USER_ROLE_ENUM.SUPERADMIN),
-    OfferController.deleteOffer
-  )
+const router = express.Router();
 
-export const OfferRoutes = router
+class OfferRouterClass {
+  readonly routers: Router;
+  constructor() {
+    this.routers = Router();
+    this.#RouterAction();
+  }
+
+  #RouterAction() {
+    // create and get all offers routes
+    router
+      .route('/')
+      .post(
+        validateRequest(OfferValidation.offerCreateZodSchema),
+        OfferController.createOffer
+      )
+      .get(OfferController.allOffers);
+
+    // update and get single offer, delete routes
+    router
+      .route('/:id')
+      .patch(
+        validateRequest(OfferValidation.offerUpdateZodSchema),
+        OfferController.updateOffer
+      )
+      .get(OfferController.getSingleOffer)
+      .delete(OfferController.deleteOffer);
+  }
+}
+
+const allRoutes = new OfferRouterClass().routers;
+
+export { allRoutes as OfferRoutes };
