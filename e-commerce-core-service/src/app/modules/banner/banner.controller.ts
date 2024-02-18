@@ -1,90 +1,89 @@
-import { Request, Response } from 'express'
-import httpStatus from 'http-status'
-import { paginationOptionFields } from '../../../constants/pagination'
-import ApiError from '../../../errors/ApiError'
-import { IGenericResponse } from '../../../interfaces/common'
-import catchAsync from '../../../shared/catchAsync'
-import { pick } from '../../../shared/pick'
-import responseReturn from '../../../shared/responseReturn'
-import { IBanner } from './banner.interface'
-import { BannerService } from './banner.service'
+import { Request, Response } from 'express';
+import httpStatus from 'http-status';
 
-// create banner controller
-const createBanner = catchAsync(async (req: Request, res: Response) => {
-  const { ...bannerData } = req.body
-  const result = await BannerService.createBanner(bannerData)
+import { BannerService } from './banner.service';
+import catchAsync from '../../shared/catchAsync';
+import responseReturn from '../../shared/responseReturn';
 
-  // if not created banner, throw error
-  if (!result) {
-    throw new ApiError(httpStatus.CONFLICT, `Banner Image Create Failed!`)
+class BannerControllerClass {
+  #BannerService: typeof BannerService;
+
+  constructor(service: typeof BannerService) {
+    this.#BannerService = service;
   }
 
-  responseReturn<IBanner | null>(res, {
-    statusCode: httpStatus.OK,
-    success: true,
-    message: 'Banner Image Created Successfully!',
-    data: result,
-  })
-})
+  // create banner controller
+  readonly createBanner = catchAsync(async (req: Request, res: Response) => {
+    const { ...bannerData } = req.body;
 
-// get all banners controller
-const allBanners = catchAsync(async (req: Request, res: Response) => {
-  const paginationOptions = pick(req.query, paginationOptionFields)
+    const result = await this.#BannerService.createBanner(bannerData);
 
-  const result = await BannerService.allBanners(paginationOptions)
+    responseReturn(res, {
+      statusCode: httpStatus.OK,
+      success: true,
+      message: 'Banner Image Created Successfully!',
+      data: result,
+    });
+  });
 
-  responseReturn<IGenericResponse<IBanner[]>>(res, {
-    statusCode: httpStatus.OK,
-    success: true,
-    message: 'All Banners Image Retrieved Successfully!',
-    data: result,
-  })
-})
+  // get all banners controller
+  readonly allBanners = catchAsync(async (req: Request, res: Response) => {
+    const result = await this.#BannerService.allBanners(req.query);
 
-// get single Banner user controller
-const getSingleBanner = catchAsync(async (req: Request, res: Response) => {
-  const bannerId = req.params.id
-  const result = await BannerService.getSingleBanner(bannerId)
+    responseReturn(res, {
+      statusCode: httpStatus.OK,
+      success: true,
+      message: 'All Banners Retrieved Successfully!',
+      data: result.result,
+      meta: result.meta,
+    });
+  });
 
-  responseReturn<IBanner | null>(res, {
-    statusCode: httpStatus.OK,
-    success: true,
-    message: 'Single Banner Image Retrieved Successfully!',
-    data: result,
-  })
-})
+  // get single Banner user controller
+  readonly getSingleBanner = catchAsync(async (req: Request, res: Response) => {
+    const bannerId = req.params.id;
 
-// update banner controller
-const updateBanner = catchAsync(async (req: Request, res: Response) => {
-  const bannerId = req.params.id
-  const { ...updateBannerData } = req.body
-  const result = await BannerService.updateBanner(bannerId, updateBannerData)
+    const result = await this.#BannerService.getSingleBanner(bannerId);
 
-  responseReturn<IBanner | null>(res, {
-    statusCode: httpStatus.OK,
-    success: true,
-    message: 'Banner Image Updated Successfully!',
-    data: result,
-  })
-})
+    responseReturn(res, {
+      statusCode: httpStatus.OK,
+      success: true,
+      message: 'Single Banner Image Retrieved Successfully!',
+      data: result,
+    });
+  });
 
-// delete banner controller
-const deleteBanner = catchAsync(async (req: Request, res: Response) => {
-  const bannerId = req.params.id
-  const result = await BannerService.deleteBanner(bannerId)
+  // update banner controller
+  readonly updateBanner = catchAsync(async (req: Request, res: Response) => {
+    const bannerId = req.params.id;
+    const { ...updateBannerData } = req.body;
 
-  responseReturn<IBanner | null>(res, {
-    statusCode: httpStatus.OK,
-    success: true,
-    message: 'Banner Image Removed Successfully!',
-    data: result,
-  })
-})
+    const result = await this.#BannerService.updateBanner(
+      bannerId,
+      updateBannerData
+    );
 
-export const BannerController = {
-  createBanner,
-  allBanners,
-  updateBanner,
-  getSingleBanner,
-  deleteBanner,
+    responseReturn(res, {
+      statusCode: httpStatus.OK,
+      success: true,
+      message: 'Banner Image Updated Successfully!',
+      data: result,
+    });
+  });
+
+  // delete banner controller
+  readonly deleteBanner = catchAsync(async (req: Request, res: Response) => {
+    const bannerId = req.params.id;
+
+    const result = await this.#BannerService.deleteBanner(bannerId);
+
+    responseReturn(res, {
+      statusCode: httpStatus.OK,
+      success: true,
+      message: 'Banner Image Removed Successfully!',
+      data: result,
+    });
+  });
 }
+
+export const BannerController = new BannerControllerClass(BannerService);

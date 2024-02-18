@@ -1,5 +1,3 @@
-/* eslint-disable @typescript-eslint/consistent-type-definitions */
-/* eslint-disable no-unused-vars */
 import { Model, Types } from 'mongoose'
 import { IOffer } from '../offer/offer.interface'
 

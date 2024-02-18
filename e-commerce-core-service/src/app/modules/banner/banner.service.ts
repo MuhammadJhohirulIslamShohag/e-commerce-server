@@ -1,103 +1,103 @@
-/* eslint-disable no-unused-expressions */
-import httpStatus from 'http-status'
-import { SortOrder } from 'mongoose'
-import ApiError from '../../../errors/ApiError'
-import { paginationHelper } from '../../../helpers/paginationHelper'
-import { IGenericResponse } from '../../../interfaces/common'
-import { PaginationOptionType } from '../../../interfaces/pagination'
-import Banner from './banner.model'
-import { IBanner } from './banner.interface'
+import httpStatus from 'http-status';
 
-// create banner service
-const createBanner = async (payload: IBanner): Promise<IBanner | null> => {
-  // check already banner exit, if not, throw error
-  const isExitBanner = await Banner.findOne({ imageURL: payload?.imageURL })
-  if (isExitBanner) {
-    throw new ApiError(httpStatus.CONFLICT, `Banner Image Is Already Exit!`)
+import QueryBuilder from '../../builder/query.builder';
+import ApiError from '../../errors/ApiError';
+import Banner from './banner.model';
+
+import { IBanner } from './banner.interface';
+
+class BannerServiceClass {
+  #BannerModel;
+  #QueryBuilder: typeof QueryBuilder;
+  constructor() {
+    this.#BannerModel = Banner;
+    this.#QueryBuilder = QueryBuilder;
   }
 
-  // create new banner
-  const result = await Banner.create(payload)
+  // create banner service
+  readonly createBanner = async (payload: IBanner) => {
+    // check already banner exit, if not, throw error
+    const isExitBanner = await this.#BannerModel.findOne({
+      imageURL: payload?.imageURL,
+    });
+    if (isExitBanner) {
+      throw new ApiError(httpStatus.CONFLICT, `Banner Image Is Already Exit!`);
+    }
 
-  return result
+    // create new banner
+    const result = await this.#BannerModel.create(payload);
+
+    // if not created banner, throw error
+    if (!result) {
+      throw new ApiError(httpStatus.CONFLICT, `Banner Image Create Failed!`);
+    }
+
+    return result;
+  };
+
+  // get all banners service
+  readonly allBanners = async (query: Record<string, unknown>) => {
+    const userQuery = new this.#QueryBuilder(this.#BannerModel.find(), query)
+      .filter()
+      .sort()
+      .paginate()
+      .fields();
+
+    // result of user
+    const result = await userQuery.modelQuery;
+
+    // get meta user
+    const meta = await userQuery.countTotal();
+
+    return {
+      meta,
+      result,
+    };
+  };
+
+  // get single banner service
+  readonly getSingleBanner = async (payload: string) => {
+    const result = await this.#BannerModel
+      .findById(payload)
+      .populate('offer')
+      .exec();
+    return result;
+  };
+
+  // update banner service
+  readonly updateBanner = async (id: string, payload: Partial<IBanner>) => {
+    // check already banner exit, if not throw error
+    const isExitBanner = await this.#BannerModel.findById({ _id: id });
+    if (!isExitBanner) {
+      throw new ApiError(httpStatus.NOT_FOUND, 'Banner Image Not Found!');
+    }
+
+    const updatedBannerData: Partial<IBanner> = { ...payload };
+
+    // update the banner
+    const result = await this.#BannerModel.findOneAndUpdate(
+      { _id: id },
+      updatedBannerData,
+      {
+        new: true,
+      }
+    );
+
+    return result;
+  };
+
+  // delete banner service
+  readonly deleteBanner = async (payload: string) => {
+    // check already banner exit, if not throw error
+    const isExitBanner = await this.#BannerModel.findById({ _id: payload });
+    if (!isExitBanner) {
+      throw new ApiError(httpStatus.NOT_FOUND, 'Banner Image Not Found!');
+    }
+
+    // delete the banner
+    const result = await this.#BannerModel.findByIdAndDelete(payload);
+    return result;
+  };
 }
 
-// get all banners service
-const allBanners = async (
-  paginationOption: PaginationOptionType
-): Promise<IGenericResponse<IBanner[]>> => {
-  const { page, limit, sortBy, sortOrder, skip } =
-    paginationHelper.calculatePagination(paginationOption)
-
-  // dynamic sorting
-  const sortConditions: { [key: string]: SortOrder } = {}
-
-  if (sortBy && sortOrder) [(sortConditions[sortBy] = sortOrder)]
-
-  // result of banner
-  const result = await Banner.find()
-    .populate('offer')
-    .sort(sortConditions)
-    .skip(skip)
-    .limit(limit)
-
-  // get total banners
-  const total = await Banner.countDocuments()
-
-  return {
-    meta: {
-      page,
-      limit,
-      total,
-    },
-    data: result,
-  }
-}
-
-// get single banner service
-const getSingleBanner = async (payload: string): Promise<IBanner | null> => {
-  const result = await Banner.findById(payload).populate('offer').exec()
-  return result
-}
-
-// update banner service
-const updateBanner = async (
-  id: string,
-  payload: Partial<IBanner>
-): Promise<IBanner | null> => {
-  // check already banner exit, if not throw error
-  const isExitBanner = await Banner.findById({ _id: id })
-  if (!isExitBanner) {
-    throw new ApiError(httpStatus.NOT_FOUND, 'Banner Image Not Found!')
-  }
-
-  const updatedBannerData: Partial<IBanner> = { ...payload }
-
-  // update the banner
-  const result = await Banner.findOneAndUpdate({ _id: id }, updatedBannerData, {
-    new: true,
-  })
-
-  return result
-}
-
-// delete banner service
-const deleteBanner = async (payload: string): Promise<IBanner | null> => {
-  // check already banner exit, if not throw error
-  const isExitBanner = await Banner.findById({ _id: payload })
-  if (!isExitBanner) {
-    throw new ApiError(httpStatus.NOT_FOUND, 'Banner Image Not Found!')
-  }
-
-  // delete the banner
-  const result = await Banner.findByIdAndDelete(payload)
-  return result
-}
-
-export const BannerService = {
-  createBanner,
-  allBanners,
-  deleteBanner,
-  updateBanner,
-  getSingleBanner,
-}
+export const BannerService = new BannerServiceClass();

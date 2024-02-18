@@ -1,6 +1,6 @@
-/* eslint-disable @typescript-eslint/no-this-alias */
 import { Schema, model } from 'mongoose'
 import validator from 'validator'
+
 import { BannerModel, IBanner } from './banner.interface'
 
 // banners schema
