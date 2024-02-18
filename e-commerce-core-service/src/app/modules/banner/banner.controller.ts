@@ -15,6 +15,7 @@ class BannerControllerClass {
   // create banner controller
   readonly createBanner = catchAsync(async (req: Request, res: Response) => {
     const { ...bannerData } = req.body;
+    
 
     const result = await this.#BannerService.createBanner(bannerData);
 
@@ -39,7 +40,7 @@ class BannerControllerClass {
     });
   });
 
-  // get single Banner user controller
+  // get single banner user controller
   readonly getSingleBanner = catchAsync(async (req: Request, res: Response) => {
     const bannerId = req.params.id;
 
