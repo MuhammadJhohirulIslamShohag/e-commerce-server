@@ -4,6 +4,8 @@ import httpStatus from 'http-status';
 import { BannerService } from './banner.service';
 import catchAsync from '../../shared/catchAsync';
 import responseReturn from '../../shared/responseReturn';
+import { validateRequireFields } from '../../shared/validateRequireFields';
+import { ImageUploadHelpers } from '../../helpers/image-upload.helper';
 
 class BannerControllerClass {
   #BannerService: typeof BannerService;
@@ -14,10 +16,24 @@ class BannerControllerClass {
 
   // create banner controller
   readonly createBanner = catchAsync(async (req: Request, res: Response) => {
-    const { ...bannerData } = req.body;
-    
+    const { offer } = req.body;
 
-    const result = await this.#BannerService.createBanner(bannerData);
+    // validate body data
+    await validateRequireFields(req.body, ['offer']);
+
+    // banner image file
+    const bannerImageFile = await ImageUploadHelpers.imageFileValidate(
+      req,
+      'bannerImage',
+      'banner'
+    );
+
+    const bannerObjStructure = {
+      offer,
+      imageURL: bannerImageFile,
+    };
+
+    const result = await this.#BannerService.createBanner(bannerObjStructure);
 
     responseReturn(res, {
       statusCode: httpStatus.OK,

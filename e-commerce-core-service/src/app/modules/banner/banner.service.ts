@@ -4,7 +4,8 @@ import QueryBuilder from '../../builder/query.builder';
 import ApiError from '../../errors/ApiError';
 import Banner from './banner.model';
 
-import { IBanner } from './banner.interface';
+import { IBanner, ICreateBanner } from './banner.interface';
+import { ImageUploadHelpers } from '../../helpers/image-upload.helper';
 
 class BannerServiceClass {
   #BannerModel;
@@ -15,17 +16,28 @@ class BannerServiceClass {
   }
 
   // create banner service
-  readonly createBanner = async (payload: IBanner) => {
+  readonly createBanner = async (payload: ICreateBanner) => {
+    // upload image to aws s3 bucket
+    const imageURL = await ImageUploadHelpers.imageUploadToS3Bucket(
+      'BAN',
+      'banner',
+      payload.imageURL.buffer
+    );
+
     // check already banner exit, if not, throw error
     const isExitBanner = await this.#BannerModel.findOne({
-      imageURL: payload?.imageURL,
+      imageURL: imageURL,
     });
+
     if (isExitBanner) {
       throw new ApiError(httpStatus.CONFLICT, `Banner Image Is Already Exit!`);
     }
 
     // create new banner
-    const result = await this.#BannerModel.create(payload);
+    const result = await this.#BannerModel.create({
+      offer: payload.offer,
+      imageURL: imageURL,
+    });
 
     // if not created banner, throw error
     if (!result) {
