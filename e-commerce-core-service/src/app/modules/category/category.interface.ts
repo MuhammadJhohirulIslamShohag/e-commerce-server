@@ -1,17 +1,16 @@
 import { Model } from 'mongoose';
+import { IFile } from '../../interfaces';
 
 // category interface model type
 export type ICategory = {
   name: string;
-  description: string;
   imageURL: string;
   clickedCount: number;
 };
 
-export type CreateCategory = {
+export type ICreateCategory = {
   name: string;
-  description: string;
-  imageURL: string;
+  imageURL: IFile;
 };
 
 // category model type

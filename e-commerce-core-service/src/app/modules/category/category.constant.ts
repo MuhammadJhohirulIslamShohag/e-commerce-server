@@ -1,2 +1,2 @@
 // searchable fields
-export const categorySearchableFields = ['name', 'description'];
+export const categorySearchableFields = ['name'];

@@ -17,9 +17,8 @@ class BannerControllerClass {
   // create banner controller
   readonly createBanner = catchAsync(async (req: Request, res: Response) => {
     const { offer } = req.body;
-
     // validate body data
-    await validateRequireFields(req.body, ['offer']);
+    await validateRequireFields({ offer });
 
     // banner image file
     const bannerImageFile = await ImageUploadHelpers.imageFileValidate(

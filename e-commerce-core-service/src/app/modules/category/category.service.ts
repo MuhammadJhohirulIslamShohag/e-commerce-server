@@ -4,8 +4,9 @@ import Category from './category.model';
 import QueryBuilder from '../../builder/query.builder';
 import ApiError from '../../errors/ApiError';
 
-import { CreateCategory, ICategory } from './category.interface';
+import { ICreateCategory, ICategory } from './category.interface';
 import { categorySearchableFields } from './category.constant';
+import { ImageUploadHelpers } from '../../helpers/image-upload.helper';
 
 class CategoryServiceClass {
   #CategoryModel;
@@ -17,7 +18,7 @@ class CategoryServiceClass {
   }
 
   // create category method
-  readonly createCategory = async (payload: CreateCategory) => {
+  readonly createCategory = async (payload: ICreateCategory) => {
     const { name } = payload;
 
     const isExitCategory = await this.#CategoryModel.findOne({ name: name });
@@ -25,7 +26,18 @@ class CategoryServiceClass {
     if (isExitCategory) {
       throw new ApiError(httpStatus.NOT_FOUND, 'Category already Exit!');
     }
-    const result = await this.#CategoryModel.create(payload);
+
+    // upload image to aws s3 bucket
+    const imageURL = await ImageUploadHelpers.imageUploadToS3Bucket(
+      'CAT',
+      'category',
+      payload.imageURL.buffer
+    );
+
+    const result = await this.#CategoryModel.create({
+      name,
+      imageURL,
+    });
 
     // if not created Category, throw error
     if (!result) {

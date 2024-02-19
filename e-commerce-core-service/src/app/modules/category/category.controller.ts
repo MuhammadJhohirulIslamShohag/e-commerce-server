@@ -5,6 +5,8 @@ import catchAsync from '../../shared/catchAsync';
 import responseReturn from '../../shared/responseReturn';
 
 import { CategoryService } from './category.service';
+import { ImageUploadHelpers } from '../../helpers/image-upload.helper';
+import { validateRequireFields } from '../../shared/validateRequireFields';
 
 class CategoryControllerClass {
   #CategoryService: typeof CategoryService;
@@ -15,9 +17,27 @@ class CategoryControllerClass {
 
   // create category method
   readonly createCategory = catchAsync(async (req: Request, res: Response) => {
-    const { ...categoryData } = req.body;
+    const { name } = req.body;
     
-    const result = await this.#CategoryService.createCategory(categoryData);
+    // validate body data
+    await validateRequireFields({name});
+
+    // category image file
+    const categoryImageFile = await ImageUploadHelpers.imageFileValidate(
+      req,
+      'categoryImage',
+      'category'
+    );
+
+    // category data 
+    const categoryObjStructure = {
+      name,
+      imageURL: categoryImageFile,
+    };
+
+    const result = await this.#CategoryService.createCategory(
+      categoryObjStructure
+    );
 
     responseReturn(res, {
       statusCode: httpStatus.OK,
@@ -43,7 +63,7 @@ class CategoryControllerClass {
   readonly getSingleCategory = catchAsync(
     async (req: Request, res: Response) => {
       const categoryId = req.params.id;
-      
+
       const result = await this.#CategoryService.getSingleCategory(categoryId);
 
       responseReturn(res, {
