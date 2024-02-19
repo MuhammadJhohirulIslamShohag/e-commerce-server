@@ -4,8 +4,9 @@ import QueryBuilder from '../../builder/query.builder';
 import ApiError from '../../errors/ApiError';
 import Offer from './offer.model';
 
-import { IOffer } from './offer.interface';
+import { IOffer, ICreateOffer } from './offer.interface';
 import { offerSearchableFields } from './offer.constant';
+import { ImageUploadHelpers } from '../../helpers/image-upload.helper';
 
 class OfferServiceClass {
   #OfferModel;
@@ -15,9 +16,11 @@ class OfferServiceClass {
     this.#QueryBuilder = QueryBuilder;
   }
   // create Offer service
-  readonly createOffer = async (payload: IOffer) => {
+  readonly createOffer = async (payload: ICreateOffer) => {
+    const { name, imageURL, ...other } = payload;
+
     // check already Offer exit, if not, throw error
-    const isExitOffer = await this.#OfferModel.findOne({ name: payload?.name });
+    const isExitOffer = await this.#OfferModel.findOne({ name: name });
 
     // check already Offer exit, throw error
     if (isExitOffer) {
@@ -35,7 +38,18 @@ class OfferServiceClass {
         );
       }
 
-      result = await this.#OfferModel.create(payload);
+      // upload image to aws s3 bucket
+      const offerImageURL = await ImageUploadHelpers.imageUploadToS3Bucket(
+        'OFR',
+        'offerImage',
+        imageURL.buffer
+      );
+
+      result = await this.#OfferModel.create({
+        imageURL: offerImageURL,
+        name,
+        ...other
+      });
     }
     return result;
   };
@@ -68,10 +82,7 @@ class OfferServiceClass {
   };
 
   // update Offer service
-  readonly updateOffer = async (
-    id: string,
-    payload: Partial<IOffer>
-  )=> {
+  readonly updateOffer = async (id: string, payload: Partial<IOffer>) => {
     // check already Offer exit, if not throw error
     const isExitOffer = await this.#OfferModel.findById({ _id: id });
     if (!isExitOffer) {

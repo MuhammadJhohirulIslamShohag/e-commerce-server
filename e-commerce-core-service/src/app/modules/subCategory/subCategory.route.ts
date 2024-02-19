@@ -1,10 +1,10 @@
 import { Router } from 'express';
+import multer from 'multer';
 
-import validateRequest from '../../middlewares/validateRequest';
-
-import { SubCategoryValidation } from './subCategory.validation';
 import { SubCategoryController } from './subCategory.controller';
 
+const storage = multer.memoryStorage();
+const upload = multer({ storage: storage });
 
 class CategoryRoutesClass {
   readonly routers: Router;
@@ -19,7 +19,7 @@ class CategoryRoutesClass {
     this.routers
       .route('/')
       .post(
-        validateRequest(SubCategoryValidation.subCategoryCreateZodSchema),
+        upload.fields([{ name: 'subCategoryImage', maxCount: 1 }]),
         SubCategoryController.createSubCategory
       )
       .get(SubCategoryController.allSubCategories);
@@ -33,7 +33,7 @@ class CategoryRoutesClass {
     this.routers
       .route('/:id')
       .patch(
-        validateRequest(SubCategoryValidation.subCategoryUpdateZodSchema),
+        upload.fields([{ name: 'subCategoryImage', maxCount: 1 }]),
         SubCategoryController.updateSubCategory
       )
       .get(SubCategoryController.getSingleSubCategory)

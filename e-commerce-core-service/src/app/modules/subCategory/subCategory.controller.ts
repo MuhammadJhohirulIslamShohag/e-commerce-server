@@ -5,6 +5,9 @@ import { SubCategoryService } from './subCategory.service';
 
 import catchAsync from '../../shared/catchAsync';
 import responseReturn from '../../shared/responseReturn';
+import { validateRequireFields } from '../../shared/validateRequireFields';
+import { ImageUploadHelpers } from '../../helpers/image-upload.helper';
+import ApiError from '../../errors/ApiError';
 
 class SubCategoryControllerClass {
   #SubCategoryService: typeof SubCategoryService;
@@ -16,10 +19,32 @@ class SubCategoryControllerClass {
   // create sub category method
   readonly createSubCategory = catchAsync(
     async (req: Request, res: Response) => {
-      const { ...subCategoryData } = req.body;
+      const { name, categories } = req.body;
+
+      // validate body data
+      await validateRequireFields({ name, categories });
+
+      // sub category image file
+      const subCategoryImageFile = await ImageUploadHelpers.imageFileValidate(
+        req,
+        'subCategoryImage',
+        'subCategory'
+      );
+
+      // validate categories
+      if (JSON.parse(categories)?.length < 1) {
+        throw new ApiError(httpStatus.BAD_REQUEST, `Categories Are Required!`);
+      }
+
+      // sub category data
+      const subCategoryObjStructure = {
+        name,
+        categories: JSON.parse(categories),
+        imageURL: subCategoryImageFile,
+      };
 
       const result = await this.#SubCategoryService.createSubCategory(
-        subCategoryData
+        subCategoryObjStructure
       );
 
       responseReturn(res, {

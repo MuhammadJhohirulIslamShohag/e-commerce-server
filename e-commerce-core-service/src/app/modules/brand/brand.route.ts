@@ -1,9 +1,10 @@
 import { Router } from 'express';
+import multer from 'multer';
 
-import validateRequest from '../../middlewares/validateRequest';
-
-import { BrandValidation } from './brand.validation';
 import { BrandController } from './brand.controller';
+
+const storage = multer.memoryStorage();
+const upload = multer({ storage: storage });
 
 class BrandRouterClass {
   readonly routers: Router;
@@ -17,7 +18,7 @@ class BrandRouterClass {
     this.routers
       .route('/')
       .post(
-        validateRequest(BrandValidation.brandCreateZodSchema),
+        upload.fields([{ name: 'brandImage', maxCount: 1 }]),
         BrandController.createBrand
       )
       .get(BrandController.allBrands);
@@ -26,7 +27,7 @@ class BrandRouterClass {
     this.routers
       .route('/:id')
       .patch(
-        validateRequest(BrandValidation.brandUpdateZodSchema),
+        upload.fields([{ name: 'brandImage', maxCount: 1 }]),
         BrandController.updateBrand
       )
       .get(BrandController.getSingleBrand)

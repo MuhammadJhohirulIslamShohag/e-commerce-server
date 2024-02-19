@@ -4,8 +4,9 @@ import QueryBuilder from '../../builder/query.builder';
 import ApiError from '../../errors/ApiError';
 import Brand from './brand.model';
 
-import { IBrand } from './brand.interface';
+import { IBrand, ICreateBrand } from './brand.interface';
 import { brandSearchableFields } from './brand.constant';
+import { ImageUploadHelpers } from '../../helpers/image-upload.helper';
 
 class BrandServiceClass {
   #BrandModel;
@@ -15,15 +16,28 @@ class BrandServiceClass {
     this.#QueryBuilder = QueryBuilder;
   }
   // create brand service
-  readonly createBrand = async (payload: IBrand) => {
+  readonly createBrand = async (payload: ICreateBrand) => {
+    const { name, imageURL, ...other } = payload;
     // check already brand exit, if not, throw error
-    const isExitBrand = await this.#BrandModel.findOne({ name: payload?.name });
+    const isExitBrand = await this.#BrandModel.findOne({ name: name });
 
     // check already Brand exit, throw error
     if (isExitBrand) {
       throw new ApiError(httpStatus.BAD_REQUEST, 'Brand already Exit!');
     }
-    const result = await this.#BrandModel.create(payload);
+
+    // upload image to aws s3 bucket
+    const brandImageURL = await ImageUploadHelpers.imageUploadToS3Bucket(
+      'BND',
+      'bandImage',
+      imageURL.buffer
+    );
+
+    const result = await this.#BrandModel.create({
+      imageURL: brandImageURL,
+      name,
+      ...other,
+    });
 
     // if not created brand, throw error
     if (!result) {

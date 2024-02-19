@@ -47,14 +47,6 @@ const brandSchema = new Schema<IBrand, BrandModel>(
       enum: brandStatus,
       default: 'inActive',
     },
-    suppliers: [
-      {
-        supplierId: {
-          type:  Schema.Types.ObjectId,
-          ref: 'Supplier',
-        },
-      },
-    ],
   },
   {
     timestamps: true,

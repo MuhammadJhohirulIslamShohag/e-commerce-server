@@ -1,7 +1,6 @@
 // searchable fields
 export const brandSearchableFields = [
   'name',
-  'description',
   'email',
   'status',
   'location',

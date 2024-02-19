@@ -1,9 +1,10 @@
 import { Request, Response } from 'express';
 import httpStatus from 'http-status';
 
-import { BannerService } from './banner.service';
 import catchAsync from '../../shared/catchAsync';
 import responseReturn from '../../shared/responseReturn';
+
+import { BannerService } from './banner.service';
 import { validateRequireFields } from '../../shared/validateRequireFields';
 import { ImageUploadHelpers } from '../../helpers/image-upload.helper';
 
@@ -17,6 +18,7 @@ class BannerControllerClass {
   // create banner controller
   readonly createBanner = catchAsync(async (req: Request, res: Response) => {
     const { offer } = req.body;
+
     // validate body data
     await validateRequireFields({ offer });
 
@@ -27,6 +29,7 @@ class BannerControllerClass {
       'banner'
     );
 
+    // banner data
     const bannerObjStructure = {
       offer,
       imageURL: bannerImageFile,

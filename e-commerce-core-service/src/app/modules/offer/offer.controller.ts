@@ -5,6 +5,8 @@ import { OfferService } from './offer.service';
 import catchAsync from '../../shared/catchAsync';
 import ApiError from '../../errors/ApiError';
 import responseReturn from '../../shared/responseReturn';
+import { validateRequireFields } from '../../shared/validateRequireFields';
+import { ImageUploadHelpers } from '../../helpers/image-upload.helper';
 
 class OfferControllerClass {
   #OfferService: typeof OfferService;
@@ -15,9 +17,30 @@ class OfferControllerClass {
 
   // create offer controller
   readonly createOffer = catchAsync(async (req: Request, res: Response) => {
-    const { ...offerData } = req.body;
+    const { name, startDate, endDate, ...other } = req.body;
 
-    const result = await this.#OfferService.createOffer(offerData);
+    // validate body data
+    await validateRequireFields({ name, startDate, endDate });
+
+    // offer image file
+    const offerImageFile = await ImageUploadHelpers.imageFileValidate(
+      req,
+      'offerImage',
+      'offer'
+    );
+
+    // sub category data
+    const offerObjStructure = {
+      name,
+      startDate,
+      endDate,
+      imageURL: offerImageFile,
+      ...other,
+    };
+
+
+
+    const result = await this.#OfferService.createOffer(offerObjStructure);
 
     // if not created offer, throw error
     if (!result) {

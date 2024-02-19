@@ -6,7 +6,8 @@ import QueryBuilder from '../../builder/query.builder';
 import ApiError from '../../errors/ApiError';
 
 import { subCategorySearchableFields } from './subCategory.constant';
-import { ISubCategory } from './subCategory.interface';
+import { ISubCategory, ICreateSubCategory } from './subCategory.interface';
+import { ImageUploadHelpers } from '../../helpers/image-upload.helper';
 
 class SubCategoryServiceClass {
   #SubCategoryModel;
@@ -18,7 +19,7 @@ class SubCategoryServiceClass {
   }
 
   // create sub category method
-  readonly createSubCategory = async (payload: ISubCategory) => {
+  readonly createSubCategory = async (payload: ICreateSubCategory) => {
     // check already sub category exit, if not, throw error
     const isExitSubCategory = await this.#SubCategoryModel.findOne({
       name: payload?.name,
@@ -30,8 +31,19 @@ class SubCategoryServiceClass {
       );
     }
 
+    // upload image to aws s3 bucket
+    const imageURL = await ImageUploadHelpers.imageUploadToS3Bucket(
+      'SCA',
+      'subCategoryImage',
+      payload.imageURL.buffer
+    );
+
     // create new sub category
-    const result = await this.#SubCategoryModel.create(payload);
+    const result = await this.#SubCategoryModel.create({
+      name: payload.name,
+      imageURL,
+      categories: payload.categories,
+    });
 
     // if not created sub category, throw error
     if (!result) {

@@ -5,6 +5,8 @@ import catchAsync from '../../shared/catchAsync';
 import responseReturn from '../../shared/responseReturn';
 
 import { BrandService } from './brand.service';
+import { validateRequireFields } from '../../shared/validateRequireFields';
+import { ImageUploadHelpers } from '../../helpers/image-upload.helper';
 
 class BrandControllerClass {
   #BrandService: typeof BrandService;
@@ -15,9 +17,28 @@ class BrandControllerClass {
 
   // create brand controller
   readonly createBrand = catchAsync(async (req: Request, res: Response) => {
-    const { ...brandData } = req.body;
-    
-    const result = await this.#BrandService.createBrand(brandData);
+    const { name, email, description, ...other } = req.body;
+
+    // validate body data
+    await validateRequireFields({ name, email, description });
+
+    // sub category image file
+    const brandImageFile = await ImageUploadHelpers.imageFileValidate(
+      req,
+      'brandImage',
+      'brand'
+    );
+
+    // sub category data
+    const brandObjStructure = {
+      name,
+      email,
+      description,
+      imageURL: brandImageFile,
+      ...other,
+    };
+
+    const result = await this.#BrandService.createBrand(brandObjStructure);
 
     responseReturn(res, {
       statusCode: httpStatus.OK,

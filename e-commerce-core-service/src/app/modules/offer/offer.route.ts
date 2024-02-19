@@ -1,11 +1,10 @@
-import express, { Router } from 'express';
+import { Router } from 'express';
+import multer from 'multer';
 
-import validateRequest from '../../middlewares/validateRequest';
-
-import { OfferValidation } from './offer.validation';
 import { OfferController } from './offer.controller';
 
-const router = express.Router();
+const storage = multer.memoryStorage();
+const upload = multer({ storage: storage });
 
 class OfferRouterClass {
   readonly routers: Router;
@@ -16,19 +15,19 @@ class OfferRouterClass {
 
   #RouterAction() {
     // create and get all offers routes
-    router
+    this.routers
       .route('/')
       .post(
-        validateRequest(OfferValidation.offerCreateZodSchema),
+        upload.fields([{ name: 'offerImage', maxCount: 1 }]),
         OfferController.createOffer
       )
       .get(OfferController.allOffers);
 
     // update and get single offer, delete routes
-    router
+    this.routers
       .route('/:id')
       .patch(
-        validateRequest(OfferValidation.offerUpdateZodSchema),
+        upload.fields([{ name: 'offerImage', maxCount: 1 }]),
         OfferController.updateOffer
       )
       .get(OfferController.getSingleOffer)

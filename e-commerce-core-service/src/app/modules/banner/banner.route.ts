@@ -1,7 +1,10 @@
 import { Router } from 'express';
-import { BannerValidation } from './banner.validation';
+import multer from 'multer';
+
 import { BannerController } from './banner.controller';
-import validateRequest from '../../middlewares/validateRequest';
+
+const storage = multer.memoryStorage();
+const upload = multer({ storage: storage });
 
 class BannerRouterClass {
   readonly routers: Router;
@@ -15,7 +18,7 @@ class BannerRouterClass {
     this.routers
       .route('/')
       .post(
-        validateRequest(BannerValidation.bannerCreateZodSchema),
+        upload.fields([{ name: 'bannerImage', maxCount: 1 }]),
         BannerController.createBanner
       )
       .get(BannerController.allBanners);
@@ -24,7 +27,7 @@ class BannerRouterClass {
     this.routers
       .route('/:id')
       .patch(
-        validateRequest(BannerValidation.bannerUpdateZodSchema),
+        upload.fields([{ name: 'bannerImage', maxCount: 1 }]),
         BannerController.updateBanner
       )
       .get(BannerController.getSingleBanner)
