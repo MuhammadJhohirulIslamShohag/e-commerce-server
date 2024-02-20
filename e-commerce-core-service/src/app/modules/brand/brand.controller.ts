@@ -22,14 +22,14 @@ class BrandControllerClass {
     // validate body data
     await validateRequireFields({ name, email, description });
 
-    // sub category image file
+    // brand image file
     const brandImageFile = await ImageUploadHelpers.imageFileValidate(
       req,
       'brandImage',
       'brand'
     );
 
-    // sub category data
+    // brand data
     const brandObjStructure = {
       name,
       email,

@@ -7,6 +7,7 @@ import { BrandRoutes } from '../modules/brand/brand.route';
 import { ColorRoutes } from '../modules/color/color.route';
 import { OfferRoutes } from '../modules/offer/offer.route';
 import { BannerRoutes } from '../modules/banner/banner.route';
+import { AdvertiseBannerRoutes } from '../modules/advertiseBanner/advertiseBanner.route';
 
 const router: Router = express.Router();
 
@@ -42,6 +43,10 @@ const moduleRoutes = [
   {
     path: '/banners',
     route: BannerRoutes,
+  },
+  {
+    path: '/advertise-banners',
+    route: AdvertiseBannerRoutes,
   },
 ];
 

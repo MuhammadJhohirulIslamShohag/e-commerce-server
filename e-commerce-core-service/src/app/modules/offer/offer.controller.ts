@@ -29,7 +29,7 @@ class OfferControllerClass {
       'offer'
     );
 
-    // sub category data
+    // offer data
     const offerObjStructure = {
       name,
       startDate,
@@ -37,8 +37,6 @@ class OfferControllerClass {
       imageURL: offerImageFile,
       ...other,
     };
-
-
 
     const result = await this.#OfferService.createOffer(offerObjStructure);
 
