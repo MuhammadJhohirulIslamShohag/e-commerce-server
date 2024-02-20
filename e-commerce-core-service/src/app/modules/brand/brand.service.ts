@@ -7,6 +7,7 @@ import Brand from './brand.model';
 import { IBrand, ICreateBrand } from './brand.interface';
 import { brandSearchableFields } from './brand.constant';
 import { ImageUploadHelpers } from '../../helpers/image-upload.helper';
+import { IFile } from '../../interfaces';
 
 class BrandServiceClass {
   #BrandModel;
@@ -77,7 +78,8 @@ class BrandServiceClass {
   // update brand service
   readonly updateBrand = async (
     id: string,
-    payload: Partial<IBrand>
+    payload: Partial<IBrand>,
+    brandImageFile: IFile | null
   ): Promise<IBrand | null> => {
     // check already brand exit, if not throw error
     const isExitBrand = await this.#BrandModel.findById({ _id: id });
@@ -86,6 +88,19 @@ class BrandServiceClass {
     }
 
     const { ...updatedBrandData }: Partial<IBrand> = payload;
+
+    // upload image if image file has
+    if (brandImageFile) {
+      const brandImage =
+        (await ImageUploadHelpers.imageUploadToS3BucketForUpdate(
+          'BND',
+          'bandImage',
+          brandImageFile.buffer,
+          isExitBrand?.imageURL.split('/')
+        )) as string;
+
+      updatedBrandData['imageURL'] = brandImage;
+    }
 
     // update the brand
     let result = null;

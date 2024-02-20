@@ -8,6 +8,7 @@ import ApiError from '../../errors/ApiError';
 import { subCategorySearchableFields } from './subCategory.constant';
 import { ISubCategory, ICreateSubCategory } from './subCategory.interface';
 import { ImageUploadHelpers } from '../../helpers/image-upload.helper';
+import { IFile } from '../../interfaces';
 
 class SubCategoryServiceClass {
   #SubCategoryModel;
@@ -88,7 +89,8 @@ class SubCategoryServiceClass {
   // update sub category method
   readonly updateSubCategory = async (
     id: string,
-    payload: Partial<ISubCategory>
+    payload: Partial<ISubCategory>,
+    subCategoryImageFile: IFile | null
   ) => {
     // check already sub category exit, if not throw error
     const isExitSubCategory = await this.#SubCategoryModel.findById({
@@ -98,12 +100,25 @@ class SubCategoryServiceClass {
       throw new ApiError(httpStatus.NOT_FOUND, 'Sub Category Not Found!');
     }
 
-    const updatedSubCategoryData: Partial<ISubCategory> = { ...payload };
+    const { ...updatedSubCategoryData }: Partial<ISubCategory> = payload;
+
+    // upload image if image file has
+    if (subCategoryImageFile) {
+      const categoryImage =
+        (await ImageUploadHelpers.imageUploadToS3BucketForUpdate(
+          'SCA',
+          'subCategoryImage',
+          subCategoryImageFile.buffer,
+          isExitSubCategory?.imageURL.split('/')
+        )) as string;
+
+      updatedSubCategoryData['imageURL'] = categoryImage;
+    }
 
     // update the sub category
     const result = await this.#SubCategoryModel.findOneAndUpdate(
       { _id: id },
-      updatedSubCategoryData,
+      { ...updatedSubCategoryData },
       {
         new: true,
       }

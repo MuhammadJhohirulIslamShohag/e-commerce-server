@@ -94,9 +94,21 @@ class SubCategoryControllerClass {
       const subCategoryId = req.params.id;
       const { ...updateSubCategoryData } = req.body;
 
+      // check validity request payload body
+      await validateRequireFields(updateSubCategoryData);
+
+      // sub category image file
+      const subCategoryImageFile =
+        await ImageUploadHelpers.imageFileValidateForUpdate(
+          req,
+          'subCategoryImage',
+          'subCategory'
+        );
+
       const result = await this.#SubCategoryService.updateSubCategory(
         subCategoryId,
-        updateSubCategoryData
+        updateSubCategoryData,
+        subCategoryImageFile
       );
 
       responseReturn(res, {

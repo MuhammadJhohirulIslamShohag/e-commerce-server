@@ -80,9 +80,21 @@ class BrandControllerClass {
     const brandId = req.params.id;
     const { ...updateBrandData } = req.body;
 
+    // check validity request payload body
+    await validateRequireFields(updateBrandData);
+
+    // advertise banner image file
+    const brandImageFile =
+      await ImageUploadHelpers.imageFileValidateForUpdate(
+        req,
+        'brandImage',
+        'brand'
+      );
+
     const result = await this.#BrandService.updateBrand(
       brandId,
-      updateBrandData
+      updateBrandData,
+      brandImageFile
     );
 
     responseReturn(res, {

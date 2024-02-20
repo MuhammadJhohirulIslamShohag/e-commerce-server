@@ -95,9 +95,21 @@ class AdvertiseBannerControllerClass {
       const advertiseBannerId = req.params.id;
       const { ...updateAdvertiseBannerData } = req.body;
 
+      // check validity request payload body
+      await validateRequireFields(updateAdvertiseBannerData);
+
+      // advertise banner image file
+      const advertiseBannerImageFile =
+        await ImageUploadHelpers.imageFileValidateForUpdate(
+          req,
+          'advertiseBannerImage',
+          'advertise banner'
+        );
+
       const result = await this.#AdvertiseBannerService.updateAdvertiseBanner(
         advertiseBannerId,
-        updateAdvertiseBannerData
+        updateAdvertiseBannerData,
+        advertiseBannerImageFile
       );
 
       responseReturn(res, {

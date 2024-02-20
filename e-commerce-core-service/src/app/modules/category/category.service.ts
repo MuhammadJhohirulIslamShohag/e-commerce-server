@@ -7,6 +7,7 @@ import ApiError from '../../errors/ApiError';
 import { ICreateCategory, ICategory } from './category.interface';
 import { categorySearchableFields } from './category.constant';
 import { ImageUploadHelpers } from '../../helpers/image-upload.helper';
+import { IFile } from '../../interfaces';
 
 class CategoryServiceClass {
   #CategoryModel;
@@ -75,7 +76,11 @@ class CategoryServiceClass {
   };
 
   // update category method
-  readonly updateCategory = async (id: string, payload: Partial<ICategory>) => {
+  readonly updateCategory = async (
+    id: string,
+    payload: Partial<ICategory>,
+    categoryImageFile: IFile | null
+  ) => {
     // check already Category exit, if not throw error
     const isExitCategory = await this.#CategoryModel.findById({ _id: id });
     if (!isExitCategory) {
@@ -83,6 +88,19 @@ class CategoryServiceClass {
     }
 
     const { ...updatedCategoryData }: Partial<ICategory> = payload;
+
+    // upload image if image file has
+    if (categoryImageFile) {
+      const categoryImage =
+        (await ImageUploadHelpers.imageUploadToS3BucketForUpdate(
+          'CAT',
+          'category',
+          categoryImageFile.buffer,
+          isExitCategory?.imageURL.split('/')
+        )) as string;
+
+      updatedCategoryData['imageURL'] = categoryImage;
+    }
 
     // update the category
     let result = null;

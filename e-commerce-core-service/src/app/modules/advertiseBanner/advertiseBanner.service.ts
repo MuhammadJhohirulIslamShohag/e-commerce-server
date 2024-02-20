@@ -9,6 +9,7 @@ import {
   ICreateAdvertiseBanner,
 } from './advertiseBanner.interface';
 import { ImageUploadHelpers } from '../../helpers/image-upload.helper';
+import { IFile } from '../../interfaces';
 
 class AdvertiseBannerServiceClass {
   #AdvertiseBannerModel;
@@ -100,7 +101,8 @@ class AdvertiseBannerServiceClass {
   // update advertise banner service
   readonly updateAdvertiseBanner = async (
     id: string,
-    payload: Partial<IAdvertiseBanner>
+    payload: Partial<IAdvertiseBanner>,
+    advertiseBannerImageFile: IFile | null
   ) => {
     // check already advertise banner exit, if not throw error
     const isExitAdvertiseBanner = await this.#AdvertiseBannerModel.findById({
@@ -110,7 +112,8 @@ class AdvertiseBannerServiceClass {
       throw new ApiError(httpStatus.NOT_FOUND, 'Advertise Banner Not Found!');
     }
 
-    const { startDate, endDate }: Partial<IAdvertiseBanner> = payload;
+    const { ...updateAdvertiseBannerData }: Partial<IAdvertiseBanner> = payload;
+    const { startDate, endDate } = updateAdvertiseBannerData;
 
     // if you want to update start date
     if (startDate && !endDate) {
@@ -142,13 +145,26 @@ class AdvertiseBannerServiceClass {
       }
     }
 
+    // upload image if image file has
+    if (advertiseBannerImageFile) {
+      const advertiseBannerImage =
+        (await ImageUploadHelpers.imageUploadToS3BucketForUpdate(
+          'ABN',
+          'advertise-banner',
+          advertiseBannerImageFile.buffer,
+          isExitAdvertiseBanner?.imageURL.split('/')
+        )) as string;
+
+      updateAdvertiseBannerData['imageURL'] = advertiseBannerImage;
+    }
+
     // update the advertise banner
     let result = null;
 
     if (Object.keys(payload).length) {
       result = await this.#AdvertiseBannerModel.findOneAndUpdate(
         { _id: id },
-        payload,
+        { ...updateAdvertiseBannerData },
         {
           new: true,
         }
