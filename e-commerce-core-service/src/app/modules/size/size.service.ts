@@ -1,5 +1,7 @@
 import httpStatus from 'http-status';
+import mongoose from 'mongoose';
 
+import Product from '../product/product.model';
 import Size from './size.model';
 import ApiError from '../../errors/ApiError';
 import QueryBuilder from '../../builder/query.builder';
@@ -9,9 +11,12 @@ import { sizeSearchableFields } from './size.constant';
 
 class SizeServiceClass {
   #SizeModel;
+  #ProductModel;
+
   #QueryBuilder: typeof QueryBuilder;
   constructor() {
     this.#SizeModel = Size;
+    this.#ProductModel = Product;
     this.#QueryBuilder = QueryBuilder;
   }
   // create size service
@@ -24,7 +29,7 @@ class SizeServiceClass {
 
     // create new size
     const result = await this.#SizeModel.create(payload);
-    
+
     // if not created size, throw error
     if (!result) {
       throw new ApiError(httpStatus.CONFLICT, `Size Create Failed!`);
@@ -90,14 +95,67 @@ class SizeServiceClass {
 
   // delete size service
   readonly deleteSize = async (payload: string) => {
-    // check already size exit, if not throw error
-    const isExitSize = await this.#SizeModel.findById({ _id: payload });
-    if (!isExitSize) {
-      throw new ApiError(httpStatus.NOT_FOUND, 'Size Not Found!');
+    // start transaction
+    let result = null;
+    const session = await mongoose.startSession();
+    try {
+      // start a session for the transaction
+      await session.startTransaction();
+
+      // check already size exit, if not throw error
+      const isExitSize = await this.#SizeModel.findById({
+        _id: payload,
+      });
+      if (!isExitSize) {
+        throw new ApiError(httpStatus.NOT_FOUND, 'Size Not Found!');
+      }
+
+      // get all products
+      const allProducts = await this.#ProductModel.find({
+        'size.sizeId': payload,
+      });
+
+      // update products size
+      for (let i = 0; allProducts.length; i++) {
+        await this.#ProductModel.findOneAndUpdate(
+          {
+            _id: allProducts?.[i]?._id,
+          },
+          {
+            $set: {
+              size: {
+                name: null,
+                sizeId: null,
+              },
+            },
+          },
+          { session }
+        );
+      }
+      // delete the size
+      const resultSize = await this.#SizeModel.findOneAndDelete(
+        { _id: payload },
+        { session }
+      );
+
+      result = resultSize;
+      // commit the transaction
+      await session.commitTransaction();
+      await session.endSession();
+    } catch (error) {
+      await session.abortTransaction();
+      await session.endSession();
+
+      if (error instanceof ApiError) {
+        throw new ApiError(httpStatus.BAD_REQUEST, error?.message);
+      } else {
+        throw new ApiError(
+          httpStatus.INTERNAL_SERVER_ERROR,
+          'Interval Server Error'
+        );
+      }
     }
 
-    // delete the size
-    const result = await this.#SizeModel.findByIdAndDelete(payload);
     return result;
   };
 }

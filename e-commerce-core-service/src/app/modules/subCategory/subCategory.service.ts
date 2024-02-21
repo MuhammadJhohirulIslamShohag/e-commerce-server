@@ -4,6 +4,7 @@ import mongoose from 'mongoose';
 import SubCategory from './subCategory.model';
 import QueryBuilder from '../../builder/query.builder';
 import ApiError from '../../errors/ApiError';
+import Product from '../product/product.model';
 
 import { subCategorySearchableFields } from './subCategory.constant';
 import { ISubCategory, ICreateSubCategory } from './subCategory.interface';
@@ -12,10 +13,12 @@ import { IFile } from '../../interfaces';
 
 class SubCategoryServiceClass {
   #SubCategoryModel;
+  #ProductModel;
   #QueryBuilder: typeof QueryBuilder;
 
   constructor() {
     this.#SubCategoryModel = SubCategory;
+    this.#ProductModel = Product;
     this.#QueryBuilder = QueryBuilder;
   }
 
@@ -128,10 +131,7 @@ class SubCategoryServiceClass {
   };
 
   // delete sub category method
-  readonly deleteSubCategory = async (
-    productId: string,
-    subCategoryId: string
-  ) => {
+  readonly deleteSubCategory = async (subCategoryId: string) => {
     // check already sub category exit, if not throw error
     const isExitSubCategory = await this.#SubCategoryModel.findById({
       _id: subCategoryId,
@@ -148,28 +148,36 @@ class SubCategoryServiceClass {
       session.startTransaction();
 
       // delete sub category
-      const subCategoryResult = await this.#SubCategoryModel.findByIdAndDelete(
+      const subCategoryResult = await this.#SubCategoryModel.findOneAndDelete(
         {
           _id: subCategoryId,
         },
         { session }
       );
 
-      // delete sub category to product
-      // await Product.findOneAndUpdate(
-      //   { _id: productId, 'subCategories._id': subCategoryId },
-      //   {
-      //     $pull: {
-      //       subCategories: {
-      //         _id: subCategoryId,
-      //       },
-      //     },
-      //   },
-      //   {
-      //     new: true,
-      //     session,
-      //   }
-      // );
+      // get all products
+      const allProducts = await this.#ProductModel.find({
+        'subCategories.subCategoryId': subCategoryId,
+      });
+
+      // update products sub category
+      for (let i = 0; allProducts?.length; i++) {
+        // delete sub category to product
+        await this.#ProductModel.findOneAndUpdate(
+          { _id: allProducts?.[i]?._id },
+          {
+            $pull: {
+              subCategories: {
+                _id: subCategoryId,
+              },
+            },
+          },
+          {
+            new: true,
+            session,
+          }
+        );
+      }
 
       result = subCategoryResult;
       // commit the transaction

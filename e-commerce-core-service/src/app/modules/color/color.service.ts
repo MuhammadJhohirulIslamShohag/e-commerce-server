@@ -1,17 +1,21 @@
+import mongoose from 'mongoose';
 import httpStatus from 'http-status';
 
 import QueryBuilder from '../../builder/query.builder';
 import ApiError from '../../errors/ApiError';
 import Color from './color.model';
+import Product from '../product/product.model';
 
 import { IColor } from './color.interface';
 import { colorSearchableFields } from './color.constant';
 
 class ColorServiceClass {
   #ColorModel;
+  #ProductModel;
   #QueryBuilder: typeof QueryBuilder;
   constructor() {
     this.#ColorModel = Color;
+    this.#ProductModel = Product;
     this.#QueryBuilder = QueryBuilder;
   }
   // create color service
@@ -83,14 +87,67 @@ class ColorServiceClass {
 
   // delete color service
   readonly deleteColor = async (payload: string) => {
-    // check already color exit, if not throw error
-    const isExitColor = await this.#ColorModel.findById({ _id: payload });
-    if (!isExitColor) {
-      throw new ApiError(httpStatus.NOT_FOUND, 'Color Not Found!');
+    // start transaction
+    let result = null;
+    const session = await mongoose.startSession();
+    try {
+      // start a session for the transaction
+      await session.startTransaction();
+
+      // check already color exit, if not throw error
+      const isExitColor = await this.#ColorModel.findById({
+        _id: payload,
+      });
+      if (!isExitColor) {
+        throw new ApiError(httpStatus.NOT_FOUND, 'Color Not Found!');
+      }
+
+      // get all products
+      const allProducts = await this.#ProductModel.find({
+        'color.colorId': payload,
+      });
+
+      // update products color
+      for (let i = 0; allProducts?.length; i++) {
+        await this.#ProductModel.findOneAndUpdate(
+          {
+            _id: allProducts?.[i]?._id,
+          },
+          {
+            $set: {
+              color: {
+                name: null,
+                colorId: null,
+              },
+            },
+          },
+          { session }
+        );
+      }
+      // delete the color
+      const resultColor = await this.#ColorModel.findOneAndDelete(
+        { _id: payload },
+        { session }
+      );
+
+      result = resultColor;
+      // commit the transaction
+      await session.commitTransaction();
+      await session.endSession();
+    } catch (error) {
+      await session.abortTransaction();
+      await session.endSession();
+
+      if (error instanceof ApiError) {
+        throw new ApiError(httpStatus.BAD_REQUEST, error?.message);
+      } else {
+        throw new ApiError(
+          httpStatus.INTERNAL_SERVER_ERROR,
+          'Interval Server Error'
+        );
+      }
     }
 
-    // delete the color
-    const result = await this.#ColorModel.findByIdAndDelete(payload);
     return result;
   };
 }
