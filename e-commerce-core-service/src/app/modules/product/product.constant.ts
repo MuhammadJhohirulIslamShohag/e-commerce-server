@@ -10,7 +10,6 @@ export const productSearchableFields = [
   'name',
   'description',
   'status',
-  'specification',
   'keyFeature',
 ]
 // filterable fields

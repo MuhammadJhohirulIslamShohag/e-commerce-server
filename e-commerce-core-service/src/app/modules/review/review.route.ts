@@ -13,6 +13,15 @@ class BannerRouterClass {
   }
 
   #RouterAction() {
+    // create and get all reviews routes
+    this.routers
+      .route('/')
+      .post(
+        validateRequest(ReviewValidation.reviewCreateZodSchema),
+        ReviewController.deleteReview
+      )
+      .get(ReviewController.allReviews);
+
     // update and get single review, delete routes
     this.routers
       .route('/:id')

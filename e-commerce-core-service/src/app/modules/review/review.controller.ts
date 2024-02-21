@@ -13,6 +13,20 @@ class ReviewControllerClass {
     this.#ReviewService = service;
   }
 
+  // create review controller
+  readonly createReview = catchAsync(async (req: Request, res: Response) => {
+    const { ...createReviewData } = req.body;
+
+    const result = await this.#ReviewService.createReview(createReviewData);
+
+    responseReturn(res, {
+      statusCode: httpStatus.OK,
+      success: true,
+      message: 'Review Created Successfully!',
+      data: result,
+    });
+  });
+
   // get all reviews controller
   readonly allReviews = catchAsync(async (req: Request, res: Response) => {
     const result = await this.#ReviewService.allReviews(req.query);
