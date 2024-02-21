@@ -11,6 +11,7 @@ export type IFile = {
   buffer: Buffer;
   size: number;
 };
+
 declare global {
   namespace Express {
     interface Request {
@@ -19,3 +20,9 @@ declare global {
     }
   }
 }
+
+type ModelType = Model<
+  Document & {
+    _id: import('mongoose').Types.ObjectId;
+  }
+>;

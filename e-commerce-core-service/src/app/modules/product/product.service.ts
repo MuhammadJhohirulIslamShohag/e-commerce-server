@@ -1,31 +1,26 @@
 import httpStatus from 'http-status';
 import mongoose, { SortOrder, Types } from 'mongoose';
 
-import { productSearchableFields } from './product.constant';
-import {
-  IProduct,
-  ProductFilters,
-  ProductReviewDataType,
-  ProductSubCategoryDataType,
-} from './product.interface';
 import Product from './product.model';
 import Category from '../category/category.model';
-import QueryBuilder from '../../builder/query.builder';
+import Review from '../review/review.model';
 import ApiError from '../../errors/ApiError';
-import SubCategory from '../subCategory/subCategory.model';
+
+import { productSearchableFields } from './product.constant';
+import { ICreateProduct, IProduct, ProductFilters } from './product.interface';
+import { paginationHelper } from '../../helpers/pagination.helper';
+import { PaginationOptionType } from '../../interfaces/pagination';
 
 class ProductServiceClass {
   #ProductModel;
-  #QueryBuilder: typeof QueryBuilder;
+  #ReviewModel;
   constructor() {
     this.#ProductModel = Product;
-    this.#QueryBuilder = QueryBuilder;
+    this.#ReviewModel = Review;
   }
 
   /* --------- create product service --------- */
-  readonly createProduct = async (
-    payload: IProduct
-  ): Promise<IProduct | null> => {
+  readonly createProduct = async (payload: ICreateProduct) => {
     // start transaction
     let result = null;
     const session = await mongoose.startSession();
@@ -33,7 +28,9 @@ class ProductServiceClass {
       // start a session for the transaction
       await session.startTransaction();
 
-      const isExitProduct: any = await Product.findOne({ name: payload?.name });
+      const isExitProduct = await this.#ProductModel.findOne({
+        name: payload?.name,
+      });
 
       // if not exit product, throw error
       if (isExitProduct) {
@@ -65,7 +62,9 @@ class ProductServiceClass {
       }
 
       // create product
-      const productResult = await Product.create([payload], { session });
+      const productResult = await this.#ProductModel.create([payload], {
+        session,
+      });
 
       if (!productResult.length) {
         throw new ApiError(httpStatus.BAD_REQUEST, 'Product create failed!');
@@ -75,14 +74,16 @@ class ProductServiceClass {
       // commit the transaction
       await session.commitTransaction();
       await session.endSession();
-    } catch (error: any) {
-      // console.log(error)
+    } catch (error) {
       await session.abortTransaction();
       await session.endSession();
-      if (error) {
+
+      if (error instanceof ApiError) {
+        throw new ApiError(httpStatus.BAD_REQUEST, error?.message);
+      } else {
         throw new ApiError(
-          httpStatus.CONFLICT,
-          error?.message || "Can't create"
+          httpStatus.INTERNAL_SERVER_ERROR,
+          'Interval Server Error'
         );
       }
     }
@@ -90,149 +91,11 @@ class ProductServiceClass {
     return result;
   };
 
-  /* --------- add sub category to product service --------- */
-  readonly addSubCategoryToProduct = async (
-    id: string,
-    payload: ProductSubCategoryDataType
-  ) => {
-    // check sub category is exit, if not throw error
-    const isExitSubCategory = await Product.findOne({
-      _id: id,
-      'subCategories.name': payload?.name,
-    });
-
-    // check sub category is exit to stock, if not throw error
-    if (isExitSubCategory) {
-      throw new ApiError(httpStatus.CONFLICT, 'Sub Category Already Exit!');
-    }
-
-    // start transaction
-    let result = null;
-    const session = await mongoose.startSession();
-    try {
-      // start a session for the transaction
-      await session.startTransaction();
-
-      // sub category object
-      const subCategoryObject = {
-        name: payload?.name,
-        description: payload?.description,
-        imageURL: payload?.imageURL,
-      };
-
-      // create sub category
-      const subCategoryArray = await SubCategory.create([subCategoryObject], {
-        session,
-      });
-
-      if (!subCategoryArray.length) {
-        throw new ApiError(httpStatus.CONFLICT, 'Sub Category created failed!');
-      }
-
-      const subCategory = subCategoryArray[0];
-
-      // push sub category to product
-      result = await Product.findOneAndUpdate(
-        { _id: id, 'subCategories.name': payload?.name },
-        {
-          $push: {
-            subCategories: {
-              name: payload?.name,
-              subCategoryId: subCategory?._id,
-            },
-          },
-        },
-        {
-          new: true,
-          session,
-        }
-      );
-
-      // commit the transaction
-      await session.commitTransaction();
-      await session.endSession();
-    } catch (error) {
-      await session.abortTransaction();
-      await session.endSession();
-    }
-
-    return result;
-  };
-
-  /* --------- add review to to product service --------- */
-  readonly addReviewToProduct = async (
-    id: string,
-    payload: ProductReviewDataType
-  ): Promise<IProduct | null> => {
-    // check review is exit, if not throw error
-    const isExitReview = await Product.findOne({
-      _id: id,
-      'reviews.email': payload?.review?.email,
-    });
-
-    if (isExitReview) {
-      throw new ApiError(httpStatus.CONFLICT, 'Review Already Exit!');
-    }
-
-    // start transaction
-    let result = null;
-    const session = await mongoose.startSession();
-    try {
-      // start a session for the transaction
-      await session.startTransaction();
-
-      // review object
-      const reviewObject = {
-        product: {
-          productId: id,
-        },
-        rating: payload?.rating,
-        review: {
-          userId: payload?.review?.userId,
-          comment: payload?.review?.comment,
-        },
-      };
-
-      // create review
-      const reviewArray = await Review.create([reviewObject], { session });
-      if (!reviewArray.length) {
-        throw new ApiError(httpStatus.CONFLICT, 'Review created failed!');
-      }
-      const review = reviewArray[0];
-
-      // push review to product
-      result = await Product.findOneAndUpdate(
-        { _id: id },
-        {
-          $push: {
-            reviews: {
-              email: payload?.review?.email,
-              reviewId: review?._id,
-            },
-          },
-        },
-        {
-          new: true,
-          session,
-        }
-      );
-      // commit the transaction
-      await session.commitTransaction();
-      await session.endSession();
-    } catch (error) {
-      await session.abortTransaction();
-      await session.endSession();
-    }
-
-    return result;
-  };
-
-
   /* --------- get all products service --------- */
- readonly allProducts = async (
+  readonly allProducts = async (
     paginationOption: PaginationOptionType,
     filters: ProductFilters
-  ): Promise<IGenericResponse<IProduct[]>> => {
+  ) => {
     const { page, limit, sortBy, sortOrder, skip } =
       paginationHelper.calculatePagination(paginationOption);
 
@@ -300,18 +163,19 @@ class ProductServiceClass {
     // dynamic sorting
     const sortConditions: { [key: string]: SortOrder } = {};
 
-    if (sortBy && sortOrder) [(sortConditions[sortBy] = sortOrder)];
+    if (sortBy && sortOrder) sortConditions[sortBy] = sortOrder;
 
     const whereConditions =
       andConditions.length > 0 ? { $and: andConditions } : {};
     // result of product
-    const result = await Product.find(whereConditions)
+    const result = await this.#ProductModel
+      .find(whereConditions)
       .sort(sortConditions)
       .skip(skip)
       .limit(limit);
 
     // get total products
-    const total = await Product.countDocuments(whereConditions);
+    const total = await this.#ProductModel.countDocuments(whereConditions);
 
     return {
       meta: {
@@ -324,17 +188,17 @@ class ProductServiceClass {
   };
 
   /* --------- get products by category service --------- */
- readonly getProductsByCategory = async (
+  readonly getProductsByCategory = async (
     paginationOption: PaginationOptionType,
     categoryId: string
-  ): Promise<IGenericResponse<IProduct[]>> => {
+  ) => {
     const { page, limit, sortBy, sortOrder, skip } =
       paginationHelper.calculatePagination(paginationOption);
 
     // dynamic sorting
     const sortConditions: { [key: string]: SortOrder } = {};
 
-    if (sortBy && sortOrder) [(sortConditions[sortBy] = sortOrder)];
+    if (sortBy && sortOrder) sortConditions[sortBy] = sortOrder;
     // start transaction
     let result = null;
     let total = 0;
@@ -356,13 +220,14 @@ class ProductServiceClass {
       // Save the updated product
       await category.save();
 
-      result = await Product.find({ 'category.categoryId': categoryId })
+      result = await this.#ProductModel
+        .find({ 'category.categoryId': categoryId })
         .sort(sortConditions)
         .skip(skip)
         .limit(limit);
 
       // get total products
-      total = await Product.countDocuments({
+      total = await this.#ProductModel.countDocuments({
         'category.categoryId': categoryId,
       });
 
@@ -372,6 +237,15 @@ class ProductServiceClass {
     } catch (error) {
       await session.abortTransaction();
       await session.endSession();
+
+      if (error instanceof ApiError) {
+        throw new ApiError(httpStatus.BAD_REQUEST, error?.message);
+      } else {
+        throw new ApiError(
+          httpStatus.INTERNAL_SERVER_ERROR,
+          'Interval Server Error'
+        );
+      }
     }
 
     return {
@@ -395,12 +269,12 @@ class ProductServiceClass {
     // dynamic sorting
     const sortConditions: { [key: string]: SortOrder } = {};
 
-    if (sortBy && sortOrder) [(sortConditions[sortBy] = sortOrder)];
+    if (sortBy && sortOrder) sortConditions[sortBy] = sortOrder;
 
     let result = null;
     let total = 0;
 
-    const aggregateData = await Product.aggregate([
+    const aggregateData = await this.#ProductModel.aggregate([
       {
         $unwind: {
           path: '$subCategories',
@@ -422,7 +296,7 @@ class ProductServiceClass {
     result = aggregateData;
 
     // get total products
-    const totalProducts = await Product.aggregate([
+    const totalProducts = await this.#ProductModel.aggregate([
       {
         $unwind: {
           path: '$subCategories',
@@ -449,43 +323,26 @@ class ProductServiceClass {
 
   /* --------- get single product service --------- */
   readonly getSingleProduct = async (payload: string) => {
-    const product = await Product.findById(payload);
+    const product = await this.#ProductModel.findById(payload);
 
-    // Handle the case when the product is not found
+    // handle the case when the product is not found
     if (!product) {
       throw new ApiError(httpStatus.NOT_FOUND, 'Product Not Found!');
     }
 
-    // Increment the view count
+    // increment the view count
     product.clickedProductCount += 1;
 
-    // Save the updated product
-    await product.save();
-
-    return product;
-  };
-  // get single product by title
-  readonly getSingleProductByTitle = async (payload: string) => {
-    const product = await Product.findOne({ name: payload });
-
-    // Handle the case when the product is not found
-    if (!product) {
-      throw new ApiError(httpStatus.NOT_FOUND, 'Product Not Found!');
-    }
-
-    // Increment the view count
-    product.clickedProductCount += 1;
-
-    // Save the updated product
+    // save the updated product
     await product.save();
 
     return product;
   };
 
   /* --------- update product service --------- */
- readonly updateProduct = async (id: string, payload: Partial<IProduct>) => {
+  readonly updateProduct = async (id: string, payload: Partial<IProduct>) => {
     // check already product exit, if not throw error
-    const isExitProduct = await Product.findOne({ _id: id });
+    const isExitProduct = await this.#ProductModel.findOne({ _id: id });
 
     if (!isExitProduct) {
       throw new ApiError(httpStatus.NOT_FOUND, 'Product Not Found!');
@@ -557,47 +414,69 @@ class ProductServiceClass {
     // update the product and stock
     let resultForProduct = null;
 
+    // update product and stock
+    if (Object.keys(updatedProductData)?.length) {
+      resultForProduct = await this.#ProductModel.findOneAndUpdate(
+        { _id: id },
+        { ...updatedProductData },
+        {
+          new: true,
+        }
+      );
+    }
+
+    return resultForProduct;
+  };
+
+  /* --------- delete product service --------- */
+  readonly deleteProduct = async (payload: string) => {
     // start transaction
+    let result = null;
     const session = await mongoose.startSession();
     try {
       await session.startTransaction();
+      // check already product exit, if not throw error
+      const isExitProduct = await this.#ProductModel.findById({ _id: payload });
+      if (!isExitProduct) {
+        throw new ApiError(httpStatus.NOT_FOUND, 'Product Not Found!');
+      }
 
-      // update product and stock
-      if (Object.keys(updatedProductData)?.length) {
-        resultForProduct = await Product.findOneAndUpdate(
-          { _id: id },
-          { ...updatedProductData },
-          {
-            new: true,
-            session,
-          }
+      // delete the Product
+      const resultProduct = await this.#ProductModel.findByIdAndDelete(payload);
+
+      if (!resultProduct) {
+        throw new ApiError(httpStatus.BAD_REQUEST, 'Product Removed Failed!');
+      }
+
+      // delete review under blog
+      const review = await this.#ReviewModel.deleteMany(
+        { productId: isExitProduct._id },
+        { session }
+      );
+
+      if (!review) {
+        throw new ApiError(
+          httpStatus.BAD_REQUEST,
+          'Review Removed Under Blog Failed!'
         );
       }
 
+      result = resultProduct;
+      
       // commit transaction
       await session.commitTransaction();
       await session.endSession();
     } catch (error) {
-      await session.abortTransaction();
-      await session.endSession();
+      if (error instanceof ApiError) {
+        throw new ApiError(httpStatus.BAD_REQUEST, error?.message);
+      } else {
+        throw new ApiError(
+          httpStatus.INTERNAL_SERVER_ERROR,
+          'Interval Server Error'
+        );
+      }
     }
 
-    return {
-      resultForProduct,
-    };
-  };
-
-  /* --------- delete product service --------- */
-  readonly deleteProduct = async (
-    payload: string
-  ) => {
-    // check already product exit, if not throw error
-    const isExitProduct = await Product.findById({ _id: payload });
-    if (!isExitProduct) {
-      throw new ApiError(httpStatus.NOT_FOUND, 'Product Not Found!');
-    }
-    // delete the Product
-    const result = await Product.findByIdAndDelete(payload);
     return result;
   };
 }

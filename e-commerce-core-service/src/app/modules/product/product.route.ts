@@ -1,60 +1,52 @@
-import express from 'express'
-import validateRequest from '../../middleware/validateRequest'
-import { ProductValidation } from './product.validation'
-import { ProductController } from './product.controller'
-import { USER_ROLE_ENUM } from '../../../enum/user'
-import { auth } from '../../middleware/auth'
+import { Router } from 'express';
+import multer from 'multer';
 
-const router = express.Router()
+import { ProductController } from './product.controller';
 
-// get all products by category routes
-router.get('/category/:categoryId', ProductController.getProductsByCategory)
+const storage = multer.memoryStorage();
+const upload = multer({ storage: storage });
 
-// get all products by sub category routes
-router.get(
-  '/sub-category/:subCategoryId',
-  ProductController.getProductsBySubCategory
-)
+class ProductRouterClass {
+  readonly routers: Router;
+  constructor() {
+    this.routers = Router();
+    this.#RouterAction();
+  }
 
-router.get('/title/:title', ProductController.getSingleProductByTitle)
+  #RouterAction() {
+    // get all products by category routes
+    this.routers.get(
+      '/categories/:categoryId',
+      ProductController.getProductsByCategory
+    );
 
-// create and get all products routes
-router
-  .route('/')
-  .post(
-    auth(USER_ROLE_ENUM.ADMIN, USER_ROLE_ENUM.SUPERADMIN),
-    validateRequest(ProductValidation.productCreateZodSchema),
-    ProductController.createProduct
-  )
-  .get(ProductController.allProducts)
+    // get all products by sub category routes
+    this.routers.get(
+      '/sub-categories/:subCategoryId',
+      ProductController.getProductsBySubCategory
+    );
 
-// update and get single products, delete routes
-router
-  .route('/:id')
-  .patch(
-    auth(USER_ROLE_ENUM.ADMIN, USER_ROLE_ENUM.SUPERADMIN),
-    validateRequest(ProductValidation.productUpdateZodSchema),
-    ProductController.updateProduct
-  )
-  .get(ProductController.getSingleProduct)
-  .delete(
-    auth(USER_ROLE_ENUM.ADMIN, USER_ROLE_ENUM.SUPERADMIN),
-    ProductController.deleteProduct
-  )
+    // create and get all products routes
+    this.routers
+      .route('/')
+      .post(
+        upload.fields([{ name: 'productImage', maxCount: 10 }]),
+        ProductController.createProduct
+      )
+      .get(ProductController.allProducts);
 
-// add question, review to product routes
-router
-  .post(
-    '/:id/create-review',
-    auth(USER_ROLE_ENUM.ADMIN, USER_ROLE_ENUM.SUPERADMIN, USER_ROLE_ENUM.USER),
-    validateRequest(ProductValidation.addReviewToProductZodSchema),
-    ProductController.addReviewToProduct
-  )
-  .post(
-    '/:id/create-question',
-    auth(USER_ROLE_ENUM.ADMIN, USER_ROLE_ENUM.SUPERADMIN, USER_ROLE_ENUM.USER),
-    validateRequest(ProductValidation.addQuestionToProductZodSchema),
-    ProductController.addQuestionToProduct
-  )
+    // update and get single products, delete routes
+    this.routers
+      .route('/:id')
+      .patch(
+        upload.fields([{ name: 'productImage', maxCount: 10 }]),
+        ProductController.updateProduct
+      )
+      .get(ProductController.getSingleProduct)
+      .delete(ProductController.deleteProduct);
+  }
+}
 
-export const ProductRoutes = router
+const allRoutes = new ProductRouterClass().routers;
+
+export { allRoutes as ProductRoutes };
