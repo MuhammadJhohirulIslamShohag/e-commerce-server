@@ -29,6 +29,13 @@ class UserRoutesClass {
       UserController.updateShippingAddressToUser
     );
 
+    // add shipping address routes
+    this.routers.patch(
+      '/shipping-address/:id',
+      validateRequest(UserValidation.addShippingAddressesZodSchema),
+      UserController.addShippingAddress
+    );
+
     // update shipping address
     this.routers.delete(
       '/delete-shipping-address/:id',

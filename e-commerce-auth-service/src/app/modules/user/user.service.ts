@@ -9,7 +9,7 @@ import ApiError from '../../../errors/ApiError';
 import User from './user.model';
 import QueryBuilder from '../../../builder/query.builder';
 
-import { IUser, ShippingAddress } from './user.interface';
+import { IShippingAddress, IUser, ShippingAddress } from './user.interface';
 import { userSearchableFields } from './user.constant';
 
 class UserServiceClass {
@@ -190,6 +190,33 @@ class UserServiceClass {
         }
       );
     }
+
+    return result;
+  };
+
+  // add shipping address
+  readonly addShippingAddress = async (
+    id: string,
+    payload: IShippingAddress
+  ) => {
+    // check already user exit, if not throw error
+    const isExitUser = await User.findById({ _id: id });
+    if (!isExitUser) {
+      throw new ApiError(httpStatus.NOT_FOUND, 'User Not Found!');
+    }
+
+    // update the shipping address
+    const result = await User.findOneAndUpdate(
+      { _id: id },
+      {
+        $addToSet: {
+          shippingAddress: payload,
+        },
+      },
+      {
+        new: true,
+      }
+    );
 
     return result;
   };

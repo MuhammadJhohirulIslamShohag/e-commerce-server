@@ -1,6 +1,6 @@
-import { z } from 'zod'
-import { userRoles } from './user.constant'
-import { otpMethodEnum } from '../otp/otp.constant'
+import { z } from 'zod';
+import { userRoles } from './user.constant';
+import { otpMethodEnum } from '../otp/otp.constant';
 
 const updateUserZodSchema = z.object({
   body: z.object({
@@ -37,10 +37,10 @@ const updateUserZodSchema = z.object({
       .url()
       .refine(
         value => {
-          const extension = value.split('.').pop()
+          const extension = value.split('.').pop();
           return ['jpeg', 'jpg', 'gif', 'png', 'webp'].includes(
             extension as string
-          )
+          );
         },
         {
           message: 'Invalid profile image url',
@@ -51,7 +51,7 @@ const updateUserZodSchema = z.object({
     role: z.enum([...userRoles] as [string, ...string[]]).optional(),
     provider: z.enum([...otpMethodEnum] as [string, ...string[]]).optional(),
   }),
-})
+});
 
 const addShippingAddressZodSchema = z.object({
   body: z.object({
@@ -83,7 +83,7 @@ const addShippingAddressZodSchema = z.object({
       required_error: 'Default Address is Required!',
     }),
   }),
-})
+});
 
 const updateShippingAddressZodSchema = z.object({
   body: z.object({
@@ -100,7 +100,33 @@ const updateShippingAddressZodSchema = z.object({
       required_error: 'Shipping Address Id is Required!',
     }),
   }),
-})
+});
+
+const addShippingAddressesZodSchema = z.object({
+  body: z.object({
+    recipientName: z.string({
+      required_error: 'Recipient Name is Required!',
+    }),
+    streetAddress: z.string({
+      required_error: 'Street Address is Required!',
+    }),
+    city: z.string({
+      required_error: 'City is Required!',
+    }),
+    stateProvince: z.string({
+      required_error: 'State Province is Required!',
+    }),
+    postalCode: z.string({
+      required_error: 'Postal Code is Required!',
+    }),
+    country: z.string({
+      required_error: 'Country is Required!',
+    }),
+    phoneNumber: z.string({
+      required_error: 'Phone Number is Required!',
+    }),
+  }),
+});
 
 const addWishListProductZodSchema = z.object({
   body: z.object({
@@ -108,11 +134,12 @@ const addWishListProductZodSchema = z.object({
       required_error: 'Product Id is Required!',
     }),
   }),
-})
+});
 
 export const UserValidation = {
   updateUserZodSchema,
   addShippingAddressZodSchema,
   updateShippingAddressZodSchema,
-  addWishListProductZodSchema
-}
+  addWishListProductZodSchema,
+  addShippingAddressesZodSchema,
+};

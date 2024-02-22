@@ -9,6 +9,7 @@ import { OfferRoutes } from '../modules/offer/offer.route';
 import { BannerRoutes } from '../modules/banner/banner.route';
 import { AdvertiseBannerRoutes } from '../modules/advertiseBanner/advertiseBanner.route';
 import { ProductRoutes } from '../modules/product/product.route';
+import { OrderRoutes } from '../modules/order/order.route';
 
 const router: Router = express.Router();
 
@@ -20,6 +21,10 @@ const moduleRoutes = [
   {
     path: '/products',
     route: ProductRoutes,
+  },
+  {
+    path: '/orders',
+    route: OrderRoutes,
   },
   {
     path: '/sub-categories',
