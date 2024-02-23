@@ -1,6 +1,6 @@
+import { Types } from 'mongoose';
 import httpStatus from 'http-status';
 import axios from 'axios';
-import { Types } from 'mongoose';
 
 import config from '../../config';
 import QueryBuilder from '../../builder/query.builder';

@@ -8,6 +8,7 @@ export default {
   mongo_url: process.env.MONGO_URL,
   bcrypt_salt_rounds: process.env.BCRYPT_SALT_ROUNDS,
   user_url_auth_service_endpoint: process.env.USER_AUTH_SERVICE_ENDPOINT,
+  stripe_secret_key: process.env.STRIPE_SECRET_KEY,
   jwt: {
     jwt_secret: process.env.JWT_SECRET,
     jwt_expire_in: process.env.JWT_EXPIRE_IN,
