@@ -10,8 +10,85 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model Payment {
-  id             Int            @id @default(autoincrement())
-  transactionId  String
+model Order {
+  id             String   @id @default(uuid())
+  paymentIntents Json
+  orderStatus    String   @default("Not Processed")
+  paymentBy      String?
+  orderedBy      Int
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id])
+
+  billingAddressId String
+  billingAddress   BillingAddress @relation(fields: [billingAddressId], references: [id])
+
+  trackingInfoId String
+  trackingInfo   TrackingInfo @relation(fields: [trackingInfoId], references: [id])
+
+  Product      Product[]
+  OrderHistory OrderHistory[]
+
+  @@map("orders")
 }
 
+model Product {
+  id       String @id @default(uuid())
+  name     String
+  imageURL String
+  color    String
+  size     String
+  quantity Int
+  discount Int
+
+  orderId String
+  order   Order  @relation(fields: [orderId], references: [id])
+
+  @@map("products")
+}
+
+model TrackingInfo {
+  id             String @id @default(uuid())
+  title          String
+  courier        String
+  trackingNumber String
+  
+  Order   Order[]
+
+  @@map("tracking_info")
+}
+
+model OrderHistory {
+  id        String  @id @default(uuid())
+  status    String  @default("ordered")
+  timestamp String
+  isDone    Boolean
+
+  orderId String
+  order   Order  @relation(fields: [orderId], references: [id])
+
+  @@map("order_history")
+}
+
+model BillingAddress {
+  id            String @id @default(uuid())
+  fullName      String
+  addressLine1  String
+  addressLine2  String
+  city          String
+  stateProvince String
+  postalCode    String
+  country       String
+  phoneNumber   String
+
+  Order Order[]
+
+  @@map("billing_address")
+}
+
+model User {
+  id     String  @id @default(uuid())
+  orders Order[]
+}
