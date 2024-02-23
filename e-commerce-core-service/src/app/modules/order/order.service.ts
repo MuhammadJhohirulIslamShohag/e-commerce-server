@@ -1,402 +1,159 @@
 import httpStatus from 'http-status';
-import mongoose, { SortOrder, Types } from 'mongoose';
+import axios from 'axios';
+import { SortOrder } from 'mongoose';
 
-import { orderSearchableFields, orderTrackingStatus } from './order.constant';
-import {
-  OrderFilters,
-  IOrder,
-  IOrderTacking,
-  OrderCreate,
-} from './order.interface';
+import config from '../../config';
+import Cart from '../cart/cart.model';
 import Order from './order.model';
 import Product from '../product/product.model';
 import Coupon from '../coupon/coupon.model';
 import ApiError from '../../errors/ApiError';
-import { GenerateNumberHelpers } from '../../helpers/generate-number.helper';
+
+import { orderSearchableFields } from './order.constant';
+import {
+  OrderFilters,
+  IOrder,
+  IOrderTacking,
+} from './order.interface';
 import { paginationHelper } from '../../helpers/pagination.helper';
 import { PaginationOptionType } from '../../interfaces/pagination';
+import { getUniqueKey } from '../../shared/getUniqueKey';
 
 class OrderServiceClass {
   #OrderModel;
   #ProductModel;
+  #CartModel;
   #CouponModel;
   constructor() {
     this.#OrderModel = Order;
     this.#ProductModel = Product;
+    this.#CartModel = Cart;
     this.#CouponModel = Coupon;
   }
 
   // create order service
-  readonly createOrder = async (
-    customerId: string,
-    products: {
-      productId: string;
-      quantity: number;
-      price: number;
-      originalPrice: number;
-      discount: number;
-    }[],
-    others: Partial<IOrder>,
-    totalNetAmount: number,
-    transactionId: string
-  ) => {
-    // start transaction
-    let result = null;
-    const session = await mongoose.startSession();
+  readonly createOrder = async (payload: any, user: string) => {
+    const { paymentIntent, paymentBy } = payload;
+    // who order
+    const userData = await axios.get(
+      `${config.user_url_auth_service_endpoint}/${user}` ||
+        'https://localhost:7000/api/vi/users'
+    );
 
-    try {
-      await session.startTransaction();
+    if (!userData?.data) {
+      throw new ApiError(httpStatus.NOT_FOUND, 'User Not Found!');
+    }
 
-      // if product has not, throw error
-      if (!products?.length) {
-        throw new ApiError(httpStatus.CONFLICT, 'Product should be ordered!');
-      }
+    // which product carts
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const carts: any = await this.#CartModel
+      .findOne({ orderedBy: user })
+      .exec();
+    const { products } = carts;
 
-      // total amount without discount
-      const totalAmount = products?.reduce((acc, cur) => {
-        if (cur?.originalPrice > 0) {
-          acc += cur?.originalPrice;
-        }
-        return acc;
-      }, 0);
+    // save to the database
+    await new Order({
+      products,
+      paymentIntents: paymentIntent,
+      orderedBy: user,
+      paymentBy,
+    }).save();
 
-      // *** tracking order *** //
-      const modifyOrderTracking = {
-        title: 'ordered',
-        courier: '',
-        trackingNumber: '',
-      };
-
-      // ordered history
-      const modifyOrderedHistory = orderTrackingStatus.map(ots => {
-        if (ots === 'ordered') {
-          return {
-            status: ots,
-            isDone: true,
-            timestamp: `${new Date()}`,
-          };
-        } else {
-          return {
-            status: ots,
-            isDone: false,
-            timestamp: '',
-          };
-        }
-      });
-
-      // make a six digit ordered id with helper function
-      const orderSixDigitId =
-        GenerateNumberHelpers.generateRandomSixDigitNumber();
-
-      // if not make six digit number, throw error
-      if (orderSixDigitId < 1) {
-        throw new ApiError(
-          httpStatus.CONFLICT,
-          'Failed to Make Six Digit Order Id!'
-        );
-      }
-
-      // create order
-      const orderResult = await this.#OrderModel.create(
-        [
-          {
-            products: products,
-            orderId: orderSixDigitId,
-            trackingInfo: modifyOrderTracking,
-            orderHistory: modifyOrderedHistory,
-            amount: totalAmount,
-            netAmount: totalNetAmount,
-            transactionId: transactionId,
-            ...others,
+    // decrement quantity and sold increment
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const bulkOption = products.map((item: any) => {
+      return {
+        updateOne: {
+          filter: {
+            _id: item.product._id,
           },
-        ],
-        { session }
-      );
-
-      // if has not order, throw error
-      if (!orderResult?.length) {
-        throw new ApiError(httpStatus.CONFLICT, 'Failed to create order!');
-      }
-
-      //*** update product and stock quantity ***//
-      for (let i = 0; i < products?.length; i++) {
-        const productStockQuantity = await this.#ProductModel.findOneAndUpdate(
-          { _id: products?.[i]?.productId },
-          {
+          update: {
             $inc: {
-              quantity: 0 - products?.[i]?.quantity,
+              quantity: -item.count,
+              sold: +item.count,
             },
           },
-          {
-            new: true,
-            session,
-          }
-        );
-
-        if (!productStockQuantity) {
-          throw new ApiError(
-            httpStatus.CONFLICT,
-            'Failed to update product stock quantity!'
-          );
-        }
-      }
-
-      // *** billing address set to the user model *** //
-      const user = await User.findOneAndUpdate(
-        { _id: customerId },
-        {
-          $set: {
-            orderAddress: others.billingAddress,
-          },
         },
-        { new: true, session }
-      );
+      };
+    });
 
-      // if does not has user, throw error
-      if (
-        !user &&
-        others.billingAddress &&
-        Object.keys(others.billingAddress).length < 1
-      ) {
-        throw new ApiError(
-          httpStatus.NOT_FOUND,
-          'User Not Found Or Invalid Billing Address!'
-        );
-      }
-      await sendEmailController.sendEmailForOrderHistoryDetails;
-      result = orderResult[0];
-
-      // commit transaction
-      await session.commitTransaction();
-      await session.endSession();
-    } catch (error) {
-      await session.abortTransaction();
-      await session.endSession();
-
-      if (error instanceof ApiError) {
-        throw new ApiError(httpStatus.BAD_REQUEST, error?.message);
-      } else {
-        throw new ApiError(
-          httpStatus.INTERNAL_SERVER_ERROR,
-          'Interval Server Error'
-        );
-      }
-    }
-    return result;
+    // update
+    await Product.bulkWrite(bulkOption, {});
+    return { ok: true };
   };
 
   // create order with cash_on_delivery service
-  readonly createOrderWithCashOnDelivery = async (payload: OrderCreate) => {
-    if (Object.keys(payload)?.length < 1) {
-      throw new ApiError(httpStatus.CONFLICT, 'Invalid Order!');
-    }
+  readonly createOrderWithCashOnDelivery = async (
+    payload: any,
+    user: string
+  ) => {
+    const { isCashOnDelivery, isCoupon } = payload;
 
-    if (payload?.payment_method !== 'cash_on_delivery') {
-      throw new ApiError(httpStatus.CONFLICT, 'Invalid Payment Method Status!');
-    }
-
-    // start transaction
-    let result = null;
-    const session = await mongoose.startSession();
-    try {
-      await session.startTransaction();
-
-      const { products, ...others } = payload;
-
-      // if product has not, throw error
-      if (!products?.length) {
-        throw new ApiError(httpStatus.CONFLICT, 'Product should be ordered!');
-      }
-
-      // get all of order product ids
-      const productPriceModify = products?.map(product => product?.productId);
-
-      if (productPriceModify?.length < 1) {
-        throw new ApiError(httpStatus.CONFLICT, 'Invalid Product Ids!');
-      }
-
-      // get all of order products based of specific product id
-      const allProducts = await this.#ProductModel.find({
-        _id: {
-          $in: productPriceModify,
-        },
-      });
-
-      // check order product has or not
-      if (allProducts?.length < 1) {
-        throw new ApiError(httpStatus.CONFLICT, 'Invalid Products!');
-      }
-
-      // get product quantity based of specific id
-      const productQuantity = (productId: string) => {
-        const objectId = new Types.ObjectId(productId);
-        return products?.find(product =>
-          new Types.ObjectId(product?.productId).equals(objectId)
-        )?.quantity;
-      };
-
-      // get product price calculation with discount
-      const productPriceWithDiscount = (
-        price: number,
-        discount: number
-      ): number => {
-        const discountAmount = Math.ceil((discount / 100) * price);
-        return price - discountAmount;
-      };
-
-      // calculate order price and added quantity
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const productPriceModifies = allProducts?.map((product:any) => ({
-        productId: product?._id,
-        quantity: productQuantity(product._id as string),
-        price:
-          productPriceWithDiscount(product?.price, product?.discount) *
-          productQuantity(product._id as string),
-        originalPrice: product?.price,
-        discount: product?.discount,
-      }));
-
-      // total net amount with discount
-      let totalNetAmount = productPriceModifies?.reduce(
-        (acc: number, cur: { price: number }) => {
-          if (cur?.price > 0) {
-            acc += cur?.price;
-          }
-          return acc;
-        },
-        0
+    // if isCashOnDelivery is true, it is going to process to the cash on delivery
+    if (!isCashOnDelivery) {
+      throw new ApiError(
+        httpStatus.BAD_REQUEST,
+        'Create Cash Order is Failed!'
       );
+    }
 
-      // check order has coupon
-      if (others?.coupon) {
-        // check already coupon exit, if not, throw error
-        const isExitCoupon = await this.#CouponModel.findOne({
-          code: others?.coupon,
-        });
+    // who payment on the cash
+    const userData = await axios.get(
+      `${config.user_url_auth_service_endpoint}/${user}` ||
+        'https://localhost:7000/api/vi/users'
+    );
 
-        // check already coupon exit, throw error
-        if (!isExitCoupon) {
-          throw new ApiError(httpStatus.CONFLICT, 'Coupon Not Exit!');
-        }
+    if (!userData?.data) {
+      throw new ApiError(httpStatus.NOT_FOUND, 'User Not Found!');
+    }
 
-        const couponDiscountAmount = Math.ceil(
-          (isExitCoupon?.discount / 100) * totalNetAmount
-        );
+    // which carts
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const userCarts: any = await this.#CartModel
+      .findOne({ orderedBy: user })
+      .lean();
 
-        totalNetAmount = totalNetAmount - couponDiscountAmount;
-      }
+    let finalAmount = 0;
+    if (isCoupon && userCarts && userCarts?.totalPriceAfterDiscount) {
+      finalAmount = userCarts?.totalPriceAfterDiscount * 100;
+    } else {
+      finalAmount = userCarts.cartTotal * 100;
+    }
 
-      // if delivery charge has, add delivery charge to totalNetAmount
-      if (others?.deliveryCharge) {
-        totalNetAmount = totalNetAmount + Math.ceil(others?.deliveryCharge);
-      }
+    const update = await new Order({
+      products: userCarts?.products,
+      paymentIntents: {
+        id: getUniqueKey('ORD'),
+        amount: finalAmount,
+        currency: 'usd',
+        payment_method_types: ['Cash'],
+        status: 'succeeded',
+        created: Date.now(),
+      },
+      orderStatus: 'Cash On Delivery',
+      orderedBy: user,
+    }).save();
 
-      // total amount without discount
-      const totalAmount = productPriceModifies?.reduce((acc, cur) => {
-        if (cur?.originalPrice > 0) {
-          acc += cur?.originalPrice;
-        }
-        return acc;
-      }, 0);
-
-      // *** tracking order *** //
-      const modifyOrderTracking = {
-        title: 'ordered',
-        courier: '',
-        trackingNumber: '',
-      };
-
-      // ordered history
-      const modifyOrderedHistory = orderTrackingStatus.map(ots => {
-        if (ots === 'ordered') {
-          return {
-            status: ots,
-            isDone: true,
-            timestamp: `${new Date()}`,
-          };
-        } else {
-          return {
-            status: ots,
-            isDone: false,
-            timestamp: '',
-          };
-        }
-      });
-
-      // make a six digit ordered id with helper function
-      const orderSixDigitId =
-        GenerateNumberHelpers.generateRandomSixDigitNumber();
-
-      // if not make six digit number, throw error
-      if (orderSixDigitId < 1) {
-        throw new ApiError(
-          httpStatus.CONFLICT,
-          'Failed to Make Six Digit Order Id!'
-        );
-      }
-
-      // create order
-      const orderResult = await this.#OrderModel.create(
-        [
-          {
-            products: productPriceModifies,
-            orderId: orderSixDigitId,
-            trackingInfo: modifyOrderTracking,
-            orderHistory: modifyOrderedHistory,
-            amount: totalAmount,
-            netAmount: totalNetAmount,
-            ...others,
+    // increment sold and decrement quantity
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const bulkWrites = userCarts?.products.map((item: any) => {
+      return {
+        updateOne: {
+          filter: {
+            _id: item.product._id,
           },
-        ],
-        { session }
-      );
-      if (!orderResult?.length) {
-        throw new ApiError(httpStatus.CONFLICT, 'Failed to create order!');
-      }
-
-      // *** billing address set to the user model *** //
-      const user = await User.findOneAndUpdate(
-        { _id: others?.customer?.customerId },
-        {
-          $set: {
-            orderAddress: others.billingAddress,
+          update: {
+            $inc: {
+              quantity: -item.count,
+              sold: +item.count,
+            },
           },
         },
-        { new: true, session }
-      );
+      };
+    });
+    await Product.bulkWrite(bulkWrites, {});
 
-      // if does not has user, throw error
-      if (
-        !user &&
-        others.billingAddress &&
-        Object.keys(others.billingAddress).length < 1
-      ) {
-        throw new ApiError(
-          httpStatus.NOT_FOUND,
-          'User Not Found Or Invalid Billing Address!'
-        );
-      }
-      await sendEmailController.sendEmailForOrderHistoryDetails;
-      result = orderResult[0];
-
-      // commit transaction
-      await session.commitTransaction();
-      await session.endSession();
-    } catch (error) {
-      await session.abortTransaction();
-      await session.endSession();
-
-      if (error instanceof ApiError) {
-        throw new ApiError(httpStatus.BAD_REQUEST, error?.message);
-      } else {
-        throw new ApiError(
-          httpStatus.INTERNAL_SERVER_ERROR,
-          'Interval Server Error'
-        );
-      }
-    }
-
-    return result;
+    return { ok: true, update };
   };
 
   // get all orders service
@@ -464,7 +221,7 @@ class OrderServiceClass {
   };
 
   // get single order service
-  readonly getSingleOrder = async (payload: string): Promise<IOrder | null> => {
+  readonly getSingleOrder = async (payload: string) => {
     const result = await this.#OrderModel
       .findById(payload)
       .populate('products.productId')
@@ -506,10 +263,7 @@ class OrderServiceClass {
   readonly updateOrderStatusTracking = async (
     id: string,
     payload: IOrderTacking
-  ): Promise<{
-    updateResult: IOrder | null;
-    totalDeliveryTime: number;
-  }> => {
+  ) => {
     // check already Order exit, if not throw error
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const isExitOrder: any = await this.#OrderModel.findById({ _id: id });
@@ -586,8 +340,6 @@ class OrderServiceClass {
       payload?.orderHistory?.status === 'delivered' &&
       isExitOrder?.orderHistory?.[2]?.isDone
     ) {
-      await sendEmailController.sendEmailForOrderHistoryDetails;
-
       // get orderedTimestamp and delivered Timestamp
       const orderedTimestamp = isExitOrder?.orderHistory?.find(
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -610,7 +362,7 @@ class OrderServiceClass {
   };
 
   // delete order service
-  readonly deleteOrder = async (payload: string): Promise<IOrder | null> => {
+  readonly deleteOrder = async (payload: string) => {
     // check already order exit, if not throw error
     const isExitOrder = await this.#OrderModel.findById({ _id: payload });
     if (!isExitOrder) {

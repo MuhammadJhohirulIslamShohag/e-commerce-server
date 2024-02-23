@@ -10,6 +10,7 @@ import { IOrder } from './order.interface';
 import { OrderService } from './order.service';
 import { pick } from '../../shared/pick';
 import { paginationOptionFields } from '../../constants/pagination';
+import { JwtPayload } from 'jsonwebtoken';
 
 class OrderControllerClass {
   #OrderService: typeof OrderService;
@@ -18,12 +19,34 @@ class OrderControllerClass {
     this.#OrderService = service;
   }
   // create order with cash_on_delivery controller
+  readonly createOrder = catchAsync(async (req: Request, res: Response) => {
+    const { ...orderData } = req.body;
+    const { userId } = req.user as JwtPayload;
+
+    const result = await this.#OrderService.createOrder(orderData, userId);
+
+    // if not created order, throw error
+    if (!result) {
+      throw new ApiError(httpStatus.CONFLICT, `Order Create Failed!`);
+    }
+
+    responseReturn(res, {
+      statusCode: httpStatus.OK,
+      success: true,
+      message: 'Order Created Successfully!',
+      data: result,
+    });
+  });
+
+  // create order with cash_on_delivery controller
   readonly createOrderWithCashOnDelivery = catchAsync(
     async (req: Request, res: Response) => {
       const { ...orderData } = req.body;
-      
+      const { userId } = req.user as JwtPayload;
+
       const result = await this.#OrderService.createOrderWithCashOnDelivery(
-        orderData
+        orderData,
+        userId
       );
 
       // if not created order, throw error
@@ -48,7 +71,10 @@ class OrderControllerClass {
     const paginationOptions = pick(req.query, paginationOptionFields);
     const filters = pick(req.query, orderFilterableFields);
 
-    const result = await this.#OrderService.allOrders(paginationOptions, filters);
+    const result = await this.#OrderService.allOrders(
+      paginationOptions,
+      filters
+    );
 
     responseReturn(res, {
       statusCode: httpStatus.OK,
@@ -77,7 +103,10 @@ class OrderControllerClass {
     const orderId = req.params.id;
     const { ...updateOrderData } = req.body;
 
-    const result = await this.#OrderService.updateOrder(orderId, updateOrderData);
+    const result = await this.#OrderService.updateOrder(
+      orderId,
+      updateOrderData
+    );
 
     responseReturn(res, {
       statusCode: httpStatus.OK,

@@ -1,11 +1,6 @@
 import { Schema, model } from 'mongoose';
-import validator from 'validator';
 
-import {
-  paymentMethod,
-  paymentStatus,
-  orderTrackingStatus,
-} from './order.constant';
+import { orderTrackingStatus, paymentStatus } from './order.constant';
 import { OrderModel, IOrder } from './order.interface';
 
 // order schema
@@ -13,58 +8,27 @@ const orderSchema = new Schema<IOrder, OrderModel>(
   {
     products: [
       {
-        productId: {
+        product: {
           type: Schema.Types.ObjectId,
           ref: 'Product',
         },
-        quantity: {
-          type: Number,
-          required: [true, 'Please provide quantity of the product!'],
-        },
-        price: {
-          type: Number,
-          required: [true, 'Please provide price of the product!'],
-        },
-        originalPrice: {
-          type: Number,
-        },
-        discount: {
-          type: Number,
-          required: [true, 'Please provide discount of product!'],
-        },
+        quantity: Number,
+        color: String,
+        size: String,
       },
     ],
-    orderId: {
-      type: Number,
-    },
-    transactionId: {
+    paymentIntents: Schema.Types.Mixed,
+    orderStatus: {
       type: String,
-    },
-    email: {
-      type: String,
-      trim: true,
-      validate: [validator.isEmail, 'Provide a valid email!'],
-    },
-    amount: {
-      type: Number,
-      required: [true, 'Please provide total amount of order!'],
-    },
-    netAmount: {
-      type: Number,
-      required: [true, 'Please provide total net amount of order!'],
-    },
-    deliveryCharge: {
-      type: Number,
-      required: [true, 'Please provide a delivery charge!'],
-    },
-    coupon: {
-      type: String,
-    },
-    payment_status: {
-      type: String,
+      default: 'Not Processed',
       enum: paymentStatus,
-      default: 'processing',
-      required: [true, 'Please provide payment status of the order!'],
+    },
+    paymentBy: {
+      type: String,
+    },
+    orderedBy: {
+      type: Schema.Types.ObjectId,
+      ref: 'User',
     },
     trackingInfo: {
       title: {
@@ -92,11 +56,6 @@ const orderSchema = new Schema<IOrder, OrderModel>(
         },
       },
     ],
-    payment_method: {
-      type: String,
-      enum: paymentMethod,
-      required: [true, 'Please provide payment method of the order!'],
-    },
     billingAddress: {
       fullName: {
         type: String,
@@ -127,13 +86,6 @@ const orderSchema = new Schema<IOrder, OrderModel>(
           },
           message: props => `${props.value} is not a valid contact number!`,
         },
-      },
-    },
-    customer: {
-      customerId: {
-        type: Schema.Types.ObjectId,
-        ref: 'User',
-        required: [true, 'Please provide customer info of the order!'],
       },
     },
   },
