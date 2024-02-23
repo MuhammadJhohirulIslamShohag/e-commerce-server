@@ -1,9 +1,9 @@
-import { Schema, model } from 'mongoose'
-import validator from 'validator'
+import { Schema, model } from 'mongoose';
+import validator from 'validator';
 
-import { productStatus } from './product.constant'
+import { productStatus } from './product.constant';
 
-import { IProduct, ProductModel } from './product.interface'
+import { IProduct, ProductModel } from './product.interface';
 
 // product schema
 const ProductSchema = new Schema<IProduct, ProductModel>(
@@ -36,6 +36,10 @@ const ProductSchema = new Schema<IProduct, ProductModel>(
       required: [true, 'Please provide a price!'],
     },
     quantity: {
+      type: Number,
+      default: 0,
+    },
+    sold: {
       type: Number,
       default: 0,
     },
@@ -117,9 +121,9 @@ const ProductSchema = new Schema<IProduct, ProductModel>(
       virtuals: true,
     },
   }
-)
+);
 
 // product model
-const Product = model<IProduct, ProductModel>('Product', ProductSchema)
+const Product = model<IProduct, ProductModel>('Product', ProductSchema);
 
-export default Product
+export default Product;

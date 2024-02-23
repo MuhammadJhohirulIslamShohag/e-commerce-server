@@ -1,34 +1,23 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import httpStatus from 'http-status';
 import axios from 'axios';
 import { SortOrder } from 'mongoose';
 
-import config from '../../config';
-import Cart from '../cart/cart.model';
-import Order from './order.model';
-import Product from '../product/product.model';
-import Coupon from '../coupon/coupon.model';
-import ApiError from '../../errors/ApiError';
+import ApiError from '../../../errors/ApiError';
+import config from '../../../config';
 
+import { IOrder, OrderFilters } from './order.interface';
+import { prisma } from '../../../shared/prisma';
+import { getUniqueKey } from '../../../shared/getUniqueKey';
+import { Prisma } from '@prisma/client';
+import { PaginationOptionType } from '../../../interfaces/pagination';
+import { paginationHelper } from '../../../helpers/paginationHelper';
 import { orderSearchableFields } from './order.constant';
-import {
-  OrderFilters,
-  IOrder,
-  IOrderTacking,
-} from './order.interface';
-import { paginationHelper } from '../../helpers/pagination.helper';
-import { PaginationOptionType } from '../../interfaces/pagination';
-import { getUniqueKey } from '../../shared/getUniqueKey';
 
 class OrderServiceClass {
   #OrderModel;
-  #ProductModel;
-  #CartModel;
-  #CouponModel;
   constructor() {
-    this.#OrderModel = Order;
-    this.#ProductModel = Product;
-    this.#CartModel = Cart;
-    this.#CouponModel = Coupon;
+    this.#OrderModel = prisma.order;
   }
 
   // create order service
@@ -45,40 +34,39 @@ class OrderServiceClass {
     }
 
     // which product carts
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const carts: any = await this.#CartModel
-      .findOne({ orderedBy: user })
-      .exec();
-    const { products } = carts;
+    const carts = await axios.get(
+      `${config.core_service_endpoint}/carts/${user}` ||
+        'https://localhost:7000/api/vi/users'
+    );
+
+    const { products } = carts.data;
 
     // save to the database
-    await new Order({
-      products,
-      paymentIntents: paymentIntent,
-      orderedBy: user,
-      paymentBy,
-    }).save();
-
-    // decrement quantity and sold increment
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const bulkOption = products.map((item: any) => {
-      return {
-        updateOne: {
-          filter: {
-            _id: item.product._id,
-          },
-          update: {
-            $inc: {
-              quantity: -item.count,
-              sold: +item.count,
-            },
-          },
+    await this.#OrderModel.create({
+      data: {
+        products: {
+          create: products.map((item: any) => ({
+            name: item.product.name,
+            imageURL: item.product.imageURL,
+            color: item.product.color,
+            size: item.product.size,
+            quantity: item.product.quantity,
+            discount: item.product.discount,
+          })),
         },
-      };
+        paymentIntents: paymentIntent,
+        orderedBy: user,
+        paymentBy,
+        userId: user
+      },
     });
 
-    // update
-    await Product.bulkWrite(bulkOption, {});
+    // decrement quantity and sold increment
+    await axios.patch(
+      `${config.core_service_endpoint}/products/update-quantity-sold`,
+      {}
+    );
+
     return { ok: true };
   };
 
@@ -108,10 +96,12 @@ class OrderServiceClass {
     }
 
     // which carts
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const userCarts: any = await this.#CartModel
-      .findOne({ orderedBy: user })
-      .lean();
+    const carts = await axios.get(
+      `${config.core_service_endpoint}/carts/${user}` ||
+        'https://localhost:7000/api/vi/users'
+    );
+
+    const userCarts = carts.data;
 
     let finalAmount = 0;
     if (isCoupon && userCarts && userCarts?.totalPriceAfterDiscount) {
@@ -120,38 +110,38 @@ class OrderServiceClass {
       finalAmount = userCarts.cartTotal * 100;
     }
 
-    const update = await new Order({
-      products: userCarts?.products,
-      paymentIntents: {
-        id: getUniqueKey('ORD'),
-        amount: finalAmount,
-        currency: 'usd',
-        payment_method_types: ['Cash'],
-        status: 'succeeded',
-        created: Date.now(),
-      },
-      orderStatus: 'Cash On Delivery',
-      orderedBy: user,
-    }).save();
-
-    // increment sold and decrement quantity
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const bulkWrites = userCarts?.products.map((item: any) => {
-      return {
-        updateOne: {
-          filter: {
-            _id: item.product._id,
-          },
-          update: {
-            $inc: {
-              quantity: -item.count,
-              sold: +item.count,
-            },
+    const update = await this.#OrderModel.create({
+      data: {
+        products: {
+          create: userCarts?.products,
+        },
+        paymentIntents: {
+          create: {
+            id: getUniqueKey('ORD'),
+            amount: finalAmount,
+            currency: 'usd',
+            payment_method_types: ['Cash'],
+            status: 'succeeded',
+            created: new Date(),
           },
         },
-      };
+        orderStatus: 'Cash On Delivery',
+        orderedBy: user,
+      },
     });
-    await Product.bulkWrite(bulkWrites, {});
+
+    // increment sold and decrement quantity
+    const bulkWrites = userCarts?.products.map((item: any) => {
+      return this.#OrderModel.update({
+        where: { id: item.product.id },
+        data: {
+          quantity: { decrement: item.count },
+          sold: { increment: item.count },
+        },
+      });
+    });
+
+    await prisma.$transaction(bulkWrites);
 
     return { ok: true, update };
   };
@@ -161,60 +151,60 @@ class OrderServiceClass {
     paginationOption: PaginationOptionType,
     filters: OrderFilters
   ) => {
+    const { searchTerm, ...filterData } = filters;
     const { page, limit, sortBy, sortOrder, skip } =
       paginationHelper.calculatePagination(paginationOption);
 
-    // exact search term
-    const { searchTerm, ...filterData } = filters;
-
-    const andConditions = [];
-
-    // searching specific filed with dynamic way
+    // for dynamic searching
+    const addCondition = [];
     if (searchTerm) {
-      andConditions.push({
-        $or: orderSearchableFields.map(field => ({
-          [field]: {
-            $regex: searchTerm,
-            $options: 'i',
+      addCondition.push({
+        OR: orderSearchableFields.map(item => ({
+          [item]: {
+            contains: searchTerm,
+            mode: 'insensitive',
           },
         })),
       });
     }
 
-    // exact filtering with dynamic way
-    if (Object.keys(filterData).length) {
-      andConditions.push({
-        $and: Object.entries(filterData).map(([field, value]) => ({
-          [field]: value,
+    // for dynamic filtering
+    if (Object.keys(filterData).length > 0) {
+      addCondition.push({
+        AND: Object.entries(filterData).map(([field, value]) => ({
+          [field]: {
+            equals: value,
+          },
         })),
       });
     }
 
-    // dynamic sorting
-    const sortConditions: { [key: string]: SortOrder } = {};
+    const sortCondition: { [key: string]: SortOrder } = {};
 
-    if (sortBy && sortOrder) sortConditions[sortBy] = sortOrder;
+    if (sortBy && sortOrder) {
+      sortCondition[sortBy] = sortOrder;
+    }
 
-    const whereConditions =
-      andConditions.length > 0 ? { $and: andConditions } : {};
+    const whereCondition: Prisma.OrderWhereInput = addCondition.length
+      ? { AND: addCondition }
+      : {};
 
-    // result of order
-    const result = await this.#OrderModel
-      .find(whereConditions)
-      .populate('products.productId')
-      .populate('customer.customerId')
-      .sort(sortConditions)
-      .skip(skip)
-      .limit(limit);
+    const result = await this.#OrderModel.findMany({
+      where: whereCondition,
+      orderBy: sortCondition,
+      skip,
+      take: limit,
+    });
 
-    // get total order
-    const total = await this.#OrderModel.countDocuments(whereConditions);
+    const total = await this.#OrderModel.count({
+      where: whereCondition,
+    });
 
     return {
       meta: {
         page,
-        limit,
         total,
+        limit,
       },
       data: result,
     };
@@ -222,140 +212,31 @@ class OrderServiceClass {
 
   // get single order service
   readonly getSingleOrder = async (payload: string) => {
-    const result = await this.#OrderModel
-      .findById(payload)
-      .populate('products.productId')
-      .populate('customer.customerId')
-      .exec();
+    const result = await prisma.order.findUnique({
+      where: { id: payload },
+    });
+
     return result;
   };
 
   // update order service
-  readonly updateOrder = async (
-    id: string,
-    payload: Partial<IOrder>
-  ): Promise<IOrder | null> => {
-    // check already Order exit, if not throw error
-    const isExitOrder = await this.#OrderModel.findById({ _id: id });
-    if (!isExitOrder) {
+  readonly updateOrder = async (id: string, payload: Partial<IOrder>) => {
+    // check if Order exists, if not throw error
+    const existingOrder = await this.#OrderModel.findUnique({
+      where: { id },
+    });
+
+    if (!existingOrder) {
       throw new ApiError(httpStatus.NOT_FOUND, 'Order Not Found!');
     }
-
-    const { ...updatedOrderData }: Partial<IOrder> = payload;
 
     // update the order
     let result = null;
-
-    if (Object.keys(updatedOrderData).length) {
-      result = await this.#OrderModel.findOneAndUpdate(
-        { _id: id },
-        { ...updatedOrderData },
-        {
-          new: true,
-        }
-      );
-    }
-
-    return result;
-  };
-
-  // order tracking status
-  readonly updateOrderStatusTracking = async (
-    id: string,
-    payload: IOrderTacking
-  ) => {
-    // check already Order exit, if not throw error
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const isExitOrder: any = await this.#OrderModel.findById({ _id: id });
-    if (!isExitOrder) {
-      throw new ApiError(httpStatus.NOT_FOUND, 'Order Not Found!');
-    }
-
-    const { trackingInfo } = payload;
-
-    const updateOrderTracking: Partial<IOrderTacking> = {};
-
-    // update tracking info
-    if (trackingInfo && Object.keys(trackingInfo)?.length > 0) {
-      Object.keys(trackingInfo).map(key => {
-        const trackingInfoKey =
-          `trackingInfo.${key}` as keyof Partial<IOrderTacking>;
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        (updateOrderTracking as any)[trackingInfoKey] =
-          trackingInfo[key as keyof typeof trackingInfo];
+    if (Object.keys(payload).length > 0) {
+      result = await this.#OrderModel.update({
+        where: { id },
+        data: payload,
       });
-    }
-
-    // check user delivered before shipped, if it is, throw error
-    if (
-      payload?.orderHistory?.status === 'delivered' &&
-      !isExitOrder?.orderHistory?.[1]?.isDone
-    ) {
-      throw new ApiError(
-        httpStatus.NOT_FOUND,
-        'Without Shipped, we can not move to be delivered!'
-      );
-    }
-
-    // update order history
-    const orderHistory = isExitOrder?.orderHistory?.map(
-      (oh: { status: string; timestamp: string; isDone: boolean }) => {
-        if (oh?.status === payload?.orderHistory?.status) {
-          return {
-            status: payload?.orderHistory?.status,
-            timestamp: `${new Date()}`,
-            isDone: true,
-          };
-        } else {
-          return {
-            status: oh?.status,
-            timestamp: oh?.timestamp,
-            isDone: oh?.isDone,
-          };
-        }
-      }
-    );
-
-    const result = {
-      totalDeliveryTime: 0,
-      updateResult: null,
-    };
-
-    // update the order
-    result.updateResult = await this.#OrderModel.findOneAndUpdate(
-      { _id: id },
-      {
-        $set: {
-          orderHistory: orderHistory,
-          ...updateOrderTracking,
-        },
-      },
-      {
-        new: true,
-      }
-    );
-
-    // send email to customer with email template and total delivered time
-    if (
-      payload?.orderHistory?.status === 'delivered' &&
-      isExitOrder?.orderHistory?.[2]?.isDone
-    ) {
-      // get orderedTimestamp and delivered Timestamp
-      const orderedTimestamp = isExitOrder?.orderHistory?.find(
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        (history: any) => history.status === 'ordered'
-      )?.timestamp;
-      const deliveredTimestamp = isExitOrder?.orderHistory?.find(
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        (history: any) => history.status === 'delivered'
-      )?.timestamp;
-
-      const orderHours = new Date(orderedTimestamp).getHours();
-      const deliveredHours = new Date(deliveredTimestamp).getHours();
-
-      if (deliveredHours && orderHours) {
-        result.totalDeliveryTime = deliveredHours - orderHours;
-      }
     }
 
     return result;
@@ -363,14 +244,20 @@ class OrderServiceClass {
 
   // delete order service
   readonly deleteOrder = async (payload: string) => {
-    // check already order exit, if not throw error
-    const isExitOrder = await this.#OrderModel.findById({ _id: payload });
-    if (!isExitOrder) {
+    // check if order exists, if not throw error
+    const existingOrder = await this.#OrderModel.findUnique({
+      where: { id: payload },
+    });
+
+    if (!existingOrder) {
       throw new ApiError(httpStatus.NOT_FOUND, 'Order Not Found!');
     }
 
     // delete the order
-    const result = await this.#OrderModel.findByIdAndDelete(payload);
+    const result = await this.#OrderModel.delete({
+      where: { id: payload },
+    });
+
     return result;
   };
 }

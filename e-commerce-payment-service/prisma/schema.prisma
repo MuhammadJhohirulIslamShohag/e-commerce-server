@@ -11,13 +11,13 @@ datasource db {
 }
 
 model Order {
-  id             String   @id @default(uuid())
+  id             String        @id @default(uuid())
   paymentIntents Json
-  orderStatus    String   @default("Not Processed")
+  orderStatus    PaymentStatus @default(Not_Processed)
   paymentBy      String?
-  orderedBy      Int
-  createdAt      DateTime @default(now())
-  updatedAt      DateTime @updatedAt
+  orderedBy      String
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
 
   userId String
   user   User   @relation(fields: [userId], references: [id])
@@ -25,11 +25,7 @@ model Order {
   billingAddressId String
   billingAddress   BillingAddress @relation(fields: [billingAddressId], references: [id])
 
-  trackingInfoId String
-  trackingInfo   TrackingInfo @relation(fields: [trackingInfoId], references: [id])
-
-  Product      Product[]
-  OrderHistory OrderHistory[]
+  Product Product[]
 
   @@map("orders")
 }
@@ -49,29 +45,6 @@ model Product {
   @@map("products")
 }
 
-model TrackingInfo {
-  id             String @id @default(uuid())
-  title          String
-  courier        String
-  trackingNumber String
-  
-  Order   Order[]
-
-  @@map("tracking_info")
-}
-
-model OrderHistory {
-  id        String  @id @default(uuid())
-  status    String  @default("ordered")
-  timestamp String
-  isDone    Boolean
-
-  orderId String
-  order   Order  @relation(fields: [orderId], references: [id])
-
-  @@map("order_history")
-}
-
 model BillingAddress {
   id            String @id @default(uuid())
   fullName      String
@@ -89,6 +62,18 @@ model BillingAddress {
 }
 
 model User {
-  id     String  @id @default(uuid())
-  orders Order[]
+  id       String  @id @default(uuid())
+  name     String
+  email    String
+  imageURL String
+  orders   Order[]
+}
+
+enum PaymentStatus {
+  Not_Processed
+  Processing
+  Dispatched
+  Cancelled
+  Completed
+  Cash_On_Delivery
 }

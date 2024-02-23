@@ -20,6 +20,7 @@ export type IProduct = {
   discount: number;
   clickedProductCount: number;
   quantity: number;
+  sold: number;
   imageURL: [string];
   isFeatured: boolean;
   status: ProductStatus;
