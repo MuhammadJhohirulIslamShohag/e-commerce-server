@@ -3,19 +3,19 @@ import { Request, Response } from 'express';
 import catchAsync from '../../../shared/catchAsync';
 import responseReturn from '../../../shared/responseReturn';
 
-import { SizeService } from './review.service';
+import { ReviewService } from './review.service';
 
-class SizeControllerClass {
-  #SizeService: typeof SizeService;
+class ReviewControllerClass {
+  #ReviewService: typeof ReviewService;
 
-  constructor(service: typeof SizeService) {
-    this.#SizeService = service;
+  constructor(service: typeof ReviewService) {
+    this.#ReviewService = service;
   }
 
-  // create size controller
-  readonly createSize = catchAsync(
+  // create review controller
+  readonly createReview = catchAsync(
     async (req: Request, res: Response) => {
-      const result = await this.#SizeService.createSize(
+      const result = await this.#ReviewService.createReview(
         req
       );
 
@@ -23,10 +23,10 @@ class SizeControllerClass {
     }
   );
 
-  // get all sizes controller
-  readonly allSizes = catchAsync(
+  // get all review controller
+  readonly allReviews = catchAsync(
     async (req: Request, res: Response) => {
-      const result = await this.#SizeService.allSizes(
+      const result = await this.#ReviewService.allReviews(
         req
       );
 
@@ -34,20 +34,20 @@ class SizeControllerClass {
     }
   );
 
-  // get single size user controller
-  readonly getSingleSize = catchAsync(
+  // get single review user controller
+  readonly getSingleReview = catchAsync(
     async (req: Request, res: Response) => {
       const result =
-        await this.#SizeService.getSingleSize(req);
+        await this.#ReviewService.getSingleReview(req);
 
       responseReturn(res, result);
     }
   );
 
-  // update size controller
-  readonly updateSize = catchAsync(
+  // update review controller
+  readonly updateReview = catchAsync(
     async (req: Request, res: Response) => {
-      const result = await this.#SizeService.updateSize(
+      const result = await this.#ReviewService.updateReview(
         req
       );
 
@@ -55,10 +55,10 @@ class SizeControllerClass {
     }
   );
 
-  // delete size controller
-  readonly deleteSize = catchAsync(
+  // delete review controller
+  readonly deleteReview = catchAsync(
     async (req: Request, res: Response) => {
-      const result = await this.#SizeService.deleteSize(
+      const result = await this.#ReviewService.deleteReview(
         req
       );
 
@@ -67,6 +67,6 @@ class SizeControllerClass {
   );
 }
 
-export const SizeController = new SizeControllerClass(
-  SizeService
+export const ReviewController = new ReviewControllerClass(
+  ReviewService
 );

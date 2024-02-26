@@ -3,11 +3,11 @@ import { Router } from 'express';
 import auth from '../../middlewares/auth';
 import validateRequest from '../../middlewares/validateRequest';
 
-import { SizeController } from './review.controller';
+import { ReviewController } from './review.controller';
 import { ENUM_USER_ROLE } from '../../../enum/user';
-import { SizeValidation } from './review.validation';
+import { ReviewValidation } from './review.validation';
 
-class SizeRouterClass {
+class ReviewRouterClass {
   readonly routers: Router;
   constructor() {
     this.routers = Router();
@@ -15,29 +15,29 @@ class SizeRouterClass {
   }
 
   #RouterAction() {
-    // create and get all sizes routes
+    // create and get all reviews routes
     this.routers
       .route('/')
       .post(
         auth(ENUM_USER_ROLE.ADMIN),
-        validateRequest(SizeValidation.sizeCreateZodSchema),
-        SizeController.createSize
+        validateRequest(ReviewValidation.reviewCreateZodSchema),
+        ReviewController.createReview
       )
-      .get(SizeController.allSizes);
+      .get(ReviewController.allReviews);
 
-    // update and get single size, delete routes
+    // update and get single review, delete routes
     this.routers
       .route('/:id')
       .patch(
         auth(ENUM_USER_ROLE.ADMIN),
-        validateRequest(SizeValidation.sizeUpdateZodSchema),
-        SizeController.updateSize
+        validateRequest(ReviewValidation.reviewUpdateZodSchema),
+        ReviewController.updateReview
       )
-      .get(SizeController.getSingleSize)
-      .delete(auth(ENUM_USER_ROLE.ADMIN), SizeController.deleteSize);
+      .get(ReviewController.getSingleReview)
+      .delete(auth(ENUM_USER_ROLE.ADMIN), ReviewController.deleteReview);
   }
 }
 
-const allRoutes = new SizeRouterClass().routers;
+const allRoutes = new ReviewRouterClass().routers;
 
-export { allRoutes as SizeRoutes };
+export { allRoutes as ReviewRoutes };

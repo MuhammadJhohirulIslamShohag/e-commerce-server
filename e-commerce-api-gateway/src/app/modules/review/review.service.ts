@@ -2,16 +2,16 @@ import { Request } from 'express';
 import { CoreService } from '../../../shared/axios';
 import { IGenericResponse } from '../../../interfaces/common';
 
-class SizeServiceClass {
+class ReviewServiceClass {
   #CoreService;
   constructor() {
     this.#CoreService = CoreService;
   }
 
-  // create size service
-  readonly createSize = async (req: Request) => {
+  // create review service
+  readonly createReview = async (req: Request) => {
     const response: IGenericResponse = await this.#CoreService.post(
-      `sizes`,
+      `reviews`,
       req.body,
       {
         headers: {
@@ -22,10 +22,10 @@ class SizeServiceClass {
     return response;
   };
 
-  // get all sizes service
-  readonly allSizes = async (req: Request) => {
+  // get all reviews service
+  readonly allReviews = async (req: Request) => {
     const response: IGenericResponse = await CoreService.get(
-      `sizes`,
+      `reviews`,
       {
         params: req.query,
         headers: {
@@ -36,12 +36,12 @@ class SizeServiceClass {
     return response;
   };
 
-  // get single size service
-  readonly getSingleSize = async (req: Request) => {
+  // get single review service
+  readonly getSingleReview = async (req: Request) => {
     const { id } = req.params;
 
     const response: IGenericResponse = await CoreService.get(
-      `sizes/${id}`,
+      `reviews/${id}`,
       {
         headers: {
           Authorization: req.headers.authorization,
@@ -51,12 +51,12 @@ class SizeServiceClass {
     return response;
   };
 
-  // update size service
-  readonly updateSize = async (req: Request) => {
+  // update review service
+  readonly updateReview = async (req: Request) => {
     const { id } = req.params;
 
     const response: IGenericResponse = await CoreService.patch(
-      `sizes/${id}`,
+      `reviews/${id}`,
       req.body,
       {
         headers: {
@@ -67,12 +67,12 @@ class SizeServiceClass {
     return response;
   };
 
-  // delete size service
-  readonly deleteSize = async (req: Request) => {
+  // delete review service
+  readonly deleteReview = async (req: Request) => {
     const { id } = req.params;
 
     const response: IGenericResponse = await CoreService.delete(
-      `sizes/${id}`,
+      `reviews/${id}`,
       {
         headers: {
           Authorization: req.headers.authorization,
@@ -83,4 +83,4 @@ class SizeServiceClass {
   };
 }
 
-export const SizeService = new SizeServiceClass();
+export const ReviewService = new ReviewServiceClass();
