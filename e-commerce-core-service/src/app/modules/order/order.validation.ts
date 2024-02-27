@@ -96,6 +96,5 @@ const orderTrackingStatusUpdateZodSchema = z.object({
 export const OrderValidation = {
   orderCreateZodSchema,
   orderUpdateZodSchema,
-  orderTrackingStatusUpdateZodSchema,
-  addShippingAddressZodSchema,
+  orderTrackingStatusUpdateZodSchema
 }

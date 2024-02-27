@@ -13,7 +13,6 @@ class BrandRouterClass {
 
   #RouterAction() {
     // update order tracking status routes
-
     this.routers.patch(
       '/order-tracking-status/:id',
       validateRequest(OrderValidation.orderTrackingStatusUpdateZodSchema),
