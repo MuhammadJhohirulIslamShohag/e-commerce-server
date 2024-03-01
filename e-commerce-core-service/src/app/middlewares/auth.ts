@@ -1,9 +1,12 @@
 import { NextFunction, Request, Response } from 'express';
-import ApiError from '../../errors/ApiError';
 import httpStatus from 'http-status';
-import { jwtHelpers } from '../../helpers/jwtHelpers';
-import config from '../../config';
 import { Secret } from 'jsonwebtoken';
+
+import ApiError from '../errors/ApiError';
+import config from '../config';
+
+import { jwtHelpers } from '../helpers/jwt.helper';
+
 
 const auth =
   (...requiredRole: string[]) =>
