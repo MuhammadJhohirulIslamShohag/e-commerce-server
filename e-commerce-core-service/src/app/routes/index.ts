@@ -5,8 +5,6 @@ import { SizeRoutes } from '../modules/size/size.route';
 import { CouponRoutes } from '../modules/coupon/coupon.route';
 import { BrandRoutes } from '../modules/brand/brand.route';
 import { ColorRoutes } from '../modules/color/color.route';
-import { OfferRoutes } from '../modules/offer/offer.route';
-import { BannerRoutes } from '../modules/banner/banner.route';
 import { AdvertiseBannerRoutes } from '../modules/advertiseBanner/advertiseBanner.route';
 import { ProductRoutes } from '../modules/product/product.route';
 import { OrderRoutes } from '../modules/order/order.route';
@@ -45,14 +43,6 @@ const moduleRoutes = [
   {
     path: '/colors',
     route: ColorRoutes,
-  },
-  {
-    path: '/offers',
-    route: OfferRoutes,
-  },
-  {
-    path: '/banners',
-    route: BannerRoutes,
   },
   {
     path: '/advertise-banners',
