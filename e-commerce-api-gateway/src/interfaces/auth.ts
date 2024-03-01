@@ -1,5 +1,4 @@
-/* eslint-disable @typescript-eslint/consistent-type-definitions */
-export interface IAuthUser {
-  id: string;
+export type IAuthUser = {
+  userId: string;
   role: string;
-}
+};
