@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-this-alias */
 import { Schema, model } from 'mongoose'
 import { otpMethodEnum } from './otp.constant'
 import { IOtp, OtpModel } from './opt.interface'

@@ -349,8 +349,6 @@ class AdminServiceClass {
       { new: true }
     );
 
-    // console.log(result, 'result', isUserExit, 'isUserExit', userData, 'userData')
-
     return result;
   };
 }
