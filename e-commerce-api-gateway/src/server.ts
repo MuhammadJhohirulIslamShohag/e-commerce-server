@@ -1,7 +1,9 @@
+import { Server } from 'http';
+
 import config from './config';
 import app from './app';
+
 import { logger, errorLogger } from './shared/logger';
-import { Server } from 'http';
 import { RedisDatabase } from './shared/redis';
 
 // handle uncaught exception error if any developer take mistake, work it synchronous
@@ -44,12 +46,3 @@ const startServer = async () => {
 
 startServer();
 
-// handle error, if unfortunately stop terminal, process, server off
-// we can send signal to stop process
-process.on('SIGTERM', () => {
-  // since we would like to stop server, so we can use info
-  logger.info('Signal termination is received');
-  if (server) {
-    server.close();
-  }
-});

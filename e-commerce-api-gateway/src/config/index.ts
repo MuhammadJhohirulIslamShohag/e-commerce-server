@@ -1,6 +1,6 @@
 import * as dotenv from 'dotenv';
-import path from 'path';
 import { z } from 'zod';
+import path from 'path';
 dotenv.config({ path: path.join(process.cwd(), '.env') });
 
 const environmentVariableZodSchema = z.object({
