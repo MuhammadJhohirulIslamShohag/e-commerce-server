@@ -1,6 +1,8 @@
 import { NextFunction, Request, Response } from 'express';
-import ApiError from '../../errors/ApiError';
 import httpStatus from 'http-status';
+
+import ApiError from '../../errors/ApiError';
+
 import { jwtHelpers } from '../../helpers/jwtHelpers';
 import { IAuthUser } from '../../interfaces/auth';
 

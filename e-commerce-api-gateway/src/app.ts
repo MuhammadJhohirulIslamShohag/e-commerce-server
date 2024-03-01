@@ -26,7 +26,7 @@ app.get('/', (_req: Request, res: Response) => {
 app.use(globalErrorHandler);
 
 // not found route
-app.use((req: Request, res: Response, next: NextFunction) => {
+app.use((req: Request, res: Response, _next: NextFunction) => {
   res.status(httpStatus.NOT_FOUND).json({
     statusCode: httpStatus.NOT_FOUND,
     message: 'Not Found Route!',
@@ -37,7 +37,6 @@ app.use((req: Request, res: Response, next: NextFunction) => {
       },
     ],
   });
-  next();
 });
 
 export default app;

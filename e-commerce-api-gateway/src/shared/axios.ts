@@ -12,8 +12,8 @@ const HttpServer = (baseURL: string): AxiosInstance => {
 
   // interceptors for request
   instance.interceptors.request.use(
-    request => {
-      return request;
+    config => {
+      return config;
     },
     error => {
       return error;
@@ -21,7 +21,7 @@ const HttpServer = (baseURL: string): AxiosInstance => {
   );
 
   // interceptors for response
-  instance.interceptors.request.use(
+  instance.interceptors.response.use(
     response => {
       return response.data;
     },

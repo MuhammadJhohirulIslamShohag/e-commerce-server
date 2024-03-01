@@ -1,5 +1,3 @@
-/* eslint-disable no-unused-vars */
-/* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable no-unused-expressions */
 /* eslint-disable no-console */
 import { ErrorRequestHandler, NextFunction, Request, Response } from 'express';
@@ -15,7 +13,7 @@ const globalErrorHandler: ErrorRequestHandler = (
   error,
   _req: Request,
   res: Response,
-  next: NextFunction
+  _next: NextFunction
 ) => {
   config.env === 'development'
     ? console.log(`global error handler~~~`, error)
@@ -54,12 +52,14 @@ const globalErrorHandler: ErrorRequestHandler = (
       : [];
   }
 
-  res.status(statusCode).json({
+  const responsePayload = {
     success: false,
     message,
     errorMessages,
     stack: config.env !== 'production' ? error.stack : undefined,
-  });
+  };
+
+  res.status(statusCode).json(responsePayload);
 
 };
 

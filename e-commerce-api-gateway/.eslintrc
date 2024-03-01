@@ -16,8 +16,10 @@
     "no-console": "error",
     "no-unused-expressions": "error",
     "no-unreachable": "error",
-    "no-unused-vars": "error",
+    "@typescript-eslint/no-unused-vars": "off",
+    "no-unused-vars": "off",
     "@typescript-eslint/consistent-type-definitions": ["error", "type"]
+
   },
 
   "env": {
