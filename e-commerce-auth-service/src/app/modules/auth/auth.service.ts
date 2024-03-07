@@ -1,8 +1,7 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
+import mongoose from 'mongoose';
 import bcrypt from 'bcrypt';
 import httpStatus from 'http-status';
 import { JwtPayload, Secret } from 'jsonwebtoken';
-import mongoose from 'mongoose';
 
 import config from '../../../config';
 import ApiError from '../../../errors/ApiError';
@@ -16,6 +15,7 @@ import { GenerateNumberHelpers } from '../../../helpers/generateNumber.helper';
 import { jwtHelpers } from '../../../helpers/jwt.helper';
 import { IOtp } from '../otp/opt.interface';
 import { IUser } from '../user/user.interface';
+import { PasswordHelpers } from '../../../helpers/password.helper';
 
 class AuthServiceClass {
   #UserModel;
@@ -93,7 +93,7 @@ class AuthServiceClass {
       // if phone, send message by phone
       if (provider === 'phone') {
         const phoneNumber = payload?.phone;
-        const smsData = `Max-E-commerce otp is ${otp?.otp}`;
+        const smsData = `E-commerce otp is ${otp?.otp}`;
         const result = await sendSmsWithBulkSms(phoneNumber, smsData);
 
         if (result.response_code === 202) {
@@ -186,30 +186,7 @@ class AuthServiceClass {
       });
     }
 
-    // create access token
-    const accessToken = jwtHelpers.createToken(
-      {
-        userId: result?._id,
-        role: result?.role,
-      },
-      config?.jwt?.jwt_secret as Secret,
-      config?.jwt?.jwt_expire_in as string
-    );
-
-    const refreshToken = jwtHelpers.createToken(
-      {
-        userId: result?._id,
-        role: result?.role,
-      },
-      config?.jwt?.jwt_refresh_secret as Secret,
-      config?.jwt?.jwt_refresh_expire_in as string
-    );
-
-    return {
-      accessToken,
-      refreshToken,
-      result,
-    };
+    return result;
   };
 
   // login user
@@ -252,41 +229,16 @@ class AuthServiceClass {
         'User not verified, Please verify account!'
       );
     }
+
+    // hash the new password
+    const hashedPassword = await PasswordHelpers.hashPassword(password);
+
     // check password
-    if (
-      isUserExit.password &&
-      !(await this.#UserModel.isPasswordMatched(password, isUserExit.password))
-    ) {
+    if (isUserExit.password && !hashedPassword) {
       throw new ApiError(httpStatus.UNAUTHORIZED, 'Password is incorrect!');
     }
 
-    // create access token and refresh token
-    const { _id, role } = isUserExit;
-
-    const accessToken = jwtHelpers.createToken(
-      {
-        userId: _id,
-        role: role,
-      },
-      config?.jwt?.jwt_secret as Secret,
-      config?.jwt?.jwt_expire_in as string
-    );
-
-    const refreshToken = jwtHelpers.createToken(
-      {
-        userId: _id,
-        role: role,
-      },
-      config?.jwt?.jwt_refresh_secret as Secret,
-      config?.jwt?.jwt_refresh_expire_in as string
-    );
-
-    const userInfo: any = isUserExit;
-    return {
-      accessToken,
-      refreshToken,
-      userInfo,
-    };
+    return isUserExit;
   };
 
   // login user with social
@@ -294,7 +246,7 @@ class AuthServiceClass {
     payload: Pick<IUser, 'email' | 'name'>
   ) => {
     // check user exits or not
-    const isUserExit = await this.#UserModel.isUserExit(payload?.email);
+    const isUserExit = await this.#UserModel.findOne({ email: payload?.email });
     if (isUserExit) {
       throw new ApiError(httpStatus.CONFLICT, 'User already exit!');
     }
@@ -304,29 +256,7 @@ class AuthServiceClass {
       throw new ApiError(400, 'User create failed!');
     }
 
-    const accessToken = jwtHelpers.createToken(
-      {
-        userId: result?._id,
-        role: result?.role,
-      },
-      config?.jwt?.jwt_secret as Secret,
-      config?.jwt?.jwt_expire_in as string
-    );
-
-    const refreshToken = jwtHelpers.createToken(
-      {
-        userId: result?._id,
-        role: result?.role,
-      },
-      config?.jwt?.jwt_refresh_secret as Secret,
-      config?.jwt?.jwt_refresh_expire_in as string
-    );
-
-    return {
-      accessToken,
-      refreshToken,
-      result,
-    };
+    return result;
   };
 
   // refresh token
@@ -349,22 +279,7 @@ class AuthServiceClass {
       throw new ApiError(httpStatus.NOT_FOUND, 'User not found!');
     }
 
-    // create access token and refresh token
-    const { _id, role } = isUserExit;
-
-    // generate new token
-    const accessToken = jwtHelpers.createToken(
-      {
-        userId: _id,
-        role: role,
-      },
-      config?.jwt?.jwt_secret as Secret,
-      config?.jwt?.jwt_expire_in as string
-    );
-
-    return {
-      accessToken,
-    };
+    return isUserExit;
   };
 
   // forgot password
@@ -529,7 +444,7 @@ class AuthServiceClass {
     }
   ) => {
     // check user exits or not
-    const isUserExit: any = await this.#UserModel.findById(
+    const isUserExit = await this.#UserModel.findById(
       { _id: user.userId },
       {
         password: 1,
@@ -567,25 +482,18 @@ class AuthServiceClass {
     //   throw new ApiError(httpStatus.CONFLICT, 'Otp is Expired!')
     // }
 
+    const isPasswordMatch = await PasswordHelpers.comparePassword(
+      userData?.oldPassword,
+      isUserExit.password
+    );
+
     // check password
-    if (
-      isUserExit?.password &&
-      !(await this.#UserModel.isPasswordMatched(
-        userData?.oldPassword,
-        isUserExit?.password
-      ))
-    ) {
+    if (isUserExit?.password && !isPasswordMatch) {
       throw new ApiError(httpStatus.UNAUTHORIZED, 'Password is incorrect!');
     }
 
     // check password same regarding old password
-    if (
-      isUserExit?.password &&
-      (await this.#UserModel.isPasswordMatched(
-        userData?.newPassword,
-        isUserExit?.password
-      ))
-    ) {
+    if (isUserExit?.password && isPasswordMatch) {
       throw new ApiError(
         httpStatus.UNAUTHORIZED,
         'Your old and confirm password same!'

@@ -1,14 +1,14 @@
 import { Request, Response } from 'express';
 import httpStatus from 'http-status';
-import { JwtPayload } from 'jsonwebtoken';
+import { JwtPayload, Secret } from 'jsonwebtoken';
 
-import ApiError from '../../../errors/ApiError';
 import config from '../../../config';
 import catchAsync from '../../../utils/catchAsync';
 import responseReturn from '../../../utils/responseReturn';
 
-import { CreateReturnResponse, IAdmin } from './admin.interface';
+import { IAdmin } from './admin.interface';
 import { AdminService } from './admin.service';
+import { jwtHelpers } from '../../../helpers/jwt.helper';
 
 class AdminControllerClass {
   #AdminService: typeof AdminService;
@@ -22,10 +22,25 @@ class AdminControllerClass {
     const { ...adminData } = req.body;
     const result = await this.#AdminService.createAdmin(adminData);
 
-    // if not created admin, throw error
-    if (!result) {
-      throw new ApiError(httpStatus.CONFLICT, `Admin Create Failed!`);
-    }
+    // access token
+    const accessToken = jwtHelpers.createToken(
+      {
+        userId: result._id,
+        role: result.role,
+      },
+      config?.jwt?.jwt_secret as Secret,
+      config?.jwt?.jwt_expire_in as string
+    );
+
+    // refresh token
+    const refreshToken = jwtHelpers.createToken(
+      {
+        userId: result?._id,
+        role: result?.role,
+      },
+      config?.jwt?.jwt_refresh_secret as Secret,
+      config?.jwt?.jwt_refresh_expire_in as string
+    );
 
     // set cookie to browser
     const cookieOptions = {
@@ -33,15 +48,15 @@ class AdminControllerClass {
       httpOnly: config.env === 'production',
       sameSite: 'none' as const,
     };
-    res.cookie('refreshToken', result?.refreshToken, cookieOptions);
-    res.cookie('accessToken', result?.accessToken, cookieOptions);
+    res.cookie('refreshToken', refreshToken, cookieOptions);
+    res.cookie('accessToken', accessToken, cookieOptions);
 
     responseReturn(res, {
       statusCode: httpStatus.OK,
       success: true,
       message: 'Admin Created Successfully!',
       data: {
-        accessToken: result.accessToken,
+        accessToken: accessToken,
       },
     });
   });
@@ -51,10 +66,25 @@ class AdminControllerClass {
     const { ...loginData } = req.body;
     const result = await this.#AdminService.loginAdmin(loginData);
 
-    // if not created admin, throw error
-    if (!result) {
-      throw new ApiError(httpStatus.CONFLICT, `Admin Create Failed!`);
-    }
+    // access token
+    const accessToken = jwtHelpers.createToken(
+      {
+        userId: result._id,
+        role: result.role,
+      },
+      config?.jwt?.jwt_secret as Secret,
+      config?.jwt?.jwt_expire_in as string
+    );
+
+    // refresh token
+    const refreshToken = jwtHelpers.createToken(
+      {
+        userId: result?._id,
+        role: result?.role,
+      },
+      config?.jwt?.jwt_refresh_secret as Secret,
+      config?.jwt?.jwt_refresh_expire_in as string
+    );
 
     // set cookie to browser
     const cookieOptions = {
@@ -62,16 +92,16 @@ class AdminControllerClass {
       httpOnly: config.env === 'production',
       sameSite: 'none' as const,
     };
-    res.cookie('refreshToken', result?.refreshToken, cookieOptions);
-    res.cookie('accessToken', result?.accessToken, cookieOptions);
+    res.cookie('refreshToken', refreshToken, cookieOptions);
+    res.cookie('accessToken', accessToken, cookieOptions);
 
     responseReturn(res, {
       statusCode: httpStatus.OK,
       success: true,
       message: 'Admin login Successfully!',
       data: {
-        accessToken: result.accessToken,
-        userInfo: result?.userInfo,
+        accessToken: accessToken,
+        userInfo: result,
       },
     });
   });
@@ -140,6 +170,16 @@ class AdminControllerClass {
         refreshToken
       );
 
+      // generate new token
+      const accessToken = jwtHelpers.createToken(
+        {
+          userId: result._id,
+          role: result.role,
+        },
+        config?.jwt?.jwt_secret as Secret,
+        config?.jwt?.jwt_expire_in as string
+      );
+
       // set cookie to browser
       const cookieOption = {
         secure: config.env === 'production',
@@ -148,9 +188,9 @@ class AdminControllerClass {
       };
 
       res.cookie('refreshToken', refreshToken, cookieOption);
-      res.cookie('accessToken', result?.accessToken, cookieOption);
+      res.cookie('accessToken', accessToken, cookieOption);
 
-      responseReturn<Pick<CreateReturnResponse, 'accessToken'> | null>(res, {
+      responseReturn(res, {
         statusCode: httpStatus.OK,
         success: true,
         message: 'Access token created successfully!',

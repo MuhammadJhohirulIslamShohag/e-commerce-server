@@ -1,9 +1,11 @@
 import { Router } from 'express';
+
+import validateRequest from '../../middlewares/validateRequest';
+import auth from '../../middlewares/auth';
+
 import { UserValidation } from './user.validation';
 import { UserController } from './user.controller';
-import validateRequest from '../../middlewares/validateRequest';
 import { ENUM_USER_ROLE } from '../../../enum/user';
-import auth from '../../middlewares/auth';
 
 class UserRoutesClass {
   readonly routers: Router;
@@ -69,7 +71,6 @@ class UserRoutesClass {
         validateRequest(UserValidation.updateUserZodSchema),
         auth(
           ENUM_USER_ROLE.ADMIN,
-
           ENUM_USER_ROLE.USER
         ),
         UserController.updateUser
@@ -77,7 +78,6 @@ class UserRoutesClass {
       .delete(
         auth(
           ENUM_USER_ROLE.ADMIN,
-
           ENUM_USER_ROLE.USER
         ),
         UserController.deleteUser

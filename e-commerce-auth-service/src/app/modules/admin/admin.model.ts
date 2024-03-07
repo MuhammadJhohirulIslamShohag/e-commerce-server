@@ -1,9 +1,7 @@
-import bcrypt from 'bcrypt';
 import validator from 'validator';
 import { Schema, model } from 'mongoose';
 import { IAdmin, AdminModel } from './admin.interface';
 import { adminRoles, adminStatus } from './admin.constant';
-import config from '../../../config';
 
 // admin schema
 const adminSchema = new Schema<IAdmin, AdminModel>(
@@ -103,70 +101,6 @@ const adminSchema = new Schema<IAdmin, AdminModel>(
     },
   }
 );
-
-// mongoose save hook for making hash password
-adminSchema.pre('save', async function (next) {
-  // If password isn't modified, no need to hash again
-  if (!this.isModified('password')) {
-    return next();
-  }
-
-  if (this.password) {
-    const hashedPassword = await bcrypt.hash(
-      this.password,
-      Number(config.bcrypt_salt_rounds)
-    );
-    this.password = hashedPassword;
-  }
-
-  next();
-});
-
-// static methods for checking is admin exit
-adminSchema.statics.isExitAdmin = async function ({
-  id = null,
-  email = null,
-}: {
-  id?: string | null;
-  email?: string | null;
-}): Promise<IAdmin | null> {
-  let result = null;
-
-  if (id && email) {
-    result = await Admin.findOne(
-      {
-        $or: [{ _id: id }, { email: email }],
-      },
-      { id: 1, password: 1, role: 1, email: 1, status: 1 }
-    ).exec();
-  }
-  if (id) {
-    result = await Admin.findOne(
-      {
-        _id: id,
-      },
-      { _id: 1, password: 1, role: 1, email: 1, status: 1 }
-    ).exec();
-  }
-  if (email) {
-    result = await Admin.findOne(
-      {
-        email: email,
-      },
-      { _id: 1, password: 1, role: 1, email: 1, status: 1 }
-    ).exec();
-  }
-
-  return result;
-};
-
-// static method for is password is match
-adminSchema.statics.isPasswordMatch = async function (
-  givenPassword: string,
-  savedPassword: string
-): Promise<boolean> {
-  return bcrypt.compare(givenPassword, savedPassword);
-};
 
 // admin model
 const Admin = model<IAdmin, AdminModel>('Admin', adminSchema);

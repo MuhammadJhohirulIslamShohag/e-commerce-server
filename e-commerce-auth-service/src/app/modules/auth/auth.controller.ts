@@ -1,6 +1,6 @@
 import { Request, Response } from 'express';
 import httpStatus from 'http-status';
-import { JwtPayload } from 'jsonwebtoken';
+import { JwtPayload, Secret } from 'jsonwebtoken';
 
 import config from '../../../config';
 import catchAsync from '../../../utils/catchAsync';
@@ -9,6 +9,7 @@ import responseReturn from '../../../utils/responseReturn';
 
 import { emailSenderHelpers } from '../../../helpers/emailSend.helper';
 import { AuthService } from './auth.service';
+import { jwtHelpers } from '../../../helpers/jwt.helper';
 
 class AuthControllerClass {
   #AuthService: typeof AuthService;
@@ -39,7 +40,24 @@ class AuthControllerClass {
         userData
       );
 
-      const { refreshToken, ...other } = result;
+      // create access token
+      const accessToken = jwtHelpers.createToken(
+        {
+          userId: result?._id,
+          role: result?.role,
+        },
+        config?.jwt?.jwt_secret as Secret,
+        config?.jwt?.jwt_expire_in as string
+      );
+
+      const refreshToken = jwtHelpers.createToken(
+        {
+          userId: result?._id,
+          role: result?.role,
+        },
+        config?.jwt?.jwt_refresh_secret as Secret,
+        config?.jwt?.jwt_refresh_expire_in as string
+      );
 
       // set cookie to browser
       const cookieOption = {
@@ -49,12 +67,12 @@ class AuthControllerClass {
       };
 
       res.cookie('refreshToken', refreshToken || '', cookieOption);
-      res.cookie('accessToken', result.accessToken, cookieOption);
+      res.cookie('accessToken', accessToken, cookieOption);
 
       const mailData = {
         to: userData?.email,
         subject: 'Success',
-        message: signUpSuccessEmailTemplate(result?.result?.name || ''),
+        message: signUpSuccessEmailTemplate(result?.name || ''),
       };
       await emailSenderHelpers.sendEmailWithNodeMailer(mailData);
 
@@ -62,7 +80,7 @@ class AuthControllerClass {
         statusCode: httpStatus.OK,
         success: true,
         message: 'User registered successfully!',
-        data: other,
+        data: result,
       });
     }
   );
@@ -72,7 +90,24 @@ class AuthControllerClass {
     const { ...loginData } = req.body;
     const result = await this.#AuthService.loginUser(loginData);
 
-    const { refreshToken, ...other } = result;
+    // create access token and refresh token
+    const accessToken = jwtHelpers.createToken(
+      {
+        userId: result._id,
+        role: result.role,
+      },
+      config?.jwt?.jwt_secret as Secret,
+      config?.jwt?.jwt_expire_in as string
+    );
+
+    const refreshToken = jwtHelpers.createToken(
+      {
+        userId: result._id,
+        role: result.role,
+      },
+      config?.jwt?.jwt_refresh_secret as Secret,
+      config?.jwt?.jwt_refresh_expire_in as string
+    );
 
     // set cookie to browser
     const cookieOption = {
@@ -82,13 +117,13 @@ class AuthControllerClass {
     };
 
     res.cookie('refreshToken', refreshToken, cookieOption);
-    res.cookie('accessToken', result.accessToken, cookieOption);
+    res.cookie('accessToken', accessToken, cookieOption);
 
     responseReturn(res, {
       statusCode: httpStatus.OK,
       success: true,
       message: 'User logged successfully!',
-      data: other,
+      data: result,
     });
   });
 
@@ -98,7 +133,24 @@ class AuthControllerClass {
       const { ...loginData } = req.body;
       const result = await this.#AuthService.loginUserWithSocial(loginData);
 
-      const { refreshToken, ...other } = result;
+      // create access token and refresh token
+      const accessToken = jwtHelpers.createToken(
+        {
+          userId: result._id,
+          role: result.role,
+        },
+        config?.jwt?.jwt_secret as Secret,
+        config?.jwt?.jwt_expire_in as string
+      );
+
+      const refreshToken = jwtHelpers.createToken(
+        {
+          userId: result._id,
+          role: result.role,
+        },
+        config?.jwt?.jwt_refresh_secret as Secret,
+        config?.jwt?.jwt_refresh_expire_in as string
+      );
 
       // set cookie to browser
       const cookieOption = {
@@ -108,12 +160,13 @@ class AuthControllerClass {
       };
 
       res.cookie('refreshToken', refreshToken, cookieOption);
+      res.cookie('accessToken', accessToken, cookieOption);
 
       responseReturn(res, {
         statusCode: httpStatus.OK,
         success: true,
         message: 'User logged with social successfully!',
-        data: other,
+        data: result,
       });
     }
   );
@@ -123,6 +176,16 @@ class AuthControllerClass {
     const { refreshToken } = req.cookies;
     const result = await this.#AuthService.refreshToken(refreshToken);
 
+    // create access token
+    const accessToken = jwtHelpers.createToken(
+      {
+        userId: result._id,
+        role: result.role,
+      },
+      config?.jwt?.jwt_secret as Secret,
+      config?.jwt?.jwt_expire_in as string
+    );
+
     // set cookie to browser
     const cookieOption = {
       secure: config.env === 'production',
@@ -131,8 +194,7 @@ class AuthControllerClass {
     };
 
     res.cookie('refreshToken', refreshToken, cookieOption);
-
-    res.cookie('accessToken', result.accessToken, cookieOption);
+    res.cookie('accessToken', accessToken, cookieOption);
 
     responseReturn(res, {
       statusCode: httpStatus.OK,

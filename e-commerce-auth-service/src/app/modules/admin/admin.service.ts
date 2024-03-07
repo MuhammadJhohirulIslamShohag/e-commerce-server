@@ -1,15 +1,12 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
-/* eslint-disable no-unused-expressions */
-import bcrypt from 'bcrypt';
 import httpStatus from 'http-status';
 import { JwtPayload, Secret } from 'jsonwebtoken';
 
+import Admin from './admin.model';
 import QueryBuilder from '../../../builder/query.builder';
 import config from '../../../config';
 import ApiError from '../../../errors/ApiError';
-import { IAdmin } from './admin.interface';
-import Admin from './admin.model';
 
+import { IAdmin } from './admin.interface';
 import { jwtHelpers } from '../../../helpers/jwt.helper';
 import { PasswordHelpers } from '../../../helpers/password.helper';
 import { adminSearchableFields } from './admin.constant';
@@ -26,7 +23,7 @@ class AdminServiceClass {
   // create admin method
   readonly createAdmin = async (payload: IAdmin) => {
     // check already Admin exit, if not, throw error
-    const isExitAdmin = await this.#AdminModel.isExitAdmin({
+    const isExitAdmin = await this.#AdminModel.findOne({
       email: payload?.email,
     });
     if (isExitAdmin) {
@@ -38,32 +35,20 @@ class AdminServiceClass {
       throw new ApiError(httpStatus.CONFLICT, 'Invalid Credentials!');
     }
 
+    // hash the password
+    const hashedPassword = PasswordHelpers.hashPassword(payload.password);
+
     // create new Admin
-    const result = await this.#AdminModel.create(payload);
+    const result = await this.#AdminModel.create({
+      ...payload,
+      password: hashedPassword,
+    });
 
-    // access token
-    const accessToken = jwtHelpers.createToken(
-      {
-        userId: result?._id,
-        role: result?.role,
-      },
-      config?.jwt?.jwt_secret as Secret,
-      config?.jwt?.jwt_expire_in as string
-    );
+    if (!result) {
+      throw new ApiError(httpStatus.CONFLICT, 'Invalid Credentials!');
+    }
 
-    // refresh token
-    const refreshToken = jwtHelpers.createToken(
-      {
-        userId: result?._id,
-        role: result?.role,
-      },
-      config?.jwt?.jwt_refresh_secret as Secret,
-      config?.jwt?.jwt_refresh_expire_in as string
-    );
-    return {
-      accessToken,
-      refreshToken,
-    };
+    return result;
   };
 
   // login admin method
@@ -74,6 +59,7 @@ class AdminServiceClass {
     }
 
     // check already admin exit, if not, throw error
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const isExitAdmin: any = await this.#AdminModel.findOne(
       { email: payload?.email },
       {
@@ -91,45 +77,25 @@ class AdminServiceClass {
       throw new ApiError(httpStatus.NOT_FOUND, `Admin not found!`);
     }
 
+    const isPasswordMatch = await PasswordHelpers.comparePassword(
+      payload.password,
+      isExitAdmin?.password
+    );
+
     // check password
-    if (
-      isExitAdmin.password &&
-      !(await this.#AdminModel.isPasswordMatch(
-        payload.password,
-        isExitAdmin?.password
-      ))
-    ) {
+    if (isExitAdmin.password && !isPasswordMatch) {
       throw new ApiError(httpStatus.CONFLICT, 'Password does not match!');
     }
 
     // password delete
     delete isExitAdmin._doc.password;
 
-    // access token
-    const accessToken = jwtHelpers.createToken(
-      {
-        userId: isExitAdmin?._id,
-        role: isExitAdmin?.role,
-      },
-      config?.jwt?.jwt_secret as Secret,
-      config?.jwt?.jwt_expire_in as string
-    );
+    // if not created admin, throw error
+    if (!isExitAdmin) {
+      throw new ApiError(httpStatus.CONFLICT, `Admin Create Failed!`);
+    }
 
-    // refresh token
-    const refreshToken = jwtHelpers.createToken(
-      {
-        userId: isExitAdmin?._id,
-        role: isExitAdmin?.role,
-      },
-      config?.jwt?.jwt_refresh_secret as Secret,
-      config?.jwt?.jwt_refresh_expire_in as string
-    );
-
-    return {
-      accessToken,
-      refreshToken,
-      userInfo: isExitAdmin,
-    };
+    return isExitAdmin;
   };
 
   // get all admins method
@@ -151,7 +117,7 @@ class AdminServiceClass {
   };
 
   // get single admin method
-  readonly getSingleAdmin = async (payload: string): Promise<IAdmin | null> => {
+  readonly getSingleAdmin = async (payload: string) => {
     const result = await this.#AdminModel.findById(payload).exec();
     return result;
   };
@@ -159,7 +125,7 @@ class AdminServiceClass {
   // update admin method
   readonly updateAdmin = async (id: string, payload: Partial<IAdmin>) => {
     // check already Admin exit, if not throw error
-    const isExitAdmin = await this.#AdminModel.isExitAdmin({ id: id });
+    const isExitAdmin = await this.#AdminModel.findOne({ id: id });
     if (!isExitAdmin) {
       throw new ApiError(httpStatus.NOT_FOUND, 'Admin Not Found!');
     }
@@ -186,6 +152,7 @@ class AdminServiceClass {
     if (address && Object.keys(address)?.length > 0) {
       Object.keys(address).map(key => {
         const addressKey = `address.${key}` as keyof Partial<IAdmin>;
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         (updatedAdminData as any)[addressKey] =
           address[key as keyof typeof address];
       });
@@ -204,9 +171,9 @@ class AdminServiceClass {
   };
 
   // delete admin method
-  readonly deleteAdmin = async (payload: string): Promise<IAdmin | null> => {
+  readonly deleteAdmin = async (payload: string) => {
     // check already Admin exit, if not throw error
-    const isExitAdmin = await this.#AdminModel.isExitAdmin({ id: payload });
+    const isExitAdmin = await this.#AdminModel.findOne({ _id: payload });
     if (!isExitAdmin) {
       throw new ApiError(httpStatus.NOT_FOUND, 'Admin Not Found!');
     }
@@ -236,19 +203,7 @@ class AdminServiceClass {
       throw new ApiError(httpStatus.NOT_FOUND, 'Admin not found!');
     }
 
-    // generate new token
-    const accessToken = jwtHelpers.createToken(
-      {
-        userId: isAdminExit._id,
-        role: isAdminExit.role,
-      },
-      config?.jwt?.jwt_secret as Secret,
-      config?.jwt?.jwt_expire_in as string
-    );
-
-    return {
-      accessToken,
-    };
+    return isAdminExit;
   };
 
   // password reset method
@@ -262,7 +217,7 @@ class AdminServiceClass {
     }
   ) => {
     // check user exits or not
-    const isUserExit: any = await this.#AdminModel.findOne(
+    const isUserExit = await this.#AdminModel.findOne(
       { _id: user.userId },
       {
         password: 1,
@@ -297,25 +252,18 @@ class AdminServiceClass {
     //   throw new ApiError(httpStatus.CONFLICT, 'Otp is Expired!')
     // }
 
+    const isPasswordMatch = await PasswordHelpers.comparePassword(
+      userData?.oldPassword,
+      isUserExit.password
+    );
+
     // check password
-    if (
-      isUserExit.password &&
-      !(await this.#AdminModel.isPasswordMatch(
-        userData?.oldPassword,
-        isUserExit.password
-      ))
-    ) {
+    if (isUserExit.password && !isPasswordMatch) {
       throw new ApiError(httpStatus.UNAUTHORIZED, 'Password is incorrect!');
     }
 
     // check password same regarding old password
-    if (
-      isUserExit?.password &&
-      (await this.#AdminModel.isPasswordMatch(
-        userData?.newPassword,
-        isUserExit?.password
-      ))
-    ) {
+    if (isUserExit?.password && isPasswordMatch) {
       throw new ApiError(
         httpStatus.UNAUTHORIZED,
         'Your old and confirm password same!'
@@ -323,9 +271,8 @@ class AdminServiceClass {
     }
 
     // hash the password
-    const hashedPassword = await bcrypt.hash(
-      userData?.newPassword,
-      Number(config?.bcrypt_salt_rounds)
+    const hashedPassword = await PasswordHelpers.hashPassword(
+      userData?.newPassword
     );
 
     const query: Partial<{ email: string; phone: string }> = {};

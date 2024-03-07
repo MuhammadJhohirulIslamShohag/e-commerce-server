@@ -1,16 +1,13 @@
-/* eslint-disable no-unused-expressions */
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import mongoose, { Types } from 'mongoose';
 import httpStatus from 'http-status';
-import bcrypt from 'bcrypt';
 
-import config from '../../../config';
 import ApiError from '../../../errors/ApiError';
 import User from './user.model';
 import QueryBuilder from '../../../builder/query.builder';
 
 import { IShippingAddress, IUser, ShippingAddress } from './user.interface';
 import { userSearchableFields } from './user.constant';
+import { PasswordHelpers } from '../../../helpers/password.helper';
 
 class UserServiceClass {
   #UserModel;
@@ -48,7 +45,7 @@ class UserServiceClass {
     payload: ShippingAddress
   ) => {
     // check User is exit, if not throw error
-    const isExitUser: any = await this.#UserModel.findOne({
+    const isExitUser = await this.#UserModel.findOne({
       _id: id,
     });
 
@@ -151,11 +148,12 @@ class UserServiceClass {
       const { shippingAddressId, ...others } = payload;
       const objectId = new Types.ObjectId(shippingAddressId);
 
-      const user: any = await this.#UserModel.findOne({ _id: id });
+      const user = await this.#UserModel.findOne({ _id: id });
 
       const updateShippingAddressObj = user?.shippingAddress?.find(
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         (shippingAddr: any) =>
-          new Types.ObjectId(shippingAddr?._id).equals(objectId)
+          new Types.ObjectId(shippingAddr._id).equals(objectId)
       );
 
       result = await this.#UserModel.findOneAndUpdate(
@@ -272,20 +270,23 @@ class UserServiceClass {
       throw new ApiError(httpStatus.NOT_FOUND, 'User not found!');
     }
 
-    const { password, role, ...userData } = userPayload;
+    const { ...userData } = userPayload;
     const updatedUserData: Partial<IUser> = { ...userData };
 
     // only admin update user role, so check roleData is admin, if admin, update the role
-    if (role && roleData === 'admin') {
-      (updatedUserData as any)['role'] = role;
+    if (userData.role && roleData === 'admin') {
+      updatedUserData['role'] = userData.role;
     }
 
     // if password field, have to hash password
-    if (password) {
-      (updatedUserData as any)[password] = await bcrypt.hash(
-        password,
-        Number(config?.bcrypt_salt_rounds)
+    if (userData.password) {
+      const hashPassword = await PasswordHelpers.hashPassword(
+        userData.password
       );
+      if (!hashPassword) {
+        throw new ApiError(httpStatus.BAD_REQUEST, 'Password hashing failed!');
+      }
+      updatedUserData['password'] = hashPassword;
     }
 
     const result = await this.#UserModel.findOneAndUpdate(

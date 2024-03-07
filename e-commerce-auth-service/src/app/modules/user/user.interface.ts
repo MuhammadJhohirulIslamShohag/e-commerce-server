@@ -1,4 +1,3 @@
-/* eslint-disable no-unused-vars */
 import { Model, Types } from 'mongoose';
 
 // user role enum
@@ -65,13 +64,7 @@ export type IUser = {
   role: UserRoleType;
 };
 
-export type UserModel = {
-  isUserExit(email: string): Promise<IUser>;
-  isPasswordMatched(
-    givenPassword: string,
-    savedPassword: string
-  ): Promise<boolean>;
-} & Model<IUser>;
+export type UserModel = Model<IUser>;
 
 // user filterable filed
 export type UserFilters = {
