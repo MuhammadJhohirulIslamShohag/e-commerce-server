@@ -1,13 +1,12 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import jwt from 'jsonwebtoken';
-import ApiError from '../errors/ApiError';
 import httpStatus from 'http-status';
+
+import ApiError from '../errors/ApiError';
 import config from '../config';
 
 const verifyToken = (token: string) => {
   try {
-    const isVerified = jwt.verify(token, config.jwt.secret);
-    return isVerified as any;
+    return jwt.verify(token, config.jwt.secret)
   } catch (error) {
     throw new ApiError(httpStatus.UNAUTHORIZED, 'Invalid Token');
   }
