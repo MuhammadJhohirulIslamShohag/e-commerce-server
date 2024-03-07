@@ -1,18 +1,31 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import httpStatus from 'http-status';
 import axios from 'axios';
+import { Order, Prisma } from '@prisma/client';
 import { SortOrder } from 'mongoose';
 
 import ApiError from '../../../errors/ApiError';
 import config from '../../../config';
 
-import { IOrder, OrderFilters } from './order.interface';
+import { IProduct, OrderFilters } from './order.interface';
 import { prisma } from '../../../shared/prisma';
 import { getUniqueKey } from '../../../shared/getUniqueKey';
-import { Prisma } from '@prisma/client';
 import { PaginationOptionType } from '../../../interfaces/pagination';
 import { paginationHelper } from '../../../helpers/paginationHelper';
 import { orderSearchableFields } from './order.constant';
+
+type OrderUpdateInput = {
+  id: string;
+  paymentIntents?: JsonValue;
+  orderStatus?: string;
+  paymentBy?: string | null;
+  orderedBy?: number;
+  createdAt?: Date;
+  updatedAt?: Date;
+  userId?: string;
+  billingAddressId?: string;
+  trackingInfoId?: string;
+};
 
 class OrderServiceClass {
   #OrderModel;
@@ -44,20 +57,21 @@ class OrderServiceClass {
     // save to the database
     await this.#OrderModel.create({
       data: {
+        user: {
+          create: {},
+        },
         products: {
-          create: products.map((item: any) => ({
-            name: item.product.name,
-            imageURL: item.product.imageURL,
-            color: item.product.color,
-            size: item.product.size,
-            quantity: item.product.quantity,
-            discount: item.product.discount,
+          create: products.map((item: IProduct) => ({
+            name: item.name,
+            imageURL: item.imageURL,
+            color: item.color,
+            size: item.size,
+            quantity: item.quantity,
+            discount: item.discount,
           })),
         },
         paymentIntents: paymentIntent,
-        orderedBy: user,
         paymentBy,
-        userId: user
       },
     });
 
@@ -126,7 +140,6 @@ class OrderServiceClass {
           },
         },
         orderStatus: 'Cash On Delivery',
-        orderedBy: user,
       },
     });
 
@@ -220,7 +233,7 @@ class OrderServiceClass {
   };
 
   // update order service
-  readonly updateOrder = async (id: string, payload: Partial<IOrder>) => {
+  readonly updateOrder = async (id: string, payload: Partial<Order>) => {
     // check if Order exists, if not throw error
     const existingOrder = await this.#OrderModel.findUnique({
       where: { id },
@@ -235,7 +248,7 @@ class OrderServiceClass {
     if (Object.keys(payload).length > 0) {
       result = await this.#OrderModel.update({
         where: { id },
-        data: payload,
+        data: payload as OrderUpdateInput,
       });
     }
 

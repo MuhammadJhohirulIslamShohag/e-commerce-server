@@ -7,7 +7,6 @@ import ApiError from '../../../errors/ApiError';
 import responseReturn from '../../../shared/responseReturn';
 
 import { orderFilterableFields } from './order.constant';
-import { IOrder } from './order.interface';
 import { OrderService } from './order.service';
 import { paginationOptionFields } from '../../../constants/pagination';
 import { pick } from '../../../shared/pick';
@@ -91,7 +90,7 @@ class OrderControllerClass {
 
     const result = await this.#OrderService.getSingleOrder(orderId);
 
-    responseReturn<IOrder | null>(res, {
+    responseReturn(res, {
       statusCode: httpStatus.OK,
       success: true,
       message: 'Single Order Retrieved Successfully!',

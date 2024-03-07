@@ -21,6 +21,15 @@ type BillingAddress = {
   phoneNumber: string;
 };
 
+export type IProduct = {
+  name: string;
+  imageURL: string;
+  color: string;
+  size: string;
+  quantity: number;
+  discount: number;
+};
+
 // order interface model type
 export type IOrder = {
   products: {

@@ -15,7 +15,7 @@ model Order {
   paymentIntents Json
   orderStatus    PaymentStatus @default(Not_Processed)
   paymentBy      String?
-  orderedBy      String
+
   createdAt      DateTime      @default(now())
   updatedAt      DateTime      @updatedAt
 
@@ -25,7 +25,7 @@ model Order {
   billingAddressId String
   billingAddress   BillingAddress @relation(fields: [billingAddressId], references: [id])
 
-  Product Product[]
+  products Product[]
 
   @@map("orders")
 }
