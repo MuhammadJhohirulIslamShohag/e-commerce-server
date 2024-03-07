@@ -3,19 +3,19 @@ import bcrypt from 'bcrypt';
 import httpStatus from 'http-status';
 import { JwtPayload, Secret } from 'jsonwebtoken';
 
+import Otp from '../otp/opt.model';
+import User from '../user/user.model';
 import config from '../../../config';
 import ApiError from '../../../errors/ApiError';
 import sendSmsWithBulkSms from '../../../helpers/sendSms.helper';
 import OtpEmailTemplate from '../../../utils/emailTemplate/otpemailTemplate';
-import Otp from '../otp/opt.model';
-import User from '../user/user.model';
 
 import { emailSenderHelpers } from '../../../helpers/emailSend.helper';
 import { GenerateNumberHelpers } from '../../../helpers/generateNumber.helper';
 import { jwtHelpers } from '../../../helpers/jwt.helper';
+import { PasswordHelpers } from '../../../helpers/password.helper';
 import { IOtp } from '../otp/opt.interface';
 import { IUser } from '../user/user.interface';
-import { PasswordHelpers } from '../../../helpers/password.helper';
 
 class AuthServiceClass {
   #UserModel;
@@ -45,6 +45,9 @@ class AuthServiceClass {
       throw new ApiError(httpStatus.BAD_REQUEST, 'User is already exit!');
     }
 
+    // hash the password
+    const hashedPassword = PasswordHelpers.hashPassword(payload.password);
+
     // generate random number for opt and create otp
     const otp = GenerateNumberHelpers.generateRandomSixDigitNumber();
 
@@ -67,7 +70,10 @@ class AuthServiceClass {
       }
 
       // create user
-      const result = await this.#UserModel.create([payload], { session });
+      const result = await this.#UserModel.create(
+        [{ ...payload, password: hashedPassword }],
+        { session }
+      );
       if (!result.length) {
         throw new ApiError(httpStatus.BAD_REQUEST, 'User create failed!');
       }
