@@ -184,7 +184,7 @@ paths:
                     register:
                       type: string
                       examples: ["/auth/register"]
-  "/advertiseBanners":
+  "/advertise-banners":
     post:
       security:
         - BearerAuth: []
@@ -302,7 +302,7 @@ paths:
           $ref: '#/components/responses/500'
 
   
-  "/advertiseBanners/{id}":
+  "/advertise-banners/{id}":
     get:
       summary: "Get Single Advertise Banner By Id"
       tags: [Advertise Banner]

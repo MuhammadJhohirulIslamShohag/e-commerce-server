@@ -10,6 +10,7 @@ class CategoryServiceClass {
 
   // create category service
   readonly createCategory = async (req: Request) => {
+    
     const response: IGenericResponse = await this.#CoreService.post(
       `categories`,
       req.body,

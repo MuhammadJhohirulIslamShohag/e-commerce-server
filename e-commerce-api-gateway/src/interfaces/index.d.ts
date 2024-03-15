@@ -3,10 +3,22 @@
 
 import { JwtPayload } from 'jsonwebtoken';
 
+export type IFile = {
+  fieldname: string;
+  originalname: string;
+  encoding: string;
+  mimetype: string;
+  buffer: Buffer;
+  size: number;
+};
+
 declare global {
   namespace Express {
     interface Request {
       user: JwtPayload | null;
+      files: IFile;
     }
   }
 }
+
+
