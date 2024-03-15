@@ -12,7 +12,7 @@ class BrandServiceClass {
   readonly createBrand = async (req: Request) => {
     const response: IGenericResponse = await this.#CoreService.post(
       `brands`,
-      req.body,
+      {...req.body, files: req.files},
       {
         headers: {
           Authorization: req.headers.authorization,
@@ -57,7 +57,7 @@ class BrandServiceClass {
 
     const response: IGenericResponse = await CoreService.patch(
       `brands/${id}`,
-      req.body,
+      {...req.body, files: req.files},
       {
         headers: {
           Authorization: req.headers.authorization,

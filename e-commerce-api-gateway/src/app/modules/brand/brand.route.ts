@@ -22,7 +22,7 @@ class BrandRouterClass {
       .route('/')
       .post(
         auth(ENUM_USER_ROLE.ADMIN),
-        upload.fields([{ name: 'BrandImage', maxCount: 1 }]),
+        upload.fields([{ name: 'brandImage', maxCount: 1 }]),
         BrandController.createBrand
       )
       .get(BrandController.allBrands);
@@ -32,7 +32,7 @@ class BrandRouterClass {
       .route('/:id')
       .patch(
         auth(ENUM_USER_ROLE.ADMIN),
-        upload.fields([{ name: 'BrandImage', maxCount: 1 }]),
+        upload.fields([{ name: 'brandImage', maxCount: 1 }]),
         BrandController.updateBrand
       )
       .get(BrandController.getSingleBrand)

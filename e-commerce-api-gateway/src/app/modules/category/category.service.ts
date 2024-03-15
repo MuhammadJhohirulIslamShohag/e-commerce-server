@@ -10,10 +10,9 @@ class CategoryServiceClass {
 
   // create category service
   readonly createCategory = async (req: Request) => {
-    
     const response: IGenericResponse = await this.#CoreService.post(
       `categories`,
-      req.body,
+      {...req.body, files: req.files},
       {
         headers: {
           Authorization: req.headers.authorization,
@@ -55,7 +54,7 @@ class CategoryServiceClass {
 
     const response: IGenericResponse = await CoreService.patch(
       `categories/${id}`,
-      req.body,
+      {...req.body, files: req.files},
       {
         headers: {
           Authorization: req.headers.authorization,

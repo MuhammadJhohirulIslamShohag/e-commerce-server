@@ -12,7 +12,7 @@ class AdvertiseBannerServiceClass {
   readonly createAdvertiseBanner = async (req: Request) => {
     const response: IGenericResponse = await this.#CoreService.post(
       `advertise-banners`,
-      req.body,
+      {...req.body, files: req.files},
       {
         headers: {
           Authorization: req.headers.authorization,
@@ -57,7 +57,7 @@ class AdvertiseBannerServiceClass {
 
     const response: IGenericResponse = await CoreService.patch(
       `advertise-banners/${id}`,
-      req.body,
+      {...req.body, files: req.files},
       {
         headers: {
           Authorization: req.headers.authorization,

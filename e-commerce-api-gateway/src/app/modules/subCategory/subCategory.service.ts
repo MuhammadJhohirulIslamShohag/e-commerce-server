@@ -12,7 +12,7 @@ class SubCategoryServiceClass {
   readonly createSubCategory = async (req: Request) => {
     const response: IGenericResponse = await this.#CoreService.post(
       `sub-categories`,
-      req.body,
+      {...req.body, files: req.files},
       {
         headers: {
           Authorization: req.headers.authorization,
@@ -54,7 +54,7 @@ class SubCategoryServiceClass {
 
     const response: IGenericResponse = await CoreService.patch(
       `sub-categories/${id}`,
-      req.body,
+      {...req.body, files: req.files},
       {
         headers: {
           Authorization: req.headers.authorization,
