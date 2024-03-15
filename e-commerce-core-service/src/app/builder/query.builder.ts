@@ -21,7 +21,7 @@ class QueryBuilder<T> {
                 $regex: searchTerm,
                 $options: 'i',
               },
-            } as FilterQuery<T>)
+            }) as FilterQuery<T>
         ),
       });
     }
@@ -33,7 +33,7 @@ class QueryBuilder<T> {
     const queryObject = { ...this?.query };
 
     // filtering
-    const excludeFields = ['page', 'limit', 'sort', 'fields'];
+    const excludeFields = ['page', 'limit', 'sort', 'fields', 'searchTerm'];
 
     excludeFields.forEach(excludeField => delete queryObject[excludeField]);
 
