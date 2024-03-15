@@ -19,14 +19,14 @@ class SubCategoryControllerClass {
   // create sub category method
   readonly createSubCategory = catchAsync(
     async (req: Request, res: Response) => {
-      const { name, categories } = req.body;
+      const { name, categories, files } = req.body;
 
       // validate body data
       await validateRequireFields({ name, categories });
 
       // sub category image file
       const subCategoryImageFile = await ImageUploadHelpers.imageFileValidate(
-        req,
+        files,
         'subCategoryImage',
         'subCategory'
       );
@@ -92,7 +92,7 @@ class SubCategoryControllerClass {
   readonly updateSubCategory = catchAsync(
     async (req: Request, res: Response) => {
       const subCategoryId = req.params.id;
-      const { ...updateSubCategoryData } = req.body;
+      const { files, ...updateSubCategoryData } = req.body;
 
       // check validity request payload body
       await validateRequireFields(updateSubCategoryData);
@@ -100,7 +100,7 @@ class SubCategoryControllerClass {
       // sub category image file
       const subCategoryImageFile =
         await ImageUploadHelpers.imageFileValidateForUpdate(
-          req,
+          files,
           'subCategoryImage',
           'subCategory'
         );
@@ -124,10 +124,8 @@ class SubCategoryControllerClass {
   readonly deleteSubCategory = catchAsync(
     async (req: Request, res: Response) => {
       const subCategoryId = req.params.id;
-      const productId = req.params.productId;
 
       const result = await this.#SubCategoryService.deleteSubCategory(
-        productId,
         subCategoryId
       );
 

@@ -1,5 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
-import { Request } from 'express';
 import httpStatus from 'http-status';
 import ApiError from '../errors/ApiError';
 
@@ -20,7 +18,7 @@ const imageUploadToS3Bucket = async (
   const uploadedImageURL = await imageUploadToAwsS3(
     `${imageName}-image-${uniqueId}.jpg`,
     file
-  );
+  ) as { Location: string };
 
   // check image is upload or not
   if (!uploadedImageURL) {
@@ -32,7 +30,7 @@ const imageUploadToS3Bucket = async (
     );
   }
 
-  return uploadedImageURL;
+  return uploadedImageURL?.Location;
 };
 
 // image upload to S3 bucket for updating
@@ -73,20 +71,22 @@ const imageUploadToS3BucketForUpdate = async (
 
 // image file validate for creating
 const imageFileValidate = async (
-  req: Request,
+  files: { [key: string]: IFile[] },
   imageFileName: string,
   prefix: string
 ) => {
   // check file of the image
-  if (!req.files || !(imageFileName in req.files)) {
+  if (!files || !(imageFileName in files)) {
     throw new ApiError(
       httpStatus.BAD_REQUEST,
       `Please upload ${prefix} image file!`
     );
   }
 
-  const files: { [key: string]: IFile[] } = req.files as any;
-  const imageFile = files[imageFileName]?.[0];
+  const filesData: { [key: string]: IFile[] } = files;
+  const imageFile = filesData[imageFileName]?.[0];
+
+
 
   // image file validation
   if (!imageFile) {
@@ -101,20 +101,20 @@ const imageFileValidate = async (
 
 // image file validate for updating
 const imageFileValidateForUpdate = async (
-  req: Request,
+  files: { [key: string]: IFile[] },
   imageFileName: string,
   prefix: string
 ) => {
   // check file of the image
-  if (req.files && imageFileName in req.files) {
+  if (files && imageFileName in files) {
     throw new ApiError(
       httpStatus.BAD_REQUEST,
       `Please upload ${prefix} image file!`
     );
   }
 
-  const files: { [key: string]: IFile[] } = req.files as any;
-  const imageFile = files[imageFileName]?.[0];
+  const filesData: { [key: string]: IFile[] } = files;
+  const imageFile = filesData[imageFileName]?.[0];
 
   // image file validation
   if (!imageFile) {

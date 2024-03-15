@@ -39,6 +39,8 @@ class CategoryServiceClass {
       payload.imageURL.buffer
     );
 
+    
+
     const result = await this.#CategoryModel.create({
       name,
       imageURL,

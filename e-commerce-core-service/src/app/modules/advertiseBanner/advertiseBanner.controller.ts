@@ -18,7 +18,7 @@ class AdvertiseBannerControllerClass {
   // create advertise banner controller
   readonly createAdvertiseBanner = catchAsync(
     async (req: Request, res: Response) => {
-      const { name, startDate, duration, endDate, ...other } = req.body;
+      const { name, startDate, duration, endDate, files, ...other } = req.body;
 
       // validate body data
       await validateRequireFields({ name, startDate, duration, endDate });
@@ -26,7 +26,7 @@ class AdvertiseBannerControllerClass {
       // advertise banner image file
       const advertiseBannerImageFile =
         await ImageUploadHelpers.imageFileValidate(
-          req,
+          files,
           'advertiseBannerImage',
           'advertiseBanner'
         );
@@ -93,7 +93,7 @@ class AdvertiseBannerControllerClass {
   readonly updateAdvertiseBanner = catchAsync(
     async (req: Request, res: Response) => {
       const advertiseBannerId = req.params.id;
-      const { ...updateAdvertiseBannerData } = req.body;
+      const { files, ...updateAdvertiseBannerData } = req.body;
 
       // check validity request payload body
       await validateRequireFields(updateAdvertiseBannerData);
@@ -101,7 +101,7 @@ class AdvertiseBannerControllerClass {
       // advertise banner image file
       const advertiseBannerImageFile =
         await ImageUploadHelpers.imageFileValidateForUpdate(
-          req,
+          files,
           'advertiseBannerImage',
           'advertise banner'
         );

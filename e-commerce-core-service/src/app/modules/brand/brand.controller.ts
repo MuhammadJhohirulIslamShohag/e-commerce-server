@@ -17,14 +17,14 @@ class BrandControllerClass {
 
   // create brand controller
   readonly createBrand = catchAsync(async (req: Request, res: Response) => {
-    const { name, email, description, ...other } = req.body;
+    const { name, email, description, files, ...other } = req.body;
 
     // validate body data
     await validateRequireFields({ name, email, description });
 
     // brand image file
     const brandImageFile = await ImageUploadHelpers.imageFileValidate(
-      req,
+      files,
       'brandImage',
       'brand'
     );
@@ -78,18 +78,17 @@ class BrandControllerClass {
   // update brand controller
   readonly updateBrand = catchAsync(async (req: Request, res: Response) => {
     const brandId = req.params.id;
-    const { ...updateBrandData } = req.body;
+    const { files, ...updateBrandData } = req.body;
 
     // check validity request payload body
     await validateRequireFields(updateBrandData);
 
     // advertise banner image file
-    const brandImageFile =
-      await ImageUploadHelpers.imageFileValidateForUpdate(
-        req,
-        'brandImage',
-        'brand'
-      );
+    const brandImageFile = await ImageUploadHelpers.imageFileValidateForUpdate(
+      files,
+      'brandImage',
+      'brand'
+    );
 
     const result = await this.#BrandService.updateBrand(
       brandId,
