@@ -119,11 +119,18 @@ class QueryBuilder<T> {
     const total = await this.modelQuery.model.countDocuments(totalQuires);
     const page = Number(this?.query?.page || 1);
     const limit = Number(this?.query?.limit || 10);
+    const totalPages = Math.ceil(total / limit);
+
+    const nextPage = page < totalPages ? page + 1 : null;
+    const prevPage = page > 1 ? page - 1 : null;
 
     return {
       page,
       limit,
-      total,
+      next: nextPage,
+      prev: prevPage,
+      totalPage: totalPages,
+      totalItems: total,
     };
   }
 }
