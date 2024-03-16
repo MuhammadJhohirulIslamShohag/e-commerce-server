@@ -741,7 +741,7 @@ paths:
               $ref: "#/components/schemas/Category"
               required:
                 - name
-                - CategoryImage
+                - categoryImage
       responses:
         '201':
           description: Category Created successfully!
@@ -2716,7 +2716,7 @@ components:
           type: integer
           readOnly: true
           examples: [0]
-        CategoryImage:
+        categoryImage:
           type: string
           format: base64
         imageURL:
@@ -2809,16 +2809,21 @@ components:
           examples: [20]
         clickedProductCount:
           type: integer
+          readOnly: true
           examples: [0]
         quantity:
           type: integer
+          readOnly: true
           examples: [380]
         sold: 
           type: integer
+          readOnly: true
           examples: [0]
         productImage:
-          type: string
-          format: binary
+          type: array
+          items:
+            type: string
+            format: binary
         imageURL: 
           type: array
           readOnly: true
@@ -3050,7 +3055,7 @@ components:
       description: get items by fields for getting specific items properties
     populateParam:
       in: query
-      name: populate
+      name: populates
       schema:
         type: string
       description: get items with populate field of value
