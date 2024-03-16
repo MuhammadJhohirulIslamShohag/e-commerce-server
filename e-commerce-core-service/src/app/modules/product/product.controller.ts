@@ -8,6 +8,9 @@ import { productFilterableFields } from './product.constant';
 import { ProductService } from './product.service';
 import { pick } from '../../shared/pick';
 import { paginationOptionFields } from '../../constants/pagination';
+import { ImageUploadHelpers } from '../../helpers/image-upload.helper';
+import { validateRequireFields } from '../../shared/validateRequireFields';
+import ApiError from '../../errors/ApiError';
 
 class ProductControllerClass {
   #ProductService: typeof ProductService;
@@ -18,9 +21,63 @@ class ProductControllerClass {
 
   // create product controller
   readonly createProduct = catchAsync(async (req: Request, res: Response) => {
-    const { ...productData } = req.body;
+    const {
+      files,
+      brand,
+      size,
+      color,
+      subCategories,
+      category,
+      ...productData
+    } = req.body;
 
-    const result = await this.#ProductService.createProduct(productData);
+    // check validity request payload body
+    await validateRequireFields(productData);
+
+    // validate brand data
+    if (Object.keys(JSON.parse(brand))?.length < 1) {
+      throw new ApiError(httpStatus.BAD_REQUEST, 'Brand is required!');
+    }
+
+    // validate color data
+    if (Object.keys(JSON.parse(color))?.length < 1) {
+      throw new ApiError(httpStatus.BAD_REQUEST, 'Color is required!');
+    }
+
+    // validate size data
+    if (Object.keys(JSON.parse(size))?.length < 1) {
+      throw new ApiError(httpStatus.BAD_REQUEST, 'Size is required!');
+    }
+    // validate category data
+    if (Object.keys(JSON.parse(category))?.length < 1) {
+      throw new ApiError(httpStatus.BAD_REQUEST, 'Category is required!');
+    }
+    // validate sub categories data
+    if (JSON.parse(subCategories)?.length < 1) {
+      throw new ApiError(httpStatus.BAD_REQUEST, 'Sub Categories is required!');
+    }
+
+    // product image file
+    const productImageFile =
+      await ImageUploadHelpers.imageFileValidateForUpdate(
+        files,
+        'productImage',
+        'product'
+      );
+
+    const productDataStructure = {
+      ...productData,
+      imageURL: productImageFile,
+      brand: JSON.parse(brand),
+      size: JSON.parse(size),
+      color: JSON.parse(color),
+      subCategories: JSON.parse(subCategories),
+      category: JSON.parse(category),
+    };
+
+    const result = await this.#ProductService.createProduct(
+      productDataStructure
+    );
 
     responseReturn(res, {
       statusCode: httpStatus.OK,

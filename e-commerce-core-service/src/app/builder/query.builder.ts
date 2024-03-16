@@ -21,7 +21,7 @@ class QueryBuilder<T> {
                 $regex: searchTerm,
                 $options: 'i',
               },
-            }) as FilterQuery<T>
+            } as FilterQuery<T>)
         ),
       });
     }
@@ -30,15 +30,56 @@ class QueryBuilder<T> {
 
   // filter method
   filter() {
-    const queryObject = { ...this?.query };
+    const queryObject: FilterQuery<any> = { ...this?.query };
 
-    // filtering
-    const excludeFields = ['page', 'limit', 'sort', 'fields', 'searchTerm'];
+    // Filtering
+    const excludeFields = [
+      'page',
+      'limit',
+      'sort',
+      'fields',
+      'searchTerm',
+      'minPrice',
+      'maxPrice',
+      'populate',
+    ];
 
     excludeFields.forEach(excludeField => delete queryObject[excludeField]);
 
+    // Handle minPrice and maxPrice separately
+    if (this?.query?.minPrice) {
+      // Ensure price field exists and initialize it if it doesn't
+      if (!queryObject.price) {
+        queryObject.price = {};
+      }
+      // Add $gte condition to price
+      queryObject.price = { ...queryObject.price, $gte: this.query.minPrice };
+      delete queryObject.minPrice;
+    }
+
+    if (this?.query?.maxPrice) {
+      // Ensure price field exists and initialize it if it doesn't
+      if (!queryObject.price) {
+        queryObject.price = {};
+      }
+      // Add $lte condition to price
+      queryObject.price = { ...queryObject.price, $lte: this.query.maxPrice };
+      delete queryObject.maxPrice;
+    }
+
     this.modelQuery = this.modelQuery.find(queryObject as FilterQuery<T>);
 
+    return this;
+  }
+
+  // populate method
+  populate() {
+    const populateFields = (this?.query?.populate as string)?.split(',');
+    if (populateFields && populateFields?.length > 0) {
+      populateFields.forEach(field => {
+        this.modelQuery = this.modelQuery.populate(field);
+      });
+    }
     return this;
   }
 

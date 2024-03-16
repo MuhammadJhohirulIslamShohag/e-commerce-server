@@ -66,7 +66,8 @@ class SubCategoryServiceClass {
       .filter()
       .sort()
       .paginate()
-      .fields();
+      .fields()
+      .populate()
 
     // result of user
     const result = await userQuery.modelQuery;

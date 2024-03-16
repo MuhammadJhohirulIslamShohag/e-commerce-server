@@ -5,18 +5,23 @@ import Product from './product.model';
 import Category from '../category/category.model';
 import Review from '../review/review.model';
 import ApiError from '../../errors/ApiError';
+import QueryBuilder from '../../builder/query.builder';
 
-import { productSearchableFields } from './product.constant';
-import { ICreateProduct, IProduct, ProductFilters } from './product.interface';
+import { ICreateProduct, IProduct } from './product.interface';
 import { paginationHelper } from '../../helpers/pagination.helper';
 import { PaginationOptionType } from '../../interfaces/pagination';
+import { ImageUploadHelpers } from '../../helpers/image-upload.helper';
+import { productSearchableFields } from './product.constant';
 
 class ProductServiceClass {
   #ProductModel;
   #ReviewModel;
+  #QueryBuilder: typeof QueryBuilder;
+
   constructor() {
     this.#ProductModel = Product;
     this.#ReviewModel = Review;
+    this.#QueryBuilder = QueryBuilder;
   }
 
   /* --------- create product service --------- */
@@ -28,6 +33,7 @@ class ProductServiceClass {
       // start a session for the transaction
       await session.startTransaction();
 
+      const { imageURL } = payload;
       const isExitProduct = await this.#ProductModel.findOne({
         name: payload?.name,
       });
@@ -38,7 +44,7 @@ class ProductServiceClass {
       }
 
       // check price, is negative or not
-      if (payload?.price <= 0) {
+      if (Number(payload?.price) <= 0) {
         throw new ApiError(
           httpStatus.CONFLICT,
           'Price must not be negative or zero!'
@@ -46,7 +52,7 @@ class ProductServiceClass {
       }
 
       // check quantity, is negative or not
-      if (payload?.quantity <= 0) {
+      if (Number(payload?.quantity) <= 0) {
         throw new ApiError(
           httpStatus.CONFLICT,
           'Quantity must not be negative or zero!'
@@ -54,17 +60,31 @@ class ProductServiceClass {
       }
 
       // check discount
-      if (payload?.discount <= 0 && payload?.discount > 100) {
+      if (Number(payload?.discount) <= 0 && Number(payload?.discount) > 100) {
         throw new ApiError(
           httpStatus.CONFLICT,
           'Discount must be greater than or equal to 0 and less than 100!'
         );
       }
 
-      // create product
-      const productResult = await this.#ProductModel.create([payload], {
-        session,
+      // upload image to aws s3 bucket
+      const imageURLs: string[] = [];
+      imageURL.forEach(async imgFile => {
+        const productImageURL = await ImageUploadHelpers.imageUploadToS3Bucket(
+          'PRD',
+          'productImage',
+          imgFile.buffer
+        );
+        imageURLs.push(productImageURL);
       });
+
+      // create product
+      const productResult = await this.#ProductModel.create(
+        [{ ...payload, imageURL: imageURLs }],
+        {
+          session,
+        }
+      );
 
       if (!productResult.length) {
         throw new ApiError(httpStatus.BAD_REQUEST, 'Product create failed!');
@@ -92,98 +112,24 @@ class ProductServiceClass {
   };
 
   /* --------- get all products service --------- */
-  readonly allProducts = async (
-    paginationOption: PaginationOptionType,
-    filters: ProductFilters
-  ) => {
-    const { page, limit, sortBy, sortOrder, skip } =
-      paginationHelper.calculatePagination(paginationOption);
+  readonly allProducts = async (query: Record<string, unknown>) => {
+    const userQuery = new this.#QueryBuilder(this.#ProductModel.find(), query)
+      .search(productSearchableFields)
+      .filter()
+      .sort()
+      .paginate()
+      .fields()
+      .populate()
 
-    // exact search term
-    const { searchTerm, minPrice, maxPrice, ...filterData } = filters;
+    // result of user
+    const result = await userQuery.modelQuery;
 
-    const andConditions = [];
-
-    // searching specific filed with dynamic way
-    if (searchTerm?.trim() !== '' && searchTerm !== undefined) {
-      andConditions.push({
-        $or: productSearchableFields.map(field => ({
-          [field]: {
-            $regex: searchTerm,
-            $options: 'i',
-          },
-        })),
-      });
-    }
-
-    // filtering price range
-    if (minPrice || maxPrice) {
-      // check price is number or string value, if string, throw error
-      if (isNaN(Number(minPrice)) || isNaN(Number(maxPrice))) {
-        throw new ApiError(httpStatus.BAD_REQUEST, 'Invalid Price Range Value');
-      }
-
-      const priceCondition: Partial<{
-        price: { $gte?: number; $lte?: number };
-      }> = {};
-
-      if (minPrice) {
-        priceCondition.price = {
-          $gte: Number(minPrice),
-        };
-      }
-
-      if (maxPrice) {
-        priceCondition.price = {
-          ...priceCondition.price,
-          $lte: Number(maxPrice),
-        };
-      }
-      andConditions.push(priceCondition);
-    }
-
-    // exact filtering with dynamic way
-    if (Object.keys(filterData)?.length) {
-      andConditions.push({
-        $and: Object.keys(filterData).map(key => {
-          if (
-            (filterData as any)[key]?.trim() !== '' &&
-            (filterData as any)[key] !== undefined
-          ) {
-            return {
-              [key as any]: (filterData as any)[key],
-            };
-          } else {
-            return {};
-          }
-        }),
-      });
-    }
-
-    // dynamic sorting
-    const sortConditions: { [key: string]: SortOrder } = {};
-
-    if (sortBy && sortOrder) sortConditions[sortBy] = sortOrder;
-
-    const whereConditions =
-      andConditions.length > 0 ? { $and: andConditions } : {};
-    // result of product
-    const result = await this.#ProductModel
-      .find(whereConditions)
-      .sort(sortConditions)
-      .skip(skip)
-      .limit(limit);
-
-    // get total products
-    const total = await this.#ProductModel.countDocuments(whereConditions);
+    // get meta user
+    const meta = await userQuery.countTotal();
 
     return {
-      meta: {
-        page,
-        limit,
-        total,
-      },
-      data: result,
+      meta,
+      result,
     };
   };
 
@@ -462,7 +408,7 @@ class ProductServiceClass {
       }
 
       result = resultProduct;
-      
+
       // commit transaction
       await session.commitTransaction();
       await session.endSession();
