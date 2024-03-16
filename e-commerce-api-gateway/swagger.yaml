@@ -741,7 +741,7 @@ paths:
               $ref: "#/components/schemas/Category"
               required:
                 - name
-                - categoryImage
+                - CategoryImage
       responses:
         '201':
           description: Category Created successfully!
@@ -788,7 +788,6 @@ paths:
         - $ref: "#/components/parameters/sortParam"
         - $ref: "#/components/parameters/searchParam"
         - $ref: "#/components/parameters/fieldsParam"
-          
 
       responses:
         '200':
@@ -1056,6 +1055,7 @@ paths:
         - $ref: "#/components/parameters/sortParam"
         - $ref: "#/components/parameters/searchParam"
         - $ref: "#/components/parameters/fieldsParam"
+        - $ref: "#/components/parameters/populateParam"
 
       responses:
         '200':
@@ -1323,6 +1323,11 @@ paths:
         - $ref: "#/components/parameters/sortParam"
         - $ref: "#/components/parameters/searchParam"
         - $ref: "#/components/parameters/fieldsParam"
+        - in: query
+          name: name
+          schema:
+            type: string
+          description: get items by name
 
       responses:
         '200':
@@ -2140,6 +2145,7 @@ paths:
         - $ref: "#/components/parameters/sortParam"
         - $ref: "#/components/parameters/searchParam"
         - $ref: "#/components/parameters/fieldsParam"
+        - $ref: "#/components/parameters/populateParam"
 
       responses:
         '200':
@@ -2408,6 +2414,7 @@ paths:
         - $ref: "#/components/parameters/sortParam"
         - $ref: "#/components/parameters/searchParam"
         - $ref: "#/components/parameters/fieldsParam"
+        - $ref: "#/components/parameters/populateParam"
 
       responses:
         '200':
@@ -2616,6 +2623,18 @@ paths:
         '500':
           $ref: '#/components/responses/500'
              
+                
+
+
+   
+         
+        
+
+         
+
+
+
+
 
 components:
   securitySchemes:
@@ -2697,7 +2716,7 @@ components:
           type: integer
           readOnly: true
           examples: [0]
-        categoryImage:
+        CategoryImage:
           type: string
           format: base64
         imageURL:
@@ -3029,3 +3048,9 @@ components:
       schema:
         type: string
       description: get items by fields for getting specific items properties
+    populateParam:
+      in: query
+      name: populate
+      schema:
+        type: string
+      description: get items with populate field of value
