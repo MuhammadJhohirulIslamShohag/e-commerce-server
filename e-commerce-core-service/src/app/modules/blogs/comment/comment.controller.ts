@@ -15,7 +15,7 @@ class CommentControllerClass {
     this.#CommentService = service;
   }
 
-  // create Comment controller
+  // create comment controller
   readonly createComment = catchAsync(async (req: Request, res: Response) => {
     const { ...commentData } = req.body;
 
