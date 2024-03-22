@@ -56,18 +56,18 @@ class CategoryServiceClass {
 
   // get all categories method
   readonly allCategories = async (query: Record<string, unknown>) => {
-    const userQuery = new this.#QueryBuilder(this.#CategoryModel.find(), query)
+    const categoryQuery = new this.#QueryBuilder(this.#CategoryModel.find(), query)
       .search(categorySearchableFields)
       .filter()
       .sort()
       .paginate()
       .fields();
 
-    // result of user
-    const result = await userQuery.modelQuery;
+    // result of category
+    const result = await categoryQuery.modelQuery;
 
-    // get meta user
-    const meta = await userQuery.countTotal();
+    // get meta category
+    const meta = await categoryQuery.countTotal();
 
     return {
       meta,

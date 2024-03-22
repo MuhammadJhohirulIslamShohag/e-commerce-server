@@ -40,18 +40,18 @@ class SizeServiceClass {
 
   // get all sizes service
   readonly allSizes = async (query: Record<string, unknown>) => {
-    const userQuery = new this.#QueryBuilder(this.#SizeModel.find(), query)
+    const sizeQuery = new this.#QueryBuilder(this.#SizeModel.find(), query)
       .search(sizeSearchableFields)
       .filter()
       .sort()
       .paginate()
       .fields();
 
-    // result of user
-    const result = await userQuery.modelQuery;
+    // result of size
+    const result = await sizeQuery.modelQuery;
 
-    // get meta user
-    const meta = await userQuery.countTotal();
+    // get meta size
+    const meta = await sizeQuery.countTotal();
 
     return {
       meta,

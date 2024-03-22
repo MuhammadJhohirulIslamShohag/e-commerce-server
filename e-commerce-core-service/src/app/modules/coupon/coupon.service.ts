@@ -37,18 +37,18 @@ class CouponServiceClass {
 
   // get all Coupons service
   readonly allCoupons = async (query: Record<string, unknown>) => {
-    const userQuery = new this.#QueryBuilder(this.#CouponModel.find(), query)
+    const couponQuery = new this.#QueryBuilder(this.#CouponModel.find(), query)
       .search(couponSearchableFields)
       .filter()
       .sort()
       .paginate()
       .fields();
 
-    // result of user
-    const result = await userQuery.modelQuery;
+    // result of coupon
+    const result = await couponQuery.modelQuery;
 
-    // get meta user
-    const meta = await userQuery.countTotal();
+    // get meta coupon
+    const meta = await couponQuery.countTotal();
 
     return {
       meta,

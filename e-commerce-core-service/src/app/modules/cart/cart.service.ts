@@ -86,7 +86,7 @@ class CartServiceClass {
 
   // get all carts service
   readonly allCarts = async (query: Record<string, unknown>) => {
-    const userQuery = new this.#QueryBuilder(this.#CartModel.find(), query)
+    const cartQuery = new this.#QueryBuilder(this.#CartModel.find(), query)
       .search(cartSearchableFields)
       .filter()
       .sort()
@@ -94,10 +94,10 @@ class CartServiceClass {
       .fields();
 
     // result of cart
-    const result = await userQuery.modelQuery;
+    const result = await cartQuery.modelQuery;
 
     // get meta cart
-    const meta = await userQuery.countTotal();
+    const meta = await cartQuery.countTotal();
 
     return {
       meta,

@@ -57,17 +57,17 @@ class ReviewServiceClass {
 
   // get all reviews service
   readonly allReviews = async (query: Record<string, unknown>) => {
-    const userQuery = new this.#QueryBuilder(this.#ReviewModel.find(), query)
+    const reviewQuery = new this.#QueryBuilder(this.#ReviewModel.find(), query)
       .filter()
       .sort()
       .paginate()
       .fields();
 
-    // result of user
-    const result = await userQuery.modelQuery;
+    // result of review
+    const result = await reviewQuery.modelQuery;
 
-    // get meta user
-    const meta = await userQuery.countTotal();
+    // get meta review
+    const meta = await reviewQuery.countTotal();
 
     return {
       meta,

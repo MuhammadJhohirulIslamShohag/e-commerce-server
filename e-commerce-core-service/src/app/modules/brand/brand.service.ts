@@ -54,18 +54,18 @@ class BrandServiceClass {
 
   // get all brands service
   readonly allBrands = async (query: Record<string, unknown>) => {
-    const userQuery = new this.#QueryBuilder(this.#BrandModel.find(), query)
+    const brandQuery = new this.#QueryBuilder(this.#BrandModel.find(), query)
       .search(brandSearchableFields)
       .filter()
       .sort()
       .paginate()
       .fields();
 
-    // result of user
-    const result = await userQuery.modelQuery;
+    // result of brand
+    const result = await brandQuery.modelQuery;
 
-    // get meta user
-    const meta = await userQuery.countTotal();
+    // get meta brand
+    const meta = await brandQuery.countTotal();
 
     return {
       meta,
@@ -84,7 +84,7 @@ class BrandServiceClass {
     id: string,
     payload: Partial<IBrand>,
     brandImageFile: IFile | null
-  ): Promise<IBrand | null> => {
+  ) => {
     // check already brand exit, if not throw error
     const isExitBrand = await this.#BrandModel.findById({ _id: id });
     if (!isExitBrand) {

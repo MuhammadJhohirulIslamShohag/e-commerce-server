@@ -113,7 +113,7 @@ class ProductServiceClass {
 
   /* --------- get all products service --------- */
   readonly allProducts = async (query: Record<string, unknown>) => {
-    const userQuery = new this.#QueryBuilder(this.#ProductModel.find(), query)
+    const productQuery = new this.#QueryBuilder(this.#ProductModel.find(), query)
       .search(productSearchableFields)
       .filter()
       .sort()
@@ -121,11 +121,11 @@ class ProductServiceClass {
       .fields()
       .populate()
 
-    // result of user
-    const result = await userQuery.modelQuery;
+    // result of product
+    const result = await productQuery.modelQuery;
 
-    // get meta user
-    const meta = await userQuery.countTotal();
+    // get meta product
+    const meta = await productQuery.countTotal();
 
     return {
       meta,

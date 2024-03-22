@@ -58,7 +58,7 @@ class SubCategoryServiceClass {
 
   // get all sub categories method
   readonly allSubCategories = async (query: Record<string, unknown>) => {
-    const userQuery = new this.#QueryBuilder(
+    const subCategoryQuery = new this.#QueryBuilder(
       this.#SubCategoryModel.find(),
       query
     )
@@ -69,11 +69,11 @@ class SubCategoryServiceClass {
       .fields()
       .populate()
 
-    // result of user
-    const result = await userQuery.modelQuery;
+    // result of subCategory
+    const result = await subCategoryQuery.modelQuery;
 
-    // get meta user
-    const meta = await userQuery.countTotal();
+    // get meta subCategory
+    const meta = await subCategoryQuery.countTotal();
 
     return {
       meta,

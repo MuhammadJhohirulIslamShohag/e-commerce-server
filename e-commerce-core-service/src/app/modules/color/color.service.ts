@@ -38,7 +38,7 @@ class ColorServiceClass {
 
   // get all Colors service
   readonly allColors = async (query: Record<string, unknown>) => {
-    const userQuery = new this.#QueryBuilder(this.#ColorModel.find(), query)
+    const colorQuery = new this.#QueryBuilder(this.#ColorModel.find(), query)
       .search(colorSearchableFields)
       .filter()
       .sort()
@@ -46,10 +46,10 @@ class ColorServiceClass {
       .fields();
 
     // result of colors
-    const result = await userQuery.modelQuery;
+    const result = await colorQuery.modelQuery;
 
     // get meta colors
-    const meta = await userQuery.countTotal();
+    const meta = await colorQuery.countTotal();
 
     return {
       meta,

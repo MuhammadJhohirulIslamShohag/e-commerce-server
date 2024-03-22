@@ -71,7 +71,7 @@ class AdvertiseBannerServiceClass {
 
   // get all advertise banners service
   readonly allAdvertiseBanners = async (query: Record<string, unknown>) => {
-    const userQuery = new this.#QueryBuilder(
+    const advertiseBannerQuery = new this.#QueryBuilder(
       this.#AdvertiseBannerModel.find(),
       query
     )
@@ -81,10 +81,10 @@ class AdvertiseBannerServiceClass {
       .fields();
 
     // result of advertise banner
-    const result = await userQuery.modelQuery;
+    const result = await advertiseBannerQuery.modelQuery;
 
     // get meta advertise banner
-    const meta = await userQuery.countTotal();
+    const meta = await advertiseBannerQuery.countTotal();
 
     return {
       meta,
