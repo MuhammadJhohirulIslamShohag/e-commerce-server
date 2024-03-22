@@ -12,7 +12,7 @@ class ProductServiceClass {
   readonly createProduct = async (req: Request) => {
     const response: IGenericResponse = await this.#CoreService.post(
       `products`,
-      req.body,
+      {...req.body, files: req.files},
       {
         headers: {
           Authorization: req.headers.authorization,
