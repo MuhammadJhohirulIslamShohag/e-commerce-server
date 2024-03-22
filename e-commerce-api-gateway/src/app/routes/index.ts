@@ -9,6 +9,8 @@ import { AdvertiseBannerRoutes } from '../modules/advertiseBanner/advertiseBanne
 import { ProductRoutes } from '../modules/product/product.route';
 import { OrderRoutes } from '../modules/order/order.route';
 import { ReviewRoutes } from '../modules/review/review.route';
+import { BlogRoutes } from '../modules/blog/blog.route';
+import { CommentRoutes } from '../modules/comment/comment.route';
 
 const router = express.Router();
 
@@ -48,6 +50,14 @@ const moduleRoutes = [
   {
     path: '/colors',
     route: ColorRoutes,
+  },
+  {
+    path: '/blogs',
+    route: BlogRoutes,
+  },
+  {
+    path: '/comments',
+    route: CommentRoutes,
   },
   {
     path: '/advertise-banners',
