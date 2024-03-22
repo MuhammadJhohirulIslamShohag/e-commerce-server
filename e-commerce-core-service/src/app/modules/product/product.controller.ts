@@ -4,7 +4,6 @@ import httpStatus from 'http-status';
 import catchAsync from '../../shared/catchAsync';
 import responseReturn from '../../shared/responseReturn';
 
-import { productFilterableFields } from './product.constant';
 import { ProductService } from './product.service';
 import { pick } from '../../shared/pick';
 import { paginationOptionFields } from '../../constants/pagination';
@@ -89,19 +88,14 @@ class ProductControllerClass {
 
   // get all product controller
   readonly allProducts = catchAsync(async (req: Request, res: Response) => {
-    const paginationOptions = pick(req.query, paginationOptionFields);
-    const filters = pick(req.query, productFilterableFields);
-
-    const result = await this.#ProductService.allProducts(
-      paginationOptions,
-      filters
-    );
+    const result = await this.#ProductService.allProducts(req.query);
 
     responseReturn(res, {
       statusCode: httpStatus.OK,
       success: true,
       message: 'All Products Retrieved Successfully!',
-      data: result,
+      meta: result.meta,
+      data: result.result
     });
   });
 

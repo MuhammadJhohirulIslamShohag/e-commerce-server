@@ -57,7 +57,8 @@ class CategoryControllerClass {
       statusCode: httpStatus.OK,
       success: true,
       message: 'All Categories Retrieved Successfully!',
-      data: result,
+      data: result.result,
+      meta: result.meta,
     });
   });
 

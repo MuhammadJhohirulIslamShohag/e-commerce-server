@@ -13,6 +13,7 @@ type ProductStatus = 'available' | 'discontinue' | 'upcoming';
 
 // product interface model type
 export type IProduct = {
+  slug: string;
   name: string;
   metaTitle: string;
   description: string;

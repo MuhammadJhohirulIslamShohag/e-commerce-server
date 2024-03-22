@@ -46,7 +46,7 @@ class CommentControllerClass {
   });
 
   // get single comment user controller
-  getSingleComment = catchAsync(async (req: Request, res: Response) => {
+ readonly getSingleComment = catchAsync(async (req: Request, res: Response) => {
     const commentId = req.params.id;
     const result = await CommentService.getSingleComment(commentId);
 

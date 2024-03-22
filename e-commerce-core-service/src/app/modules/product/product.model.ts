@@ -16,6 +16,14 @@ const ProductSchema = new Schema<IProduct, ProductModel>(
       minLength: [3, 'Name must be at least 3 characters'],
       maxLength: [650, 'Name is to large!'],
     },
+    slug: {
+      type: String,
+      trim: true,
+      unique: true,
+      required: [true, 'Please provide a slug!'],
+      minLength: [3, 'Slug must be at least 3 characters'],
+      maxLength: [650, 'Slug is to large!'],
+    },
     metaTitle: {
       type: String,
       trim: true,

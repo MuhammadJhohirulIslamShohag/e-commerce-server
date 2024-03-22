@@ -12,6 +12,7 @@ import { paginationHelper } from '../../helpers/pagination.helper';
 import { PaginationOptionType } from '../../interfaces/pagination';
 import { ImageUploadHelpers } from '../../helpers/image-upload.helper';
 import { productSearchableFields } from './product.constant';
+import { customSlug } from '../../shared/customSlug';
 
 class ProductServiceClass {
   #ProductModel;
@@ -78,9 +79,11 @@ class ProductServiceClass {
         imageURLs.push(productImageURL);
       });
 
+      const slug = customSlug(payload.name);
+
       // create product
       const productResult = await this.#ProductModel.create(
-        [{ ...payload, imageURL: imageURLs }],
+        [{ ...payload, imageURL: imageURLs, slug: slug }],
         {
           session,
         }
@@ -113,13 +116,16 @@ class ProductServiceClass {
 
   /* --------- get all products service --------- */
   readonly allProducts = async (query: Record<string, unknown>) => {
-    const productQuery = new this.#QueryBuilder(this.#ProductModel.find(), query)
+    const productQuery = new this.#QueryBuilder(
+      this.#ProductModel.find(),
+      query
+    )
       .search(productSearchableFields)
       .filter()
       .sort()
       .paginate()
       .fields()
-      .populate()
+      .populate();
 
     // result of product
     const result = await productQuery.modelQuery;
