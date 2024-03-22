@@ -22,7 +22,7 @@ export type IProduct = {
   clickedProductCount: number;
   quantity: number;
   sold: number;
-  imageURL: [string];
+  imageURLs: [string];
   isFeatured: boolean;
   status: ProductStatus;
   category: {
@@ -60,7 +60,7 @@ export type ICreateProduct = {
   discount: number;
   clickedProductCount: number;
   quantity: number;
-  imageURL: [IFile];
+  imageURLs: [IFile];
   isFeatured: boolean;
   status: ProductStatus;
   category: {

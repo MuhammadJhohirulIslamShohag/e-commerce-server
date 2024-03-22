@@ -34,7 +34,7 @@ class ProductServiceClass {
       // start a session for the transaction
       await session.startTransaction();
 
-      const { imageURL } = payload;
+      const { imageURLs } = payload;
       const isExitProduct = await this.#ProductModel.findOne({
         name: payload?.name,
       });
@@ -69,21 +69,22 @@ class ProductServiceClass {
       }
 
       // upload image to aws s3 bucket
-      const imageURLs: string[] = [];
-      imageURL.forEach(async imgFile => {
+      const imageUrls: string[] = [];
+
+      for (const imgFile of imageURLs) {
         const productImageURL = await ImageUploadHelpers.imageUploadToS3Bucket(
           'PRD',
           'productImage',
           imgFile.buffer
         );
-        imageURLs.push(productImageURL);
-      });
+        imageUrls.push(productImageURL);
+      }
 
       const slug = customSlug(payload.name);
 
       // create product
       const productResult = await this.#ProductModel.create(
-        [{ ...payload, imageURL: imageURLs, slug: slug }],
+        [{ ...payload, imageURLs: imageUrls, slug: slug }],
         {
           session,
         }

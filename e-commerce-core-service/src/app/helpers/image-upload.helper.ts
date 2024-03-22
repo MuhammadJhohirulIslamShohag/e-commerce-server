@@ -99,6 +99,36 @@ const imageFileValidate = async (
   return imageFile;
 };
 
+// image files validate for creating
+const imageFilesValidate = async (
+  files: { [key: string]: IFile[] },
+  imageFileName: string,
+  prefix: string
+) => {
+  // check file of the image
+  if (!files || !(imageFileName in files)) {
+    throw new ApiError(
+      httpStatus.BAD_REQUEST,
+      `Please upload ${prefix} image file!`
+    );
+  }
+
+  const filesData: { [key: string]: IFile[] } = files;
+  const imageFiles = filesData[imageFileName];
+
+
+
+  // image file validation
+  if (!imageFiles.length) {
+    throw new ApiError(
+      httpStatus.BAD_REQUEST,
+      `Please upload ${prefix} image file!`
+    );
+  }
+
+  return imageFiles;
+};
+
 // image file validate for updating
 const imageFileValidateForUpdate = async (
   files: { [key: string]: IFile[] },
@@ -132,4 +162,5 @@ export const ImageUploadHelpers = {
   imageUploadToS3BucketForUpdate,
   imageFileValidate,
   imageFileValidateForUpdate,
+  imageFilesValidate
 };

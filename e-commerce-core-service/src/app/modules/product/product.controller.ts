@@ -57,16 +57,15 @@ class ProductControllerClass {
     }
 
     // product image file
-    const productImageFile =
-      await ImageUploadHelpers.imageFileValidateForUpdate(
-        files,
-        'productImage',
-        'product'
-      );
+    const productImageFile = await ImageUploadHelpers.imageFilesValidate(
+      files,
+      'productImage',
+      'product'
+    );
 
     const productDataStructure = {
       ...productData,
-      imageURL: productImageFile,
+      imageURLs: productImageFile,
       brand: JSON.parse(brand),
       size: JSON.parse(size),
       color: JSON.parse(color),
@@ -95,7 +94,7 @@ class ProductControllerClass {
       success: true,
       message: 'All Products Retrieved Successfully!',
       meta: result.meta,
-      data: result.result
+      data: result.result,
     });
   });
 

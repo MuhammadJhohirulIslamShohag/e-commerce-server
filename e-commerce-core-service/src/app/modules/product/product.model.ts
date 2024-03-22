@@ -59,7 +59,7 @@ const ProductSchema = new Schema<IProduct, ProductModel>(
       type: Number,
       default: 0,
     },
-    imageURL: [
+    imageURLs: [
       {
         type: String,
         required: true,
@@ -69,6 +69,7 @@ const ProductSchema = new Schema<IProduct, ProductModel>(
     isFeatured: {
       type: Boolean,
       required: [true, 'Please provide a is it featured product!'],
+      default: false
     },
     status: {
       type: String,
