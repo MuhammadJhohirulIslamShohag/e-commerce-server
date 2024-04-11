@@ -1009,6 +1009,7 @@ paths:
               required:
                 - name
                 - subCategoryImage
+                - categoryId
       responses:
         '201':
           description: Sub Category Created successfully!
@@ -2737,14 +2738,9 @@ components:
           type: string
           readOnly: true
           examples: ["https://s3.amazonaws.com/bucketname/foldername/imagename.jpg"]
-        categories:
-          type: array
-          items:
-            type: object
-            properties:
-              categoryId:
-                type: string
-                examples: ["507f191e810c19729de860ea"]
+        categoryId:
+          type: string
+          examples: ["507f191e810c19729de860ea"]
     Colors:
       type: object
       properties: 

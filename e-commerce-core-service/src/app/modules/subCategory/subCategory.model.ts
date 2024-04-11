@@ -21,14 +21,10 @@ const subCategorySchema = new Schema<ISubCategory, SubCategoryModel>(
         'Please provide valid Sub Category image url!',
       ],
     },
-    categories: [
-      {
-        categoryId: {
-          type: Schema.Types.ObjectId,
-          ref: 'Category',
-        },
-      },
-    ],
+    categoryId: {
+      type: Schema.Types.ObjectId,
+      ref: 'Category',
+    },
   },
   {
     timestamps: true,

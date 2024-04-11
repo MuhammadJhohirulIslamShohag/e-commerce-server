@@ -135,8 +135,8 @@ const imageFileValidateForUpdate = async (
   imageFileName: string,
   prefix: string
 ) => {
-  // check file of the image
-  if (files && imageFileName in files) {
+   // check file of the image
+   if (!files || !(imageFileName in files)) {
     throw new ApiError(
       httpStatus.BAD_REQUEST,
       `Please upload ${prefix} image file!`

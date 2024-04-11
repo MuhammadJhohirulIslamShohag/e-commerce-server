@@ -46,7 +46,7 @@ class SubCategoryServiceClass {
     const result = await this.#SubCategoryModel.create({
       name: payload.name,
       imageURL,
-      categories: payload.categories,
+      categoryId: payload.categoryId,
     });
 
     // if not created sub category, throw error

@@ -12,19 +12,6 @@ const userSchema = new Schema<IUser, UserModel>({
     minLength: [3, 'Name must be at least 3 characters'],
     maxLength: [120, 'Name is to large!'],
   },
-  phone: {
-    type: String,
-    validate: {
-      validator: function (v: string) {
-        return /^\+?[1-9]\d{1,14}$/.test(v);
-      },
-      message: (props) => `${props.value} is not a valid contact number!`,
-    },
-  },
-  phoneNumberVerified: {
-    type: Boolean,
-    default: false,
-  },
   email: {
     type: String,
     trim: true,

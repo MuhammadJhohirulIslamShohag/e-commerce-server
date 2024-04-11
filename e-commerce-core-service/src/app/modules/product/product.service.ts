@@ -276,7 +276,7 @@ class ProductServiceClass {
 
   /* --------- get single product service --------- */
   readonly getSingleProduct = async (payload: string) => {
-    const product = await this.#ProductModel.findById(payload);
+    const product = await this.#ProductModel.findOne({ slug: payload });
 
     // handle the case when the product is not found
     if (!product) {
