@@ -14,10 +14,13 @@ const categorySchema = new Schema<ICategory, CategoryModel>(
       minLength: [3, 'Name must be at least 3 characters'],
       maxLength: [120, 'Name is to large!'],
     },
-    imageURL: {
-      type: String,
-      validate: [validator.isURL, 'Please provide valid category image url!'],
-    },
+    imageURLs: [
+      {
+        type: String,
+        required: true,
+        validate: [validator.isURL, 'Please provide valid url(s)'],
+      },
+    ],
     clickedCount: {
       type: Number,
       default: 0,

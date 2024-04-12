@@ -19,22 +19,20 @@ class CategoryControllerClass {
   readonly createCategory = catchAsync(async (req: Request, res: Response) => {
     const { name, files } = req.body;
 
-
     // validate body data
     await validateRequireFields({ name });
 
     // category image file
-    const categoryImageFile = await ImageUploadHelpers.imageFileValidate(
+    const categoryImageFiles = await ImageUploadHelpers.imageFilesValidate(
       files,
       'categoryImage',
       'category'
     );
 
- 
     // category data
     const categoryObjStructure = {
       name,
-      imageURL: categoryImageFile,
+      imageURLs: categoryImageFiles,
     };
 
     const result = await this.#CategoryService.createCategory(
@@ -81,14 +79,14 @@ class CategoryControllerClass {
   // update category method
   readonly updateCategory = catchAsync(async (req: Request, res: Response) => {
     const categoryId = req.params.id;
-    const {files, ...updateCategoryData } = req.body;
+    const { files, name, imageURLs } = req.body;
 
     // check validity request payload body
-    await validateRequireFields(updateCategoryData);
+    await validateRequireFields({ name, imageURLs });
 
     // category image file
     const categoryImageFile =
-      await ImageUploadHelpers.imageFileValidateForUpdate(
+      await ImageUploadHelpers.imageFilesValidateForUpdate(
         files,
         'categoryImage',
         'category'
@@ -96,7 +94,7 @@ class CategoryControllerClass {
 
     const result = await this.#CategoryService.updateCategory(
       categoryId,
-      updateCategoryData,
+      { name, imageURLs: JSON.parse(imageURLs) },
       categoryImageFile
     );
 

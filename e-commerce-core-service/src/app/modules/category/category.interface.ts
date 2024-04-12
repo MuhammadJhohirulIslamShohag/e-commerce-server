@@ -4,14 +4,15 @@ import { IFile } from '../../interfaces';
 // category interface model type
 export type ICategory = {
   name: string;
-  imageURL: string;
+  imageURLs: string[];
   clickedCount: number;
 };
 
 export type ICreateCategory = {
   name: string;
-  imageURL: IFile;
+  imageURLs: IFile[];
 };
+
 
 // category model type
 export type CategoryModel = Model<ICategory>;

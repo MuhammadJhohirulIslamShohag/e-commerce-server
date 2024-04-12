@@ -11,6 +11,7 @@ import { categorySearchableFields } from './category.constant';
 import { ImageUploadHelpers } from '../../helpers/image-upload.helper';
 import { IFile } from '../../interfaces';
 
+
 class CategoryServiceClass {
   #CategoryModel;
   #ProductModel;
@@ -33,17 +34,20 @@ class CategoryServiceClass {
     }
 
     // upload image to aws s3 bucket
-    const imageURL = await ImageUploadHelpers.imageUploadToS3Bucket(
-      'CAT',
-      'category',
-      payload.imageURL.buffer
-    );
+    const imageUrls: string[] = [];
 
-    
+    for (const imgFile of payload.imageURLs) {
+      const productImageURL = await ImageUploadHelpers.imageUploadToS3Bucket(
+        'CAT',
+        'category',
+        imgFile.buffer
+      );
+      imageUrls.push(productImageURL);
+    }
 
     const result = await this.#CategoryModel.create({
       name,
-      imageURL,
+      imageURLs: imageUrls,
     });
 
     // if not created Category, throw error
@@ -56,7 +60,10 @@ class CategoryServiceClass {
 
   // get all categories method
   readonly allCategories = async (query: Record<string, unknown>) => {
-    const categoryQuery = new this.#QueryBuilder(this.#CategoryModel.find(), query)
+    const categoryQuery = new this.#QueryBuilder(
+      this.#CategoryModel.find(),
+      query
+    )
       .search(categorySearchableFields)
       .filter()
       .sort()
@@ -85,7 +92,7 @@ class CategoryServiceClass {
   readonly updateCategory = async (
     id: string,
     payload: Partial<ICategory>,
-    categoryImageFile: IFile | null
+    categoryImageFile: IFile[] | null
   ) => {
     // check already Category exit, if not throw error
     const isExitCategory = await this.#CategoryModel.findById({ _id: id });
@@ -95,18 +102,20 @@ class CategoryServiceClass {
 
     const { ...updatedCategoryData }: Partial<ICategory> = payload;
 
-    // upload image if image file has
-    if (categoryImageFile) {
-      const categoryImage =
-        (await ImageUploadHelpers.imageUploadToS3BucketForUpdate(
-          'CAT',
-          'category',
-          categoryImageFile.buffer,
-          isExitCategory?.imageURL.split('/')
-        )) as string;
+    // image update
+    const updatedImages = updatedCategoryData?.imageURLs as string[];
+    const oldImages = isExitCategory.imageURLs;
 
-      updatedCategoryData['imageURL'] = categoryImage;
-    }
+    const newImageUrls =
+      await ImageUploadHelpers.imageUploadsToS3BucketForUpdate__V2(
+        updatedImages,
+        oldImages,
+        categoryImageFile,
+        'category',
+        'CAT'
+      );
+
+    updatedCategoryData['imageURLs'] = newImageUrls;
 
     // update the category
     let result = null;

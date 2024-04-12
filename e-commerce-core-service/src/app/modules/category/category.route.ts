@@ -23,7 +23,7 @@ class CategoryRoutesClass {
     this.routers
       .route('/')
       .post(
-        upload.fields([{ name: 'categoryImage', maxCount: 1 }]),
+        upload.fields([{ name: 'categoryImage', maxCount: 4 }]),
         CategoryController.createCategory
       )
       .get(CategoryController.allCategories);
