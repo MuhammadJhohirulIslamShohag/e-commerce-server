@@ -67,7 +67,7 @@ class SubCategoryServiceClass {
       .sort()
       .paginate()
       .fields()
-      .populate()
+      .populate();
 
     // result of subCategory
     const result = await subCategoryQuery.modelQuery;
@@ -85,7 +85,7 @@ class SubCategoryServiceClass {
   readonly getSingleSubCategory = async (payload: string) => {
     const result = await this.#SubCategoryModel
       .findById(payload)
-      .populate('categories.categoryId')
+      .populate('categoryId')
       .exec();
     return result;
   };
@@ -108,7 +108,7 @@ class SubCategoryServiceClass {
 
     // upload image if image file has
     if (subCategoryImageFile) {
-      const categoryImage =
+      const subCategoryImage =
         (await ImageUploadHelpers.imageUploadToS3BucketForUpdate(
           'SCA',
           'subCategoryImage',
@@ -116,7 +116,9 @@ class SubCategoryServiceClass {
           isExitSubCategory?.imageURL.split('/')
         )) as string;
 
-      updatedSubCategoryData['imageURL'] = categoryImage;
+      updatedSubCategoryData['imageURL'] = subCategoryImage;
+    } else {
+      updatedSubCategoryData['imageURL'] = isExitSubCategory?.imageURL;
     }
 
     // update the sub category
@@ -202,14 +204,14 @@ class SubCategoryServiceClass {
       {
         $lookup: {
           from: 'categories',
-          localField: 'categories.categoryId',
+          localField: 'categoryId',
           foreignField: '_id',
           as: 'category',
         },
       },
       {
         $group: {
-          _id: '$categories.categoryId',
+          _id: '$categoryId',
           subCategories: {
             $push: {
               id: '$_id',
