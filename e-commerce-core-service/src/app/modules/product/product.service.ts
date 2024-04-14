@@ -13,6 +13,7 @@ import { PaginationOptionType } from '../../interfaces/pagination';
 import { ImageUploadHelpers } from '../../helpers/image-upload.helper';
 import { productSearchableFields } from './product.constant';
 import { customSlug } from '../../shared/customSlug';
+import { IFile } from '../../interfaces';
 
 class ProductServiceClass {
   #ProductModel;
@@ -84,7 +85,17 @@ class ProductServiceClass {
 
       // create product
       const productResult = await this.#ProductModel.create(
-        [{ ...payload, imageURLs: imageUrls, slug: slug }],
+        [
+          {
+            ...payload,
+            imageURLs: imageUrls,
+            slug: slug,
+            price: Number(payload.price),
+            discount: Number(payload.discount),
+            quantity: Number(payload.quantity),
+            isFeatured: Boolean(payload.isFeatured),
+          },
+        ],
         {
           session,
         }
@@ -293,7 +304,11 @@ class ProductServiceClass {
   };
 
   /* --------- update product service --------- */
-  readonly updateProduct = async (id: string, payload: Partial<IProduct>) => {
+  readonly updateProduct = async (
+    id: string,
+    payload: Partial<IProduct>,
+    productImageFile: IFile[] | null
+  ) => {
     // check already product exit, if not throw error
     const isExitProduct = await this.#ProductModel.findOne({ _id: id });
 
@@ -301,12 +316,10 @@ class ProductServiceClass {
       throw new ApiError(httpStatus.NOT_FOUND, 'Product Not Found!');
     }
 
-    const { category, brand, color, size, ...others } = payload;
-
-    const updatedProductData: Partial<IProduct> = { ...others };
+    const updatedProductData: Partial<IProduct> = { ...payload };
 
     // check price, is negative or not
-    if (others?.price && others?.price <= 0) {
+    if (updatedProductData?.price && updatedProductData?.price <= 0) {
       throw new ApiError(
         httpStatus.CONFLICT,
         'Price must not be negative or zero!'
@@ -314,55 +327,40 @@ class ProductServiceClass {
     }
 
     // check quantity, is negative or not
-    if (others?.quantity && others?.quantity <= 0) {
+    if (updatedProductData?.quantity && updatedProductData?.quantity <= 0) {
       throw new ApiError(
         httpStatus.CONFLICT,
         'Quantity must not be negative or zero!'
       );
     }
 
+
     // check discount
-    if (others?.discount && others?.discount <= 0 && others?.discount > 100) {
+    if (
+      updatedProductData?.discount &&
+      updatedProductData?.discount <= 0 &&
+      updatedProductData?.discount > 100
+    ) {
       throw new ApiError(
         httpStatus.CONFLICT,
         'Discount must be greater than or equal to 0 and less than 100!'
       );
     }
 
-    // category update
-    if (category && Object.keys(category).length > 0) {
-      Object.keys(category).map(key => {
-        const categoryKey = `category.${key}` as keyof Partial<IProduct>;
-        (updatedProductData as any)[categoryKey] =
-          category[key as keyof typeof category];
-      });
-    }
+    // image update
+    const updatedImages = updatedProductData?.imageURLs as string[];
+    const oldImages = isExitProduct.imageURLs;
 
-    // brand update
-    if (brand && Object.keys(brand).length > 0) {
-      Object.keys(brand).map(key => {
-        const brandKey = `brand.${key}` as keyof Partial<IProduct>;
-        (updatedProductData as any)[brandKey] =
-          brand[key as keyof typeof brand];
-      });
-    }
+    const newImageUrls =
+      await ImageUploadHelpers.imageUploadsToS3BucketForUpdate__V2(
+        updatedImages,
+        oldImages,
+        productImageFile,
+        'productImage',
+        'PRD'
+      );
 
-    // color update
-    if (color && Object.keys(color).length > 0) {
-      Object.keys(color).map(key => {
-        const colorKey = `color.${key}` as keyof Partial<IProduct>;
-        (updatedProductData as any)[colorKey] =
-          color[key as keyof typeof color];
-      });
-    }
-
-    // size update
-    if (size && Object.keys(size).length > 0) {
-      Object.keys(size).map(key => {
-        const sizeKey = `size.${key}` as keyof Partial<IProduct>;
-        (updatedProductData as any)[sizeKey] = size[key as keyof typeof size];
-      });
-    }
+    updatedProductData['imageURLs'] = newImageUrls;
 
     // update the product and stock
     let resultForProduct = null;

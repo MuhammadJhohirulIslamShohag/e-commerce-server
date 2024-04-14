@@ -22,7 +22,7 @@ export type IProduct = {
   clickedProductCount: number;
   quantity: number;
   sold: number;
-  imageURLs: [string];
+  imageURLs: string[];
   isFeatured: boolean;
   status: ProductStatus;
   category: {
@@ -33,7 +33,6 @@ export type IProduct = {
   subCategories: [
     {
       name: string;
-      id?: string;
       subCategoryId: Types.ObjectId | ISubCategory;
     }
   ];
@@ -41,14 +40,18 @@ export type IProduct = {
     name: string;
     brandId: Types.ObjectId | IBrand;
   };
-  color: {
-    name: string;
-    colorId: Types.ObjectId | IColor;
-  };
-  size: {
-    name: string;
-    sizeId: Types.ObjectId | ISize;
-  };
+  colors: [
+    {
+      name: string;
+      colorId: Types.ObjectId | IColor;
+    }
+  ];
+  sizes: [
+    {
+      name: string;
+      sizeId: Types.ObjectId | ISize;
+    }
+  ];
 };
 
 // create product interface type
@@ -58,16 +61,13 @@ export type ICreateProduct = {
   description: string;
   price: number;
   discount: number;
-  clickedProductCount: number;
   quantity: number;
   imageURLs: [IFile];
   isFeatured: boolean;
-  status: ProductStatus;
   category: {
     name: string;
     categoryId: Types.ObjectId | ICategory;
   };
-  keyFeatures: any;
   subCategories: [
     {
       name: string;
@@ -79,14 +79,14 @@ export type ICreateProduct = {
     name: string;
     brandId: Types.ObjectId | IBrand;
   };
-  color: {
+  colors: {
     name: string;
     colorId: Types.ObjectId | IColor;
-  };
-  size: {
+  }[];
+  sizes: {
     name: string;
     sizeId: Types.ObjectId | ISize;
-  };
+  }[];
 };
 
 // product model

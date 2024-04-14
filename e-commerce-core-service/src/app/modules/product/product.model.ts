@@ -69,7 +69,7 @@ const ProductSchema = new Schema<IProduct, ProductModel>(
     isFeatured: {
       type: Boolean,
       required: [true, 'Please provide a is it featured product!'],
-      default: false
+      default: false,
     },
     status: {
       type: String,
@@ -77,22 +77,22 @@ const ProductSchema = new Schema<IProduct, ProductModel>(
       default: 'available',
     },
     category: {
-      name: {
-        type: String,
-      },
       categoryId: {
         type: Schema.Types.ObjectId,
         ref: 'Category',
       },
+      name: {
+        type: String,
+      },
     },
     subCategories: [
       {
-        name: {
-          type: String,
-        },
         subCategoryId: {
           type: Schema.Types.ObjectId,
           ref: 'SubCategory',
+        },
+        name: {
+          type: String,
         },
       },
     ],
@@ -105,24 +105,28 @@ const ProductSchema = new Schema<IProduct, ProductModel>(
         ref: 'Brand',
       },
     },
-    color: {
-      name: {
-        type: String,
+    colors: [
+      {
+        colorId: {
+          type: Schema.Types.ObjectId,
+          ref: 'Color',
+        },
+        name: {
+          type: String,
+        },
       },
-      colorId: {
-        type: Schema.Types.ObjectId,
-        ref: 'Color',
+    ],
+    sizes: [
+      {
+        sizeId: {
+          type: Schema.Types.ObjectId,
+          ref: 'Size',
+        },
+        name: {
+          type: String,
+        },
       },
-    },
-    size: {
-      name: {
-        type: String,
-      },
-      sizeId: {
-        type: Schema.Types.ObjectId,
-        ref: 'Size',
-      },
-    },
+    ],
   },
   {
     timestamps: true,

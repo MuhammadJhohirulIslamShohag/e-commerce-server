@@ -3,13 +3,13 @@ import httpStatus from 'http-status';
 
 import catchAsync from '../../shared/catchAsync';
 import responseReturn from '../../shared/responseReturn';
+import ApiError from '../../errors/ApiError';
 
 import { ProductService } from './product.service';
 import { pick } from '../../shared/pick';
 import { paginationOptionFields } from '../../constants/pagination';
 import { ImageUploadHelpers } from '../../helpers/image-upload.helper';
 import { validateRequireFields } from '../../shared/validateRequireFields';
-import ApiError from '../../errors/ApiError';
 
 class ProductControllerClass {
   #ProductService: typeof ProductService;
@@ -23,8 +23,8 @@ class ProductControllerClass {
     const {
       files,
       brand,
-      size,
-      color,
+      sizes,
+      colors,
       subCategories,
       category,
       ...productData
@@ -39,12 +39,12 @@ class ProductControllerClass {
     }
 
     // validate color data
-    if (Object.keys(JSON.parse(color))?.length < 1) {
+    if (JSON.parse(colors)?.length < 1) {
       throw new ApiError(httpStatus.BAD_REQUEST, 'Color is required!');
     }
 
     // validate size data
-    if (Object.keys(JSON.parse(size))?.length < 1) {
+    if (JSON.parse(sizes)?.length < 1) {
       throw new ApiError(httpStatus.BAD_REQUEST, 'Size is required!');
     }
     // validate category data
@@ -66,10 +66,16 @@ class ProductControllerClass {
     const productDataStructure = {
       ...productData,
       imageURLs: productImageFile,
+      price: JSON.parse(productData.price),
+      discount: JSON.parse(productData.discount),
+      quantity: JSON.parse(productData.quantity),
+      isFeatured: JSON.parse(productData.isFeatured),
       brand: JSON.parse(brand),
-      size: JSON.parse(size),
-      color: JSON.parse(color),
-      subCategories: JSON.parse(subCategories),
+      sizes: JSON.parse(sizes).map((str: string) => JSON.parse(str)),
+      colors: JSON.parse(colors).map((str: string) => JSON.parse(str)),
+      subCategories: JSON.parse(subCategories).map((str: string) =>
+        JSON.parse(str)
+      ),
       category: JSON.parse(category),
     };
 
@@ -116,10 +122,71 @@ class ProductControllerClass {
   // update product controller
   readonly updateProduct = catchAsync(async (req: Request, res: Response) => {
     const productId = req.params.id;
-    const { ...updateProductData } = req.body;
+
+    const {
+      files,
+      brand,
+      sizes,
+      colors,
+      subCategories,
+      category,
+      ...productData
+    } = req.body;
+
+    // check validity request payload body
+    await validateRequireFields(productData);
+
+    // validate brand data
+    if (Object.keys(JSON.parse(brand))?.length < 1) {
+      throw new ApiError(httpStatus.BAD_REQUEST, 'Brand is required!');
+    }
+
+    // validate color data
+    if (JSON.parse(colors)?.length < 1) {
+      throw new ApiError(httpStatus.BAD_REQUEST, 'Color is required!');
+    }
+
+    // validate size data
+    if (JSON.parse(sizes)?.length < 1) {
+      throw new ApiError(httpStatus.BAD_REQUEST, 'Size is required!');
+    }
+    // validate category data
+    if (Object.keys(JSON.parse(category))?.length < 1) {
+      throw new ApiError(httpStatus.BAD_REQUEST, 'Category is required!');
+    }
+    // validate sub categories data
+    if (JSON.parse(subCategories)?.length < 1) {
+      throw new ApiError(httpStatus.BAD_REQUEST, 'Sub Categories is required!');
+    }
+
+    // product image file
+    const productImageFile =
+      await ImageUploadHelpers.imageFilesValidateForUpdate(
+        files,
+        'productImage',
+        'product'
+      );
+
+    const productDataStructure = {
+      ...productData,
+      price: Number(JSON.parse(productData.price)),
+      discount: Number(JSON.parse(productData.discount)),
+      quantity: Number(JSON.parse(productData.quantity)),
+      isFeatured: Boolean(JSON.parse(productData.isFeatured)),
+      imageURLs: JSON.parse(productData.imageURLs),
+      brand: JSON.parse(brand),
+      sizes: JSON.parse(sizes).map((str: string) => JSON.parse(str)),
+      colors: JSON.parse(colors).map((str: string) => JSON.parse(str)),
+      subCategories: JSON.parse(subCategories).map((str: string) =>
+        JSON.parse(str)
+      ),
+      category: JSON.parse(category),
+    };
+
     const result = await this.#ProductService.updateProduct(
       productId,
-      updateProductData
+      productDataStructure,
+      productImageFile
     );
 
     responseReturn(res, {
