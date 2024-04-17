@@ -1,31 +1,34 @@
-import { Schema, model } from 'mongoose'
-import { couponStatus } from './coupon.constant'
-import { CouponModel, ICoupon } from './coupon.interface'
+import { Schema, model } from 'mongoose';
+import { discountType } from './coupon.constant';
+import { CouponModel, ICoupon } from './coupon.interface';
 
 // coupon schema
 const couponSchema = new Schema<ICoupon, CouponModel>(
   {
-    name: {
-      type: String,
-      trim: true,
-      lowercase: true,
-      required: [true, 'Please provide a name!'],
-      minLength: [2, 'Name must be at least 3 characters'],
-      maxLength: [120, 'Name is to large!'],
-    },
     code: {
       type: String,
       lowercase: true,
       unique: true,
       required: [true, 'Please provide a code!'],
     },
-    discount: {
+    discountAmount: {
       type: Number,
     },
-    status: {
+    discountType: {
       type: String,
-      enum: couponStatus,
-      default: 'inValid',
+      enum: discountType,
+      default: 'Percentage',
+    },
+    uses: {
+      type: Number,
+      default: 0,
+    },
+    isActive: {
+      type: Boolean,
+      default: true,
+    },
+    expiresAt: {
+      type: Date,
     },
   },
   {
@@ -34,9 +37,9 @@ const couponSchema = new Schema<ICoupon, CouponModel>(
       virtuals: true,
     },
   }
-)
+);
 
 // coupon model
-const Coupon = model<ICoupon, CouponModel>('Coupon', couponSchema)
+const Coupon = model<ICoupon, CouponModel>('Coupon', couponSchema);
 
-export default Coupon
+export default Coupon;

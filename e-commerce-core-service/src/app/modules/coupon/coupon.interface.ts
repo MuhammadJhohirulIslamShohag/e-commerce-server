@@ -1,22 +1,22 @@
-/* eslint-disable @typescript-eslint/consistent-type-definitions */
-/* eslint-disable no-unused-vars */
-import { Model } from 'mongoose'
+import { Model } from 'mongoose';
 
-// Coupon status enum
-type StatusType = 'valid' | 'inValid'
+// Discount Type Enum
+type DiscountType = 'Fixed' | 'Percentage';
 
 // Coupon interface model type
 export type ICoupon = {
-  name: string
-  code: string
-  discount: number
-  status: StatusType
-}
+  code: string;
+  uses: number;
+  discountAmount: number;
+  isActive: boolean;
+  discountType: DiscountType;
+  expiresAt: Date;
+};
 
 // Coupon model type
-export type CouponModel = Model<ICoupon>
+export type CouponModel = Model<ICoupon>;
 
 // Coupon filterable filed
 export type CouponFilters = {
-  searchTerm?: string
-}
+  searchTerm?: string;
+};
