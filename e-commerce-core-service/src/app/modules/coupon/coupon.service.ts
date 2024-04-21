@@ -5,7 +5,7 @@ import ApiError from '../../errors/ApiError';
 import Coupon from './coupon.model';
 
 import { ICoupon } from './coupon.interface';
-import { couponSearchableFields } from './coupon.constant';
+import { couponSearchableFields, discountType } from './coupon.constant';
 
 class CouponServiceClass {
   #CouponModel;
@@ -16,6 +16,8 @@ class CouponServiceClass {
   }
   // create Coupon service
   readonly createCoupon = async (payload: ICoupon) => {
+    const { discountAmount } = payload;
+
     // check already Coupon exit, if not, throw error
     const isExitCoupon = await this.#CouponModel.findOne({
       code: payload?.code,
@@ -25,13 +27,22 @@ class CouponServiceClass {
     if (isExitCoupon) {
       throw new ApiError(httpStatus.BAD_REQUEST, 'Coupon already Exit!');
     }
+
+    if (payload.discountType === discountType[1] && discountAmount >= 100) {
+      // check if discountType is percentage and discount amount is less than or equal to 100
+      throw new ApiError(
+        httpStatus.BAD_REQUEST,
+        'Discount Type is percentage and discount amount is less than or equal to 100!'
+      );
+    }
+
     const result = await this.#CouponModel.create(payload);
 
     // if not created coupon, throw error
     if (!result) {
       throw new ApiError(httpStatus.BAD_REQUEST, `Coupon Create Failed!`);
     }
-    
+
     return result;
   };
 

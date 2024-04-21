@@ -1,5 +1,5 @@
 // searchable fields
-export const couponSearchableFields = ['name', 'code', 'discount', 'status']
+export const couponSearchableFields = ['code',  'status']
 
 // list of coupon status
 export const discountType = ['Fixed', 'Percentage']

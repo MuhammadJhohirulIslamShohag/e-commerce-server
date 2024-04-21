@@ -9,7 +9,9 @@ const couponCreateZodSchema = z.object({
           required_error: 'Code is Required!',
         })
         .min(1),
-      discountAmount: z.coerce.number().int().min(1),
+      discountAmount: z.string({
+        required_error: 'Discount Amount is Required!',
+      }),
       discountType: z
         .enum([...discountType] as [string, ...string[]], {
           required_error: 'Discount Type is Required!',
@@ -21,13 +23,21 @@ const couponCreateZodSchema = z.object({
       ),
     })
     .refine(
-      data =>
-        data.discountAmount <= 100 || data.discountType !== discountType[1],
+      data => {
+        if (data.discountType === discountType[1]) {
+          // convert discount amount to a number
+          const discountAmountNumber = parseInt(data.discountAmount, 10);
+          // check if discountType is percentage and discount amount is less than or equal to 100
+          return (
+            discountAmountNumber <= 100 || data.discountType !== discountType[1]
+          );
+        }
+      },
       {
         message: 'Percentage discount must be less than or equal to 100',
         path: ['discountAmount'],
       }
-    )
+    ),
 });
 
 const couponUpdateZodSchema = z.object({
