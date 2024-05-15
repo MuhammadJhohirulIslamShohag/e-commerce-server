@@ -84,7 +84,7 @@ class SubCategoryServiceClass {
   // get single sub category method
   readonly getSingleSubCategory = async (payload: string) => {
     const result = await this.#SubCategoryModel
-      .findById(payload)
+      .findOne({ name: payload })
       .populate('categoryId')
       .exec();
     return result;

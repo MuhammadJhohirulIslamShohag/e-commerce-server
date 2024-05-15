@@ -67,6 +67,22 @@ class QueryBuilder<T> {
       delete queryObject.maxPrice;
     }
 
+    // Handling multiple categoryId values
+    const categoryNames = (this?.query?.['category.name'] as string)?.split(
+      ','
+    );
+    if (categoryNames && Array.isArray(categoryNames)) {
+      queryObject['category.name'] = { $in: categoryNames };
+    }
+
+    const subCategoryNames = (
+      this?.query?.['subCategories.name'] as string
+    )?.split(',');
+    
+    if (subCategoryNames && Array.isArray(subCategoryNames)) {
+      queryObject['subCategories.name'] = { $in: subCategoryNames };
+    }
+
     this.modelQuery = this.modelQuery.find(queryObject as FilterQuery<T>);
 
     return this;

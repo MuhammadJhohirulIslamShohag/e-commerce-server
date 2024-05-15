@@ -52,7 +52,7 @@ export type IUser = {
   phoneNumberVerified: boolean;
   email: string;
   location: string;
-  wishList: {
+  wishLists: {
     productId: Types.ObjectId;
   };
   emailVerified: boolean;

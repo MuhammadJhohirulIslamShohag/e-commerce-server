@@ -42,7 +42,7 @@ const userSchema = new Schema<IUser, UserModel>({
     validate: [validator.isURL, 'Please provide valid profile image url!'],
     default: 'https://cdn-icons-png.flaticon.com/512/7930/7930853.png',
   },
-  wishList: [
+  wishLists: [
     {
       productId: {
         type: Schema.Types.ObjectId,

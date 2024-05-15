@@ -11,7 +11,6 @@ import { categorySearchableFields } from './category.constant';
 import { ImageUploadHelpers } from '../../helpers/image-upload.helper';
 import { IFile } from '../../interfaces';
 
-
 class CategoryServiceClass {
   #CategoryModel;
   #ProductModel;
@@ -84,7 +83,7 @@ class CategoryServiceClass {
 
   // get single category method
   readonly getSingleCategory = async (payload: string) => {
-    const result = await this.#CategoryModel.findById(payload).exec();
+    const result = await this.#CategoryModel.findOne({ name: payload }).exec();
     return result;
   };
 

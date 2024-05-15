@@ -26,5 +26,4 @@ export const productFilterableFields = [
   'color.name',
   'brand.name',
   'category.name',
-  'category.categoryId',
 ]
