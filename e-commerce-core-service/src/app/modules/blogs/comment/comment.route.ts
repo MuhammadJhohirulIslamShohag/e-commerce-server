@@ -4,7 +4,7 @@ import validateRequest from '../../../middlewares/validateRequest';
 import { CommentController } from './comment.controller';
 import { CommentValidation } from './comment.validation';
 
-class BrandRouterClass {
+class CommentRouterClass {
   readonly routers: Router;
   constructor() {
     this.routers = Router();
@@ -33,6 +33,6 @@ class BrandRouterClass {
   }
 }
 
-const allRoutes = new BrandRouterClass().routers;
+const allRoutes = new CommentRouterClass().routers;
 
 export { allRoutes as CommentRoutes };

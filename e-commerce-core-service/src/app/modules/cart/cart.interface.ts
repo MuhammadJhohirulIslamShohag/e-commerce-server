@@ -17,8 +17,6 @@ export type ICart = {
 export type ICreateCart = {
   _id: Types.ObjectId | string;
   count: number;
-  color: string;
-  size: string;
   price: number;
 };
 

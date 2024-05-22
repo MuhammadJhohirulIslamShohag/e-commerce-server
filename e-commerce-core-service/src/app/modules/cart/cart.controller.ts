@@ -42,6 +42,18 @@ class CartControllerClass {
     });
   });
 
+  // get user carts controller
+  readonly userCarts = catchAsync(async (req: Request, res: Response) => {
+    const result = await this.#CartService.userCarts(req.params.id);
+
+    responseReturn(res, {
+      statusCode: httpStatus.OK,
+      success: true,
+      message: 'User Carts Retrieved Successfully!',
+      data: result,
+    });
+  });
+
   // delete cart controller
   readonly deleteCart = catchAsync(async (req: Request, res: Response) => {
     const { userId } = req.user as JwtPayload;

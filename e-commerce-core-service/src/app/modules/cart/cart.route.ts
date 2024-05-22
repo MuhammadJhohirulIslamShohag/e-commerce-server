@@ -13,7 +13,10 @@ class CartRouterClass {
     this.routers.route('/').post(CartController.createCart);
 
     // update and get single cart, delete routes
-    this.routers.route('/:id').delete(CartController.deleteCart);
+    this.routers
+      .route('/:id')
+      .get(CartController.userCarts)
+      .delete(CartController.deleteCart);
   }
 }
 

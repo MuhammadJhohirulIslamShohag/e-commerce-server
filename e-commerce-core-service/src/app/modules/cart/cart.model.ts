@@ -11,7 +11,6 @@ const cartSchema = new Schema<ICart, CartModel>(
           ref: 'Product',
         },
         count: Number,
-        color: String,
         price: Number,
       },
     ],

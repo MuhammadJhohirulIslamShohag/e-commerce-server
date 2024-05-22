@@ -11,6 +11,7 @@ import { OrderRoutes } from '../modules/order/order.route';
 import { ReviewRoutes } from '../modules/review/review.route';
 import { BlogRoutes } from '../modules/blogs/blog/blog.route';
 import { CommentRoutes } from '../modules/blogs/comment/comment.route';
+import { CartRoutes } from '../modules/cart/cart.route';
 
 const router: Router = express.Router();
 
@@ -30,6 +31,10 @@ const moduleRoutes = [
   {
     path: '/orders',
     route: OrderRoutes,
+  },
+  {
+    path: '/carts',
+    route: CartRoutes,
   },
   {
     path: '/sub-categories',
@@ -54,6 +59,10 @@ const moduleRoutes = [
   {
     path: '/blogs',
     route: BlogRoutes,
+  },
+  {
+    path: '/comments',
+    route: CommentRoutes,
   },
   {
     path: '/comments',

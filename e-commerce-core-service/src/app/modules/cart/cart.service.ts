@@ -49,16 +49,12 @@ class CartServiceClass {
       const object: {
         product?: Types.ObjectId | string;
         count?: number;
-        color?: string;
-        size?: string;
         price?: number;
       } = {};
 
       object.product = payload[i]._id;
       object.count = payload[i].count;
-      object.color = payload[i].color;
-      object.size = payload[i].size;
-      
+
       const priceOfProduct = await this.#ProductModel
         .findOne({ _id: payload?.[i]._id })
         .select('price')
@@ -103,6 +99,19 @@ class CartServiceClass {
       meta,
       result,
     };
+  };
+
+  // get user carts service
+  readonly userCarts = async (payload: string) => {
+    // checking already exist cart which to save database
+    const carts = await this.#CartModel
+      .findOne({
+        orderedBy: payload,
+      })
+      .populate('products.product')
+      .exec();
+
+    return carts;
   };
 
   // delete cart service
