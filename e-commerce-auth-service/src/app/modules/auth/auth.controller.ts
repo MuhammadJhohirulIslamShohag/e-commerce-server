@@ -19,74 +19,56 @@ class AuthControllerClass {
   }
 
   // create user
-  readonly createUser = catchAsync(async (req: Request, res: Response) => {
-    const { provider, ...userData } = req.body;
-    const result = await this.#AuthService.createUser(provider, userData);
+  readonly register = catchAsync(async (req: Request, res: Response) => {
+    const { ...userData } = req.body;
+    const result = await this.#AuthService.register(userData);
+
+    // create access token
+    const accessToken = jwtHelpers.createToken(
+      {
+        userId: result?._id,
+        role: result?.role,
+      },
+      config?.jwt?.jwt_secret as Secret,
+      config?.jwt?.jwt_expire_in as string
+    );
+
+    const refreshToken = jwtHelpers.createToken(
+      {
+        userId: result?._id,
+        role: result?.role,
+      },
+      config?.jwt?.jwt_refresh_secret as Secret,
+      config?.jwt?.jwt_refresh_expire_in as string
+    );
+
+    // set cookie to browser
+    const cookieOption = {
+      secure: config.env === 'production',
+      httpOnly: config.env === 'production',
+      sameSite: 'none' as const,
+    };
+
+    res.cookie('refreshToken', refreshToken || '', cookieOption);
+    res.cookie('accessToken', accessToken, cookieOption);
+
+    const mailData = {
+      to: userData?.email,
+      subject: 'Success',
+      message: signUpSuccessEmailTemplate(result?.name || ''),
+    };
+    await emailSenderHelpers.sendEmailWithNodeMailer(mailData);
 
     responseReturn(res, {
       statusCode: httpStatus.OK,
       success: true,
-      message: result.message,
-      data: null,
+      message: 'User registered successfully!',
+      data: result,
     });
   });
 
-  // create user with verified
-  readonly createUserWithVerified = catchAsync(
-    async (req: Request, res: Response) => {
-      const { otp, ...userData } = req.body;
-      const result = await this.#AuthService.createUserWithVerified(
-        otp,
-        userData
-      );
-
-      // create access token
-      const accessToken = jwtHelpers.createToken(
-        {
-          userId: result?._id,
-          role: result?.role,
-        },
-        config?.jwt?.jwt_secret as Secret,
-        config?.jwt?.jwt_expire_in as string
-      );
-
-      const refreshToken = jwtHelpers.createToken(
-        {
-          userId: result?._id,
-          role: result?.role,
-        },
-        config?.jwt?.jwt_refresh_secret as Secret,
-        config?.jwt?.jwt_refresh_expire_in as string
-      );
-
-      // set cookie to browser
-      const cookieOption = {
-        secure: config.env === 'production',
-        httpOnly: config.env === 'production',
-        sameSite: 'none' as const,
-      };
-
-      res.cookie('refreshToken', refreshToken || '', cookieOption);
-      res.cookie('accessToken', accessToken, cookieOption);
-
-      const mailData = {
-        to: userData?.email,
-        subject: 'Success',
-        message: signUpSuccessEmailTemplate(result?.name || ''),
-      };
-      await emailSenderHelpers.sendEmailWithNodeMailer(mailData);
-
-      responseReturn(res, {
-        statusCode: httpStatus.OK,
-        success: true,
-        message: 'User registered successfully!',
-        data: result,
-      });
-    }
-  );
-
   // login user
-  readonly loginUser = catchAsync(async (req: Request, res: Response) => {
+  readonly login = catchAsync(async (req: Request, res: Response) => {
     const { ...loginData } = req.body;
     const result = await this.#AuthService.loginUser(loginData);
 
@@ -127,50 +109,6 @@ class AuthControllerClass {
     });
   });
 
-  // login user with social
-  readonly loginUserWithSocial = catchAsync(
-    async (req: Request, res: Response) => {
-      const { ...loginData } = req.body;
-      const result = await this.#AuthService.loginUserWithSocial(loginData);
-
-      // create access token and refresh token
-      const accessToken = jwtHelpers.createToken(
-        {
-          userId: result._id,
-          role: result.role,
-        },
-        config?.jwt?.jwt_secret as Secret,
-        config?.jwt?.jwt_expire_in as string
-      );
-
-      const refreshToken = jwtHelpers.createToken(
-        {
-          userId: result._id,
-          role: result.role,
-        },
-        config?.jwt?.jwt_refresh_secret as Secret,
-        config?.jwt?.jwt_refresh_expire_in as string
-      );
-
-      // set cookie to browser
-      const cookieOption = {
-        secure: config.env === 'production',
-        httpOnly: false,
-        sameSite: 'none' as const,
-      };
-
-      res.cookie('refreshToken', refreshToken, cookieOption);
-      res.cookie('accessToken', accessToken, cookieOption);
-
-      responseReturn(res, {
-        statusCode: httpStatus.OK,
-        success: true,
-        message: 'User logged with social successfully!',
-        data: result,
-      });
-    }
-  );
-
   // refresh token controller
   readonly refreshToken = catchAsync(async (req: Request, res: Response) => {
     const { refreshToken } = req.cookies;
@@ -204,19 +142,6 @@ class AuthControllerClass {
     });
   });
 
-  // forgot password
-  readonly forgotPassword = catchAsync(async (req: Request, res: Response) => {
-    const { provider, ...userData } = req.body;
-    const result = await this.#AuthService.forgotPassword(provider, userData);
-
-    responseReturn(res, {
-      statusCode: httpStatus.OK,
-      success: true,
-      message: result.message,
-      data: null,
-    });
-  });
-
   // password reset
   readonly passwordReset = catchAsync(async (req: Request, res: Response) => {
     const { ...userData } = req.body;
@@ -235,10 +160,7 @@ class AuthControllerClass {
     async (req: Request, res: Response) => {
       const { ...userData } = req.body;
       const user = req.user as JwtPayload;
-      const result = await this.#AuthService.userChangePasswordReset(
-        user,
-        userData
-      );
+      const result = await this.#AuthService.userChangePassword(user, userData);
 
       responseReturn(res, {
         statusCode: httpStatus.OK,
@@ -248,19 +170,6 @@ class AuthControllerClass {
       });
     }
   );
-
-  // re-send otp
-  readonly resendOtp = catchAsync(async (req: Request, res: Response) => {
-    const { provider, ...otpResendData } = req.body;
-    const result = await this.#AuthService.resendOtp(otpResendData, provider);
-
-    responseReturn(res, {
-      statusCode: httpStatus.OK,
-      success: true,
-      message: 'Otp Resend successfully!',
-      data: result,
-    });
-  });
 }
 
 export const AuthController = new AuthControllerClass(AuthService);

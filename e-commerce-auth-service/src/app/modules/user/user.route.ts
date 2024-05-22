@@ -1,11 +1,11 @@
 import { Router } from 'express';
 
 import validateRequest from '../../middlewares/validateRequest';
-import auth from '../../middlewares/auth';
+// import auth from '../../middlewares/auth';
 
 import { UserValidation } from './user.validation';
 import { UserController } from './user.controller';
-import { ENUM_USER_ROLE } from '../../../enum/user';
+// import { ENUM_USER_ROLE } from '../../../enum/user';
 
 class UserRoutesClass {
   readonly routers: Router;
@@ -15,51 +15,19 @@ class UserRoutesClass {
   }
 
   #RouterAction() {
-    // add shipping address
-    this.routers.post(
-      '/add-shipping-address',
-      validateRequest(UserValidation.addShippingAddressZodSchema),
-      auth(ENUM_USER_ROLE.USER),
-      UserController.addShippingAddressToUser
-    );
-
-    // update shipping address
-    this.routers.patch(
-      '/update-shipping-address',
-      validateRequest(UserValidation.updateShippingAddressZodSchema),
-      auth(ENUM_USER_ROLE.USER),
-      UserController.updateShippingAddressToUser
-    );
-
-    // add shipping address routes
-    this.routers.patch(
-      '/shipping-address/:id',
-      validateRequest(UserValidation.addShippingAddressesZodSchema),
-      UserController.addShippingAddress
-    );
-
-    // update shipping address
-    this.routers.delete(
-      '/delete-shipping-address/:id',
-      auth(ENUM_USER_ROLE.USER),
-      UserController.deleteShippingAddressToUser
-    );
-
     // add wish list
     this.routers.post(
       '/wishlist',
-      auth(ENUM_USER_ROLE.USER),
+      // auth(ENUM_USER_ROLE.USER),
       validateRequest(UserValidation.addWishListProductZodSchema),
       UserController.addWishListProduct
     );
 
     // delete wish list
-    this.routers
-      .route('/wishlist/:wishlistId')
-      .delete(
-        auth(ENUM_USER_ROLE.USER),
-        UserController.deleteProductFromWishlist
-      );
+    this.routers.route('/wishlist/:wishlistId').delete(
+      // auth(ENUM_USER_ROLE.USER),
+      UserController.deleteProductFromWishlist
+    );
 
     // all user
     this.routers.get('/', UserController.allUsers);
@@ -69,21 +37,21 @@ class UserRoutesClass {
       .route('/:id')
       .patch(
         validateRequest(UserValidation.updateUserZodSchema),
-        auth(
-          ENUM_USER_ROLE.ADMIN,
-          ENUM_USER_ROLE.USER
-        ),
+        // auth(
+        //   ENUM_USER_ROLE.ADMIN,
+        //   ENUM_USER_ROLE.USER
+        // ),
         UserController.updateUser
       )
       .delete(
-        auth(
-          ENUM_USER_ROLE.ADMIN,
-          ENUM_USER_ROLE.USER
-        ),
+        // auth(
+        //   ENUM_USER_ROLE.ADMIN,
+        //   ENUM_USER_ROLE.USER
+        // ),
         UserController.deleteUser
       )
       .get(
-        auth(ENUM_USER_ROLE.ADMIN, ENUM_USER_ROLE.USER),
+        // auth(ENUM_USER_ROLE.ADMIN, ENUM_USER_ROLE.USER),
         UserController.getSingleUser
       );
   }

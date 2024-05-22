@@ -19,7 +19,6 @@ export type ShippingAddress = {
   postCode: string;
   country: string;
   state: string;
-  defaultAddress: boolean;
   shippingAddressId?: string;
 };
 
@@ -34,22 +33,10 @@ export type IShippingAddress = {
   phoneNumber: string;
 };
 
-type OrderAddress = {
-  fullName: string;
-  addressLine1: string;
-  addressLine2?: string;
-  city: string;
-  stateProvince: string;
-  postalCode: string;
-  country: string;
-  phoneNumber: string;
-};
 
 export type IUser = {
   _id?: string;
   name?: string;
-  phone: string;
-  phoneNumberVerified: boolean;
   email: string;
   location: string;
   wishLists: {
@@ -59,9 +46,21 @@ export type IUser = {
   password: string;
   profileImage?: string;
   address: UserAddress;
-  shippingAddress: ShippingAddress[];
-  orderAddress: OrderAddress;
+  shippingAddress: ShippingAddress;
   role: UserRoleType;
+};
+
+export type ICreateUser = {
+  name: string;
+  email: string;
+  password: string;
+  otp: number;
+};
+
+export type TForgotPassword = {
+  email: string;
+  password: string;
+  otp: number;
 };
 
 export type UserModel = Model<IUser>;

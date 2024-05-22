@@ -55,83 +55,6 @@ class UserControllerClass {
     });
   });
 
-  // add shipping address user method
-  readonly addShippingAddressToUser = catchAsync(
-    async (req: Request, res: Response) => {
-      const { userId } = req.user as JwtPayload;
-      const { ...shippingAddressData } = req.body;
-      const result = await this.#UserService.addShippingAddressToUser(
-        userId,
-        shippingAddressData
-      );
-
-      responseReturn(res, {
-        statusCode: httpStatus.OK,
-        success: true,
-        message: 'Add Shipping Address To User Successfully!',
-        data: result,
-      });
-    }
-  );
-
-  // update shipping address user method
-  readonly updateShippingAddressToUser = catchAsync(
-    async (req: Request, res: Response) => {
-      const { userId } = req.user as JwtPayload;
-      const { ...updateShippingAddressData } = req.body;
-
-      const result = await this.#UserService.updateShippingAddressToUser(
-        userId,
-        updateShippingAddressData
-      );
-
-      responseReturn(res, {
-        statusCode: httpStatus.OK,
-        success: true,
-        message: 'Update Shipping Address To User Successfully!',
-        data: result,
-      });
-    }
-  );
-
-  // shipping address controller
- readonly addShippingAddress = catchAsync(async (req: Request, res: Response) => {
-    const userId = req.params.id;
-    const { ...shippingAddress } = req.body;
-    
-    const result = await this.#UserService.addShippingAddress(
-      userId,
-      shippingAddress
-    );
-
-    responseReturn(res, {
-      statusCode: httpStatus.OK,
-      success: true,
-      message: 'Shipping Address added Successfully!',
-      data: result,
-    });
-  });
-
-  // update shipping address user method
-  readonly deleteShippingAddressToUser = catchAsync(
-    async (req: Request, res: Response) => {
-      const { userId } = req.user as JwtPayload;
-      const id = req.params.id;
-
-      const result = await this.#UserService.deleteShippingAddressToUser(
-        userId,
-        id
-      );
-
-      responseReturn(res, {
-        statusCode: httpStatus.OK,
-        success: true,
-        message: 'Delete Shipping Address To User Successfully!',
-        data: result,
-      });
-    }
-  );
-
   // delete user method
   readonly deleteUser = catchAsync(async (req: Request, res: Response) => {
     const id = req.params.id;
@@ -181,6 +104,26 @@ class UserControllerClass {
       });
     }
   );
+
+  // update shipping address user method
+  // readonly updateShippingAddressToUser = catchAsync(
+  //   async (req: Request, res: Response) => {
+  //     const { userId } = req.user as JwtPayload;
+  //     const { ...updateShippingAddressData } = req.body;
+
+  //     const result = await this.#UserService.updateShippingAddressToUser(
+  //       userId,
+  //       updateShippingAddressData
+  //     );
+
+  //     responseReturn(res, {
+  //       statusCode: httpStatus.OK,
+  //       success: true,
+  //       message: 'Update Shipping Address To User Successfully!',
+  //       data: result,
+  //     });
+  //   }
+  // );
 }
 
 export const UserController = new UserControllerClass(UserService);

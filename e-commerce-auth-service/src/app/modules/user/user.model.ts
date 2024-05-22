@@ -17,10 +17,6 @@ const userSchema = new Schema<IUser, UserModel>({
     trim: true,
     validate: [validator.isEmail, 'Provide a valid email!'],
   },
-  emailVerified: {
-    type: Boolean,
-    default: false,
-  },
   password: {
     type: String,
     required: [true, 'Password is required!'],
@@ -50,8 +46,8 @@ const userSchema = new Schema<IUser, UserModel>({
       },
     },
   ],
-  shippingAddress: [
-    {
+  shippingAddress: {
+    type: {
       firstName: {
         type: String,
       },
@@ -79,42 +75,6 @@ const userSchema = new Schema<IUser, UserModel>({
       state: {
         type: String,
       },
-      defaultAddress: {
-        type: Boolean,
-      },
-    },
-  ],
-  orderAddress: {
-    fullName: {
-      type: String,
-    },
-    addressLine1: {
-      type: String,
-    },
-    addressLine2: {
-      type: String,
-    },
-    city: {
-      type: String,
-    },
-    stateProvince: {
-      type: String,
-    },
-    postalCode: {
-      type: String,
-    },
-    country: {
-      type: String,
-    },
-    phoneNumber: {
-      type: String,
-      validate: {
-        validator: function (v: string) {
-          return /^\+?[1-9]\d{1,14}$/.test(v);
-        },
-        message: (props) =>
-          `${props.value} is not a valid contact number!`,
-      },
     },
   },
   role: {
@@ -123,7 +83,6 @@ const userSchema = new Schema<IUser, UserModel>({
     default: 'user',
   },
 });
-
 
 const User = model<IUser, UserModel>('User', userSchema);
 

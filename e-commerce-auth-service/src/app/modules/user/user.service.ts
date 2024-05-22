@@ -1,13 +1,11 @@
-import mongoose, { Types } from 'mongoose';
 import httpStatus from 'http-status';
 
 import ApiError from '../../../errors/ApiError';
 import User from './user.model';
 import QueryBuilder from '../../../builder/query.builder';
 
-import { IShippingAddress, IUser, ShippingAddress } from './user.interface';
+import { IUser } from './user.interface';
 import { userSearchableFields } from './user.constant';
-import { PasswordHelpers } from '../../../helpers/password.helper';
 
 class UserServiceClass {
   #UserModel;
@@ -39,217 +37,6 @@ class UserServiceClass {
     };
   };
 
-  // add shipping address method
-  readonly addShippingAddressToUser = async (
-    id: string,
-    payload: ShippingAddress
-  ) => {
-    // check User is exit, if not throw error
-    const isExitUser = await this.#UserModel.findOne({
-      _id: id,
-    });
-
-    if (!isExitUser) {
-      throw new ApiError(httpStatus.CONFLICT, 'User Not Exit!');
-    }
-
-    // start transaction
-    let result = null;
-    const session = await mongoose.startSession();
-    try {
-      // start a session for the transaction
-      await session.startTransaction();
-
-      // update defaultAddress if defaultAddress has true in shipping address
-      if (payload.defaultAddress == true) {
-        await this.#UserModel.updateMany(
-          { _id: id, 'shippingAddress.defaultAddress': true },
-          {
-            $set: {
-              'shippingAddress.$[elem].defaultAddress': false,
-            },
-          },
-          {
-            multi: true,
-            arrayFilters: [{ 'elem.defaultAddress': true }],
-            session,
-          }
-        );
-      }
-
-      // push User to product
-      result = await this.#UserModel.findOneAndUpdate(
-        { _id: id },
-        {
-          $push: {
-            shippingAddress: {
-              firstName: payload.firstName,
-              lastName: payload.lastName,
-              company: payload.company,
-              address1: payload.address1,
-              address2: payload.address2,
-              city: payload.city,
-              postCode: payload.postCode,
-              country: payload.country,
-              state: payload.state,
-              defaultAddress: payload.defaultAddress,
-            },
-          },
-        },
-        {
-          new: true,
-          session,
-        }
-      );
-      // commit the transaction
-      await session.commitTransaction();
-      await session.endSession();
-    } catch (error) {
-      await session.abortTransaction();
-      await session.endSession();
-    }
-
-    return result;
-  };
-
-  // update shipping address method
-  readonly updateShippingAddressToUser = async (
-    id: string,
-    payload: Partial<ShippingAddress>
-  ) => {
-    // check User is exit, if not throw error
-    const isExitUser = await this.#UserModel.findOne({
-      _id: id,
-    });
-
-    if (!isExitUser) {
-      throw new ApiError(httpStatus.CONFLICT, 'User Not Exit!');
-    }
-
-    // update defaultAddress if defaultAddress has true in shipping address
-    await this.#UserModel.updateMany(
-      { _id: id, 'shippingAddress.defaultAddress': true },
-      {
-        $set: {
-          'shippingAddress.$[elem].defaultAddress': false,
-        },
-      },
-      {
-        multi: true,
-        arrayFilters: [{ 'elem.defaultAddress': true }],
-      }
-    );
-
-    // show result data
-    let result = null;
-
-    // update shipping address single field
-    if (payload && Object.keys(payload)?.length) {
-      const { shippingAddressId, ...others } = payload;
-      const objectId = new Types.ObjectId(shippingAddressId);
-
-      const user = await this.#UserModel.findOne({ _id: id });
-
-      const updateShippingAddressObj = user?.shippingAddress?.find(
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        (shippingAddr: any) =>
-          new Types.ObjectId(shippingAddr._id).equals(objectId)
-      );
-
-      result = await this.#UserModel.findOneAndUpdate(
-        { _id: id, 'shippingAddress._id': shippingAddressId },
-        {
-          $set: {
-            'shippingAddress.$.firstName':
-              others?.firstName || updateShippingAddressObj?.firstName,
-            'shippingAddress.$.lastName':
-              others?.lastName || updateShippingAddressObj?.lastName,
-            'shippingAddress.$.company':
-              others?.company || updateShippingAddressObj?.company,
-            'shippingAddress.$.address1':
-              others?.address1 || updateShippingAddressObj?.address1,
-            'shippingAddress.$.address2':
-              others?.address2 || updateShippingAddressObj?.address2,
-            'shippingAddress.$.city':
-              others?.city || updateShippingAddressObj?.city,
-            'shippingAddress.$.postCode':
-              others?.postCode || updateShippingAddressObj?.postCode,
-            'shippingAddress.$.country':
-              others?.country || updateShippingAddressObj?.country,
-            'shippingAddress.$.state':
-              others?.state || updateShippingAddressObj?.state,
-            'shippingAddress.$.defaultAddress':
-              others?.defaultAddress ||
-              updateShippingAddressObj?.defaultAddress,
-          },
-        },
-        {
-          new: true,
-        }
-      );
-    }
-
-    return result;
-  };
-
-  // add shipping address
-  readonly addShippingAddress = async (
-    id: string,
-    payload: IShippingAddress
-  ) => {
-    // check already user exit, if not throw error
-    const isExitUser = await User.findById({ _id: id });
-    if (!isExitUser) {
-      throw new ApiError(httpStatus.NOT_FOUND, 'User Not Found!');
-    }
-
-    // update the shipping address
-    const result = await User.findOneAndUpdate(
-      { _id: id },
-      {
-        $addToSet: {
-          shippingAddress: payload,
-        },
-      },
-      {
-        new: true,
-      }
-    );
-
-    return result;
-  };
-
-  // delete shipping address method
-  readonly deleteShippingAddressToUser = async (
-    id: string,
-    payload: string
-  ) => {
-    // check User is exit, if not throw error
-    const isExitUser = await this.#UserModel.findOne({
-      _id: id,
-    });
-
-    if (!isExitUser) {
-      throw new ApiError(httpStatus.CONFLICT, 'User Not Exit!');
-    }
-
-    const result = await this.#UserModel.findOneAndUpdate(
-      { _id: id },
-      {
-        $pull: {
-          shippingAddress: {
-            _id: payload,
-          },
-        },
-      },
-      {
-        new: true,
-      }
-    );
-
-    return result;
-  };
-
   // get single user method
   readonly getSingleUser = async (payload: string): Promise<IUser | null> => {
     const result = await this.#UserModel
@@ -270,23 +57,21 @@ class UserServiceClass {
       throw new ApiError(httpStatus.NOT_FOUND, 'User not found!');
     }
 
-    const { ...userData } = userPayload;
+    const { shippingAddress, ...userData } = userPayload;
     const updatedUserData: Partial<IUser> = { ...userData };
+
+    // update name property
+    if (shippingAddress && Object.keys(shippingAddress).length > 0) {
+      Object.keys(shippingAddress).forEach(key => {
+        const nameKey = `shippingAddress.${key}` as keyof Partial<IUser>;
+        (updatedUserData as any)[nameKey] =
+          shippingAddress[key as keyof typeof shippingAddress];
+      });
+    }
 
     // only admin update user role, so check roleData is admin, if admin, update the role
     if (userData.role && roleData === 'admin') {
       updatedUserData['role'] = userData.role;
-    }
-
-    // if password field, have to hash password
-    if (userData.password) {
-      const hashPassword = await PasswordHelpers.hashPassword(
-        userData.password
-      );
-      if (!hashPassword) {
-        throw new ApiError(httpStatus.BAD_REQUEST, 'Password hashing failed!');
-      }
-      updatedUserData['password'] = hashPassword;
     }
 
     const result = await this.#UserModel.findOneAndUpdate(

@@ -16,27 +16,15 @@ class AuthRoutesClass {
 
   #RouterAction() {
     this.routers.post(
-      '/create-user',
+      '/register',
       validateRequest(AuthValidation.createUserZodSchema),
-      AuthController.createUser
+      AuthController.register
     );
 
     this.routers.post(
-      '/create-user/verified',
-      validateRequest(AuthValidation.createUserWithVerifiedZodSchema),
-      AuthController.createUserWithVerified
-    );
-
-    this.routers.post(
-      '/login-user',
+      '/login',
       validateRequest(AuthValidation.loginUserZodSchema),
-      AuthController.loginUser
-    );
-
-    this.routers.post(
-      '/login-with-social',
-      validateRequest(AuthValidation.loginUserWithSocialZodSchema),
-      AuthController.loginUserWithSocial
+      AuthController.login
     );
 
     this.routers.post(
@@ -51,12 +39,6 @@ class AuthRoutesClass {
     );
 
     this.routers.post(
-      '/forgot-password',
-      validateRequest(AuthValidation.forgotPasswordZodSchema),
-      AuthController.forgotPassword
-    );
-
-    this.routers.post(
       '/reset-password',
       validateRequest(AuthValidation.resetPasswordZodSchema),
       AuthController.passwordReset
@@ -67,12 +49,6 @@ class AuthRoutesClass {
       validateRequest(AuthValidation.userChangePasswordZodSchema),
       auth(ENUM_USER_ROLE.ADMIN, ENUM_USER_ROLE.USER),
       AuthController.userChangePasswordReset
-    );
-
-    this.routers.post(
-      '/resend-otp',
-      validateRequest(AuthValidation.resendOtpZodSchema),
-      AuthController.resendOtp
     );
   }
 }

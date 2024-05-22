@@ -1,4 +1,4 @@
-const OtpEmailTemplate = (otp: any) => {
+const OtpEmailTemplate = (otp: number) => {
   return `<!DOCTYPE html>
   <html lang="en">
     <head>
@@ -20,7 +20,7 @@ const OtpEmailTemplate = (otp: any) => {
           padding-top: 40px;
         "
       >
-        Max e-commerce
+        Aladin E-Commerce
       </h1>
       <div
         style="
@@ -45,12 +45,14 @@ const OtpEmailTemplate = (otp: any) => {
           alt=""
         />
         <div>
-          <p style="color: #4f4f4f; font-size: 26px; font-weight: 500; margin: 0">Here is your One Time Password </h2>
-          <p style="color: #6C6C6C; font-size: 20px; font-weight: 300; margin: 10px 0">to validate your phone number</h3>
+          <p style="color: #4f4f4f; font-size: 26px; font-weight: 500; margin: 0">Here is your OTP </h2>
+          <p style="color: #6C6C6C; font-size: 20px; font-weight: 300; margin: 10px 0">For  Verifying, Please Verify your Email!</h3>
         </div>
         <div>
           <p style="font-size: 60px; font-weight: bold; margin: 25px 0 0 0;">${otp}</p>
-          <p style="margin: 0; color: red; font-size: 16px; margin-top: 5px">Valid for 10 minutes only</p>
+          <p style="margin: 0; color: red; font-size: 16px; margin-top: 5px">Valid for ${new Date(
+            Date.now() + 5 * 60 * 1000
+          )} only</p>
         </div>
       </div>
       <div style="display: flex; align-items:center; justify-content: center; margin-top: 20px;color:#FFF; ">
@@ -61,7 +63,7 @@ const OtpEmailTemplate = (otp: any) => {
   
     </body>
   </html>
-  `
-}
+  `;
+};
 
-export default OtpEmailTemplate
+export default OtpEmailTemplate;

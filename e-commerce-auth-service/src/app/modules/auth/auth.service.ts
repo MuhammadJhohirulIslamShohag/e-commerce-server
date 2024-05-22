@@ -1,239 +1,75 @@
-import mongoose from 'mongoose';
 import bcrypt from 'bcrypt';
 import httpStatus from 'http-status';
 import { JwtPayload, Secret } from 'jsonwebtoken';
 
-import Otp from '../otp/opt.model';
 import User from '../user/user.model';
 import config from '../../../config';
 import ApiError from '../../../errors/ApiError';
-import sendSmsWithBulkSms from '../../../helpers/sendSms.helper';
-import OtpEmailTemplate from '../../../utils/emailTemplate/otpemailTemplate';
 
-import { emailSenderHelpers } from '../../../helpers/emailSend.helper';
-import { GenerateNumberHelpers } from '../../../helpers/generateNumber.helper';
 import { jwtHelpers } from '../../../helpers/jwt.helper';
 import { PasswordHelpers } from '../../../helpers/password.helper';
-import { IOtp } from '../otp/opt.interface';
-import { IUser } from '../user/user.interface';
+import { ICreateUser, IUser, TForgotPassword } from '../user/user.interface';
+import { OTPService } from '../otp/otp.service';
 
 class AuthServiceClass {
   #UserModel;
-  #OtpModel;
+  #OTPService;
 
   constructor() {
     this.#UserModel = User;
-    this.#OtpModel = Otp;
+    this.#OTPService = OTPService;
   }
 
   // create user
-  readonly createUser = async (provider: string, payload: IUser) => {
-    const query: Partial<{ email: string; phone: string }> = {};
-
-    if (payload?.email) {
-      query.email = payload.email;
-    }
-
-    if (payload?.phone !== undefined && payload.phone !== null) {
-      query.phone = payload.phone;
-    }
-
+  readonly register = async (payload: ICreateUser) => {
     // check user is already exit
-    const isUserExit = await this.#UserModel.findOne(query);
+    const isUserExit = await this.#UserModel.findOne({ email: payload.email });
 
     if (isUserExit) {
-      throw new ApiError(httpStatus.BAD_REQUEST, 'User is already exit!');
+      throw new ApiError(httpStatus.NOT_ACCEPTABLE, 'User is already exit!');
     }
 
     // hash the password
     const hashedPassword = PasswordHelpers.hashPassword(payload.password);
 
-    // generate random number for opt and create otp
-    const otp = GenerateNumberHelpers.generateRandomSixDigitNumber();
+    // verifying otp
+    await this.#OTPService.isOTPOk(payload.email, payload.otp);
 
-    const otpObj = {
-      otp,
-      email: payload?.email,
-      phone: payload?.phone,
-      expireDate: new Date().getDay() + 1,
-      method: provider,
-    };
-    let message = '';
-    const session = await mongoose.startSession();
-    try {
-      // start a session for the transaction
-      session.startTransaction();
-
-      const otpResult = await this.#OtpModel.create([otpObj], { session });
-      if (!otpResult.length) {
-        throw new ApiError(httpStatus.BAD_REQUEST, 'Otp create failed!');
-      }
-
-      // create user
-      const result = await this.#UserModel.create(
-        [{ ...payload, password: hashedPassword }],
-        { session }
-      );
-      if (!result.length) {
-        throw new ApiError(httpStatus.BAD_REQUEST, 'User create failed!');
-      }
-      const otp = otpResult[0];
-      if (provider === 'email') {
-        // set mail data for otp verification
-        const mailData = {
-          to: payload?.email,
-          subject: 'OTP',
-          message: OtpEmailTemplate(otp.otp),
-        };
-        // sent email using nodemailer
-        const messageId = await emailSenderHelpers.sendEmailWithNodeMailer(
-          mailData
-        );
-        if (messageId === 'failed') {
-          message = 'Failed to send Otp, please contact their support section';
-        } else {
-          message =
-            'Otp send your email for varififiction, please verify your email!';
-        }
-      }
-      // if phone, send message by phone
-      if (provider === 'phone') {
-        const phoneNumber = payload?.phone;
-        const smsData = `E-commerce otp is ${otp?.otp}`;
-        const result = await sendSmsWithBulkSms(phoneNumber, smsData);
-
-        if (result.response_code === 202) {
-          message =
-            'sms sent successfully, please verify your account by phone !';
-        }
-      }
-      // Commit the transaction
-      await session.commitTransaction();
-      await session.endSession();
-    } catch (error) {
-      await session.abortTransaction();
-      await session.endSession();
-      throw error;
-    }
-    return {
-      message,
-    };
-  };
-
-  // create user with verified
-  readonly createUserWithVerified = async (
-    otpPayload: Partial<IOtp>,
-    userPayload: Partial<IUser>
-  ) => {
-    // check otp is expire or not
-    const optResult = await this.#OtpModel.findOne({
-      $or: [
-        {
-          otp: otpPayload,
-          email: userPayload?.email,
-        },
-        {
-          otp: otpPayload,
-          phone: userPayload?.phone,
-        },
-      ],
+    // create user
+    const result = await this.#UserModel.create({
+      ...payload,
+      password: hashedPassword,
     });
 
-    if (!optResult) {
-      throw new ApiError(httpStatus.BAD_REQUEST, 'Invalid otp!');
-    }
-
-    // if (optResult && new Date().getDay() > optResult?.expireDate.getDay()) {
-    //   throw new ApiError(httpStatus.CONFLICT, 'Email Verify is Expired!')
-    // }
-
-    let result = null;
-    if (userPayload?.email) {
-      result = await this.#UserModel.findOneAndUpdate(
-        { email: userPayload.email },
-        {
-          emailVerified: true,
-        },
-        {
-          new: true,
-        }
-      );
-    }
-
-    if (userPayload?.phone) {
-      result = await this.#UserModel.findOneAndUpdate(
-        { phone: userPayload.phone },
-        {
-          phoneNumberVerified: true,
-        },
-        {
-          new: true,
-        }
-      );
-    }
-
     if (!result) {
-      throw new ApiError(httpStatus.BAD_REQUEST, 'Invalid User!');
-    }
-
-    // after email or phone verified, delete otp from otp collection
-    if (result) {
-      await this.#OtpModel.findOneAndDelete({
-        $or: [
-          {
-            otp: otpPayload,
-            email: userPayload?.email,
-          },
-          {
-            otp: otpPayload,
-            phone: userPayload?.phone,
-          },
-        ],
-      });
+      throw new ApiError(
+        httpStatus.INTERNAL_SERVER_ERROR,
+        'User create failed!'
+      );
     }
 
     return result;
   };
 
   // login user
-  readonly loginUser = async (
-    payload: Pick<IUser, 'email' | 'password' | 'phone'>
-  ) => {
-    const { email, password, phone } = payload;
-
-    const query: Partial<{ email: string; phone: string }> = {};
-
-    if (email) {
-      query.email = email;
-    }
-
-    if (phone) {
-      query.phone = phone;
-    }
+  readonly loginUser = async (payload: Pick<IUser, 'email' | 'password'>) => {
+    const { email, password } = payload;
 
     // check user exits or not
-    const isUserExit = await this.#UserModel.findOne(query, {
-      password: 1,
-      name: 1,
-      phone: 1,
-      phoneNumberVerified: 1,
-      email: 1,
-      emailVerified: 1,
-      profileImage: 1,
-      address: 1,
-      role: 1,
-    });
+    const isUserExit = await this.#UserModel.findOne(
+      { email },
+      {
+        password: 1,
+        name: 1,
+        email: 1,
+        profileImage: 1,
+        address: 1,
+        role: 1,
+      }
+    );
 
     if (!isUserExit) {
-      throw new ApiError(httpStatus.NOT_FOUND, 'User not found!');
-    }
-
-    // check user is verified
-    if (!isUserExit.emailVerified && !isUserExit.phoneNumberVerified) {
-      throw new ApiError(
-        httpStatus.CONFLICT,
-        'User not verified, Please verify account!'
-      );
+      throw new ApiError(httpStatus.NOT_ACCEPTABLE, 'User not found!');
     }
 
     // hash the new password
@@ -245,24 +81,6 @@ class AuthServiceClass {
     }
 
     return isUserExit;
-  };
-
-  // login user with social
-  readonly loginUserWithSocial = async (
-    payload: Pick<IUser, 'email' | 'name'>
-  ) => {
-    // check user exits or not
-    const isUserExit = await this.#UserModel.findOne({ email: payload?.email });
-    if (isUserExit) {
-      throw new ApiError(httpStatus.CONFLICT, 'User already exit!');
-    }
-    const result = await this.#UserModel.create(payload);
-
-    if (!result) {
-      throw new ApiError(400, 'User create failed!');
-    }
-
-    return result;
   };
 
   // refresh token
@@ -288,141 +106,34 @@ class AuthServiceClass {
     return isUserExit;
   };
 
-  // forgot password
-  readonly forgotPassword = async (
-    provider: string,
-    payload: Pick<IUser, 'email' | 'phone'>
-  ) => {
-    const query: Partial<{ email: string; phone: string }> = {};
-
-    if (payload?.email) {
-      query.email = payload.email;
-    }
-
-    if (payload?.phone) {
-      query.phone = payload.phone;
-    }
+  // password reset
+  readonly passwordReset = async (payload: TForgotPassword) => {
     // check user is already exit
-    const isUserExit = await this.#UserModel.findOne(query);
+    const isUserExit = await this.#UserModel.findOne({ email: payload.email });
 
     if (!isUserExit) {
-      throw new ApiError(httpStatus.NOT_FOUND, 'User Not Found!');
+      throw new ApiError(httpStatus.NOT_ACCEPTABLE, 'User Not Found!');
     }
-
-    // generate random number for opt and create otp
-    const otp = GenerateNumberHelpers.generateRandomSixDigitNumber();
-
-    const otpObj = {
-      otp,
-      expireDate: new Date().getDay() + 1,
-      email: payload?.email,
-      phone: payload?.phone,
-      method: provider,
-    };
-
-    let message = '';
-    const session = await mongoose.startSession();
-    try {
-      // Start a session for the transaction
-      session.startTransaction();
-
-      const otpResult = await this.#OtpModel.create([otpObj], { session });
-      if (!otpResult.length) {
-        throw new ApiError(httpStatus.BAD_REQUEST, 'Otp create failed!');
-      }
-
-      const otp = otpResult[0];
-
-      if (provider === 'email' && payload?.email) {
-        // set mail data for otp verification
-        const mailData = {
-          to: payload?.email,
-          subject: 'OTP',
-          message: OtpEmailTemplate(otp?.otp),
-        };
-        // sent email using nodemailer
-        await emailSenderHelpers.sendEmailWithNodeMailer(mailData);
-        message =
-          'Otp send your email for password reset, please reset your password!';
-      }
-      // if phone, send message by phone
-      if (provider === 'phone' && payload?.phone) {
-        const phoneNumber = payload.phone;
-        const smsData = `Max-E-commerce otp is ${otp?.otp}`;
-        const result = await sendSmsWithBulkSms(phoneNumber, smsData);
-        if (result.response_code === 202) {
-          message =
-            'sms sent successfully, please verify your account by phone for reset password !';
-        }
-      }
-      // Commit the transaction
-      await session.commitTransaction();
-      await session.endSession();
-    } catch (error) {
-      await session.abortTransaction();
-      await session.endSession();
-      throw error;
-    }
-
-    return {
-      message,
-    };
-  };
-
-  // password reset
-  readonly passwordReset = async (userData: {
-    email?: string;
-    password: string;
-    phone?: string;
-    otp: string;
-  }) => {
-    const query: Partial<{ email: string; phone: string }> = {};
-
-    if (userData?.email) {
-      query.email = userData.email;
-    }
-
-    if (userData?.phone) {
-      query.phone = userData.phone;
-    }
-    // check user is already exit
-    const isUserExit = await this.#UserModel.findOne(query);
 
     // check user is exit with email
-    if (userData?.email) {
-      if (isUserExit?.email !== userData?.email) {
+    if (payload?.email) {
+      if (isUserExit?.email !== payload?.email) {
         throw new ApiError(httpStatus.UNAUTHORIZED, 'Unauthorized user!');
       }
     }
 
-    // check user is exit with phone
-    if (userData?.phone) {
-      if (isUserExit?.phone !== userData?.phone) {
-        throw new ApiError(httpStatus.UNAUTHORIZED, 'Unauthorized user!');
-      }
-    }
-
-    // check otp is expire or not
-    const optResult = await this.#OtpModel.findOne({ otp: userData?.otp });
-
-    if (!optResult) {
-      throw new ApiError(httpStatus.BAD_REQUEST, 'Invalid opt!');
-    }
-
-    // check otp is expire or not
-    // if (optResult && new Date().getDay() > optResult?.expireDate.getDay()) {
-    //   throw new ApiError(httpStatus.CONFLICT, 'Otp is Expired!')
-    // }
+    // verifying otp
+    await this.#OTPService.isOTPOk(payload.email, payload.otp);
 
     // hash the password
     const hashedPassword = await bcrypt.hash(
-      userData?.password,
+      payload?.password,
       Number(config?.bcrypt_salt_rounds)
     );
 
     // set new has password to exiting user
     const result = await this.#UserModel.findOneAndUpdate(
-      query,
+      { email: payload.email },
       {
         $set: {
           password: hashedPassword,
@@ -433,20 +144,19 @@ class AuthServiceClass {
 
     // after reset password, delete otp from otp collection
     if (result) {
-      await this.#OtpModel.findOneAndDelete({ otp: userData?.otp });
+      await this.#OTPService.deleteOTP(payload.email, payload.otp);
     }
 
     return result;
   };
 
-  // password reset
-  readonly userChangePasswordReset = async (
+  // user change password
+  readonly userChangePassword = async (
     user: JwtPayload,
     userData: {
-      email?: string;
+      email: string;
       newPassword: string;
       oldPassword: string;
-      phone?: string;
     }
   ) => {
     // check user exits or not
@@ -455,10 +165,7 @@ class AuthServiceClass {
       {
         password: 1,
         name: 1,
-        phone: 1,
-        phoneNumberVerified: 1,
         email: 1,
-        emailVerified: 1,
         profileImage: 1,
         address: 1,
         role: 1,
@@ -475,18 +182,6 @@ class AuthServiceClass {
         throw new ApiError(httpStatus.UNAUTHORIZED, 'Unauthorized user!');
       }
     }
-
-    // check user is exit with phone
-    if (userData?.phone) {
-      if (isUserExit?.phone !== userData?.phone) {
-        throw new ApiError(httpStatus.UNAUTHORIZED, 'Unauthorized user!');
-      }
-    }
-
-    // check otp is expire or not
-    // if (optResult && new Date().getDay() > optResult?.expireDate.getDay()) {
-    //   throw new ApiError(httpStatus.CONFLICT, 'Otp is Expired!')
-    // }
 
     const isPasswordMatch = await PasswordHelpers.comparePassword(
       userData?.oldPassword,
@@ -512,19 +207,9 @@ class AuthServiceClass {
       Number(config?.bcrypt_salt_rounds)
     );
 
-    const query: Partial<{ email: string; phone: string }> = {};
-
-    if (userData?.email) {
-      query.email = userData.email;
-    }
-
-    if (userData?.phone !== undefined) {
-      query.phone = userData.phone;
-    }
-
     // set new has password to exiting user
     const result = await this.#UserModel.findOneAndUpdate(
-      query,
+      { email: userData.email },
       {
         $set: {
           password: hashedPassword,
@@ -534,94 +219,6 @@ class AuthServiceClass {
     );
 
     return result;
-  };
-
-  // re-send otp
-  readonly resendOtp = async (
-    optPayload: Pick<IOtp, 'email' | 'phone'>,
-    provider: string
-  ) => {
-    const query: Partial<{ email: string; phone: string }> = {};
-
-    if (optPayload?.email) {
-      query.email = optPayload.email;
-    }
-
-    if (optPayload?.phone) {
-      query.phone = optPayload.phone;
-    }
-
-    // check user exits or not
-    const isUserExit = await this.#UserModel.findOne(query);
-
-    if (!isUserExit) {
-      throw new ApiError(httpStatus.NOT_FOUND, 'User Not Found!');
-    }
-    // generate random number for opt and create otp
-    const otp = GenerateNumberHelpers.generateRandomSixDigitNumber();
-
-    const otpObj = {
-      otp,
-      email: optPayload?.email || null,
-      phone: optPayload?.phone || null,
-      expireDate: new Date().getDay() + 1,
-      method: provider,
-    };
-
-    let message = '';
-    const session = await mongoose.startSession();
-
-    try {
-      // start a session for the transaction
-      session.startTransaction();
-
-      const otpResult = await this.#OtpModel.create([otpObj], { session });
-      if (!otpResult.length) {
-        throw new ApiError(httpStatus.BAD_REQUEST, 'Otp create failed!');
-      }
-
-      const otp = otpResult[0];
-      if (provider === 'email') {
-        // set mail data for otp verification
-        const mailData = {
-          to: optPayload?.email,
-          subject: 'OTP',
-          message: OtpEmailTemplate(otp.otp),
-        };
-        // sent email using nodemailer
-        const messageId = await emailSenderHelpers.sendEmailWithNodeMailer(
-          mailData
-        );
-
-        if (messageId === 'failed') {
-          message = 'Failed to send Otp, please contact their support section';
-        } else {
-          message =
-            'Otp send your email for verification, please verify your email!';
-        }
-      }
-      // if phone, send message by phone
-      if (provider === 'phone') {
-        const phoneNumber = optPayload?.phone;
-        const smsData = `E-commerce otp is ${otp?.otp}`;
-        const result = await sendSmsWithBulkSms(phoneNumber, smsData);
-
-        if (result.response_code === 202) {
-          message =
-            'SMS sent successfully, please verify your account by phone !';
-        }
-      }
-      // Commit the transaction
-      await session.commitTransaction();
-      await session.endSession();
-    } catch (error) {
-      await session.abortTransaction();
-      await session.endSession();
-      throw error;
-    }
-    return {
-      message,
-    };
   };
 }
 
