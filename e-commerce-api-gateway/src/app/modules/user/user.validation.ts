@@ -1,15 +1,9 @@
 import { z } from 'zod';
-import { userRoles, otpMethodEnum } from './user.constant';
+import { userRoles } from './user.constant';
 
 const updateUserZodSchema = z.object({
   body: z.object({
     name: z.string().optional(),
-    phone: z
-      .string()
-      .refine(value => /^\+(?:\d{1,3}-)?\d{1,14}$/.test(value), {
-        message: 'Invalid phone number format',
-      })
-      .optional(),
     email: z.string().email().optional(),
     password: z
       .string({
@@ -48,41 +42,9 @@ const updateUserZodSchema = z.object({
       .optional(),
     location: z.string().optional(),
     role: z.enum([...userRoles] as [string, ...string[]]).optional(),
-    provider: z.enum([...otpMethodEnum] as [string, ...string[]]).optional(),
   }),
 });
 
-const addShippingAddressZodSchema = z.object({
-  body: z.object({
-    firstName: z.string({
-      required_error: 'First Name is Required!',
-    }),
-    lastName: z.string({
-      required_error: 'Last Name is Required!',
-    }),
-    company: z.string({
-      required_error: 'Company is Required!',
-    }),
-    address1: z.string({
-      required_error: 'Address1 is Required!',
-    }),
-    address2: z.string({
-      required_error: 'Address2 is Required!',
-    }),
-    postCode: z.string({
-      required_error: 'Post Code is Required!',
-    }),
-    country: z.string({
-      required_error: 'Country is Required!',
-    }),
-    state: z.string({
-      required_error: 'State is Required!',
-    }),
-    defaultAddress: z.boolean({
-      required_error: 'Default Address is Required!',
-    }),
-  }),
-});
 
 const updateShippingAddressZodSchema = z.object({
   body: z.object({
@@ -101,31 +63,6 @@ const updateShippingAddressZodSchema = z.object({
   }),
 });
 
-const addShippingAddressesZodSchema = z.object({
-  body: z.object({
-    recipientName: z.string({
-      required_error: 'Recipient Name is Required!',
-    }),
-    streetAddress: z.string({
-      required_error: 'Street Address is Required!',
-    }),
-    city: z.string({
-      required_error: 'City is Required!',
-    }),
-    stateProvince: z.string({
-      required_error: 'State Province is Required!',
-    }),
-    postalCode: z.string({
-      required_error: 'Postal Code is Required!',
-    }),
-    country: z.string({
-      required_error: 'Country is Required!',
-    }),
-    phoneNumber: z.string({
-      required_error: 'Phone Number is Required!',
-    }),
-  }),
-});
 
 const addWishListProductZodSchema = z.object({
   body: z.object({
@@ -137,8 +74,6 @@ const addWishListProductZodSchema = z.object({
 
 export const UserValidation = {
   updateUserZodSchema,
-  addShippingAddressZodSchema,
   updateShippingAddressZodSchema,
-  addWishListProductZodSchema,
-  addShippingAddressesZodSchema,
+  addWishListProductZodSchema
 };

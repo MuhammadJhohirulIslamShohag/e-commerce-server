@@ -12,16 +12,7 @@ class AuthServiceClass {
   // create user
   readonly createUser = async (req: Request) => {
     const response: IGenericResponse = await this.#AuthService.post(
-      `auth/create-user`,
-      req.body
-    );
-    return response;
-  };
-
-  // create user with verified
-  readonly createUserWithVerified = async (req: Request) => {
-    const response: IGenericResponse = await this.#AuthService.post(
-      `auth/create-user/verified`,
+      `auth/register`,
       req.body
     );
     return response;
@@ -30,16 +21,7 @@ class AuthServiceClass {
   // login user
   readonly loginUser = async (req: Request) => {
     const response: IGenericResponse = await this.#AuthService.post(
-      `auth/login-user`,
-      req.body
-    );
-    return response;
-  };
-
-  // login user with social
-  readonly loginUserWithSocial = async (req: Request) => {
-    const response: IGenericResponse = await this.#AuthService.post(
-      `auth/login-with-social`,
+      `auth/login`,
       req.body
     );
     return response;
@@ -76,15 +58,6 @@ class AuthServiceClass {
   readonly userChangePasswordReset = async (req: Request) => {
     const response: IGenericResponse = await this.#AuthService.post(
       `auth/change-password`,
-      req.body
-    );
-    return response;
-  };
-
-  // re-send otp
-  readonly resendOtp = async (req: Request) => {
-    const response: IGenericResponse = await this.#AuthService.post(
-      `auth/resend-otp`,
       req.body
     );
     return response;

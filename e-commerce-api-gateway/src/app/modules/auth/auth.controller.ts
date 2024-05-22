@@ -19,27 +19,11 @@ class AuthControllerClass {
     responseReturn(res, result);
   });
 
-  // create user with verified
-  readonly createUserWithVerified = catchAsync(
-    async (req: Request, res: Response) => {
-      const result = await this.#AuthServices.createUserWithVerified(req);
-      responseReturn(res, result);
-    }
-  );
-
   // login user
   readonly loginUser = catchAsync(async (req: Request, res: Response) => {
     const result = await this.#AuthServices.loginUser(req);
     responseReturn(res, result);
   });
-
-  // login user with social
-  readonly loginUserWithSocial = catchAsync(
-    async (req: Request, res: Response) => {
-      const result = await this.#AuthServices.loginUserWithSocial(req);
-      responseReturn(res, result);
-    }
-  );
 
   // refresh token controller
   readonly refreshToken = catchAsync(async (req: Request, res: Response) => {
@@ -66,12 +50,6 @@ class AuthControllerClass {
       responseReturn(res, result);
     }
   );
-
-  // re-send otp
-  readonly resendOtp = catchAsync(async (req: Request, res: Response) => {
-    const result = await this.#AuthServices.resendOtp(req);
-    responseReturn(res, result);
-  });
 }
 
 export const AuthController = new AuthControllerClass(AuthServices);
