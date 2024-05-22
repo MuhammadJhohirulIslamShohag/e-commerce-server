@@ -16,15 +16,13 @@ class CartRouterClass {
     // create and get all carts routes
     this.routers
       .route('/')
-      .post(
-        auth(ENUM_USER_ROLE.ADMIN),
-        CartController.createCart
-      )
+      .post(auth(ENUM_USER_ROLE.ADMIN), CartController.createCart)
       .get(CartController.allCarts);
 
     // delete cart routes
     this.routers
       .route('/:id')
+      .get(CartController.userCarts)
       .delete(auth(ENUM_USER_ROLE.ADMIN), CartController.deleteCart);
   }
 }

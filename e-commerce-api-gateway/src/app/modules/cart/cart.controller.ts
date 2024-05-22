@@ -34,6 +34,17 @@ class CartControllerClass {
     }
   );
 
+  // get user carts controller
+  readonly userCarts = catchAsync(
+    async (req: Request, res: Response) => {
+      const result = await this.#CartService.userCarts(
+        req
+      );
+
+      responseReturn(res, result);
+    }
+  );
+
 
   // delete cart controller
   readonly deleteCart = catchAsync(
