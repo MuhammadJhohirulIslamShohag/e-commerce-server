@@ -63,7 +63,13 @@ class AuthControllerClass {
       statusCode: httpStatus.OK,
       success: true,
       message: 'User registered successfully!',
-      data: result,
+      data: {
+        user: result,
+        token: {
+          accessToken,
+          refreshToken,
+        },
+      },
     });
   });
 
@@ -105,7 +111,13 @@ class AuthControllerClass {
       statusCode: httpStatus.OK,
       success: true,
       message: 'User logged successfully!',
-      data: result,
+      data: {
+        user: result,
+        token: {
+          accessToken,
+          refreshToken,
+        },
+      },
     });
   });
 

@@ -1,5 +1,4 @@
 import { z } from 'zod';
-import { userRoles } from '../user/user.constant';
 
 const createUserZodSchema = z.object({
   body: z.object({
@@ -10,8 +9,10 @@ const createUserZodSchema = z.object({
       .string({
         required_error: 'Email is required!',
       })
-      .email()
-      .optional(),
+      .email(),
+    otp: z.number({
+      required_error: 'OTP is required!',
+    }),
     password: z
       .string({
         required_error: 'Password is required!',
@@ -31,45 +32,6 @@ const createUserZodSchema = z.object({
       .refine(password => (password.match(/[^a-zA-Z0-9]/g) || []).length >= 1, {
         message: 'Password should contain at least 1 symbol.',
       }),
-    profileImage: z
-      .string()
-      .url()
-      .refine(
-        value => {
-          const extension = value.split('.').pop();
-          return ['jpeg', 'jpg', 'gif', 'png', 'webp'].includes(
-            extension as string
-          );
-        },
-        {
-          message: 'Invalid profile image url',
-        }
-      )
-      .optional(),
-    location: z
-      .string({
-        required_error: 'Location is required!',
-      })
-      .optional(),
-    role: z
-      .enum([...userRoles] as [string, ...string[]], {
-        required_error: 'Role is required!',
-      })
-      .optional(),
-  }),
-});
-
-const createUserWithVerifiedZodSchema = z.object({
-  body: z.object({
-    otp: z.string({
-      required_error: 'Otp is required!',
-    }),
-    email: z
-      .string({
-        required_error: 'Email is required!',
-      })
-      .email()
-      .optional(),
   }),
 });
 
@@ -103,19 +65,6 @@ const loginUserZodSchema = z.object({
   }),
 });
 
-const loginUserWithSocialZodSchema = z.object({
-  body: z.object({
-    name: z.string({
-      required_error: 'Name is required!',
-    }),
-    email: z
-      .string({
-        required_error: 'Email is required!',
-      })
-      .email(),
-  }),
-});
-
 const refreshTokenZodSchema = z.object({
   cookies: z.object({
     refreshToken: z.string({
@@ -137,7 +86,7 @@ const forgotPasswordZodSchema = z.object({
 
 const resetPasswordZodSchema = z.object({
   body: z.object({
-    otp: z.string({
+    otp: z.number({
       required_error: 'OTP is required!',
     }),
     password: z
@@ -212,30 +161,15 @@ const userChangePasswordZodSchema = z.object({
       .string({
         required_error: 'Email is required!',
       })
-      .email()
-      .optional(),
-  }),
-});
-
-const resendOtpZodSchema = z.object({
-  body: z.object({
-    email: z
-      .string({
-        required_error: 'Email is required!',
-      })
-      .email()
-      .optional(),
+      .email(),
   }),
 });
 
 export const AuthValidation = {
   createUserZodSchema,
-  createUserWithVerifiedZodSchema,
   loginUserZodSchema,
   refreshTokenZodSchema,
-  loginUserWithSocialZodSchema,
   forgotPasswordZodSchema,
   resetPasswordZodSchema,
   userChangePasswordZodSchema,
-  resendOtpZodSchema,
 };

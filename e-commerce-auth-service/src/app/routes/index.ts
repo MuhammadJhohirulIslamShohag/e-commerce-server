@@ -21,7 +21,7 @@ const moduleRoutes = [
     route: AuthRoutes,
   },
   {
-    path: '/opt',
+    path: '/otp',
     route: OTPRoutes,
   },
 ];

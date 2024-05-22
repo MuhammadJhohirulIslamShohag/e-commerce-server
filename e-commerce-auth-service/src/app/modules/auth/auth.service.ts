@@ -30,7 +30,7 @@ class AuthServiceClass {
     }
 
     // hash the password
-    const hashedPassword = PasswordHelpers.hashPassword(payload.password);
+    const hashedPassword = await PasswordHelpers.hashPassword(payload.password);
 
     // verifying otp
     await this.#OTPService.isOTPOk(payload.email, payload.otp);
@@ -63,7 +63,7 @@ class AuthServiceClass {
         name: 1,
         email: 1,
         profileImage: 1,
-        address: 1,
+        shippingAddress: 1,
         role: 1,
       }
     );

@@ -10,7 +10,7 @@ const OtpEmailTemplate = (otp: number) => {
       <link href="https://fonts.googleapis.com/css2?family=Lato:wght@300;400;700&display=swap" rel="stylesheet">
       <title>Document</title>
     </head>
-    <body style="background-color: #7746c1; font-family: 'Lato', sans-serif;">
+    <body style="background-color: #6ee7b7; font-family: 'Lato', sans-serif;">
         <h1
         style="
           text-transform: uppercase;

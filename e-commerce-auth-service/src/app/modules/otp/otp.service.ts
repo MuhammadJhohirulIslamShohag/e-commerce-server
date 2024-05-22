@@ -74,6 +74,7 @@ class OTPServiceClass {
     );
     if (messageId === 'failed') {
       message = 'Failed to Send OTP, Please Contact Their Support Section';
+      await this.#OtpModel.findOneAndDelete({ email: payload.email });
     } else {
       message =
         'OTP Send your Email for Verification, Please Verify your Email!';
@@ -85,12 +86,12 @@ class OTPServiceClass {
   // verify otp
   readonly isOTPOk = async (email: string, otp: number) => {
     const isOTPExit = await this.#OtpModel.findOne({ email: email, otp: otp });
-
     if (
       !isOTPExit ||
       isOTPExit.expireDate < new Date() ||
       isOTPExit.otp !== otp
     ) {
+      
       throw new ApiError(httpStatus.NOT_ACCEPTABLE, 'Invalid Or Expire OTP!');
     }
   };

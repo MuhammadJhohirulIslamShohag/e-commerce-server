@@ -24,10 +24,10 @@ const signUpSuccessEmailTemplate = (name: string) => {
       "
     >
       <h1 style="text-align: center">
-        Hi!<span style="color: #0069ff; margin: 20px 0">${name}</span>
+        Hi!<span style="color: #000; margin: 20px 0">${name}</span>
       </h1>
       <h2 style="text-align: center; margin: 0; font-size: 16px">
-        Welcome to Max E-commerce
+        Welcome to Aladin E-commerce
       </h2>
       <p
         style="
@@ -54,7 +54,7 @@ const signUpSuccessEmailTemplate = (name: string) => {
             padding: 10px;
             border-radius: 4px;
           "
-          href="#"
+          href="https://aladin.com"
           >Start Shopping</a
         >
       </div>

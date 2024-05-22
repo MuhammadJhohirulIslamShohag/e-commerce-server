@@ -13,7 +13,7 @@ class OTPControllerClass {
     this.#OTPService = service;
   }
 
-  // create user
+  // send otp
   readonly sendOTP = catchAsync(async (req: Request, res: Response) => {
     const { ...userData } = req.body;
     const result = await this.#OTPService.sendOTP(userData);
@@ -21,8 +21,8 @@ class OTPControllerClass {
     responseReturn(res, {
       statusCode: httpStatus.OK,
       success: true,
-      message: result,
-      data: null,
+      message: 'OTP Send Successfully!',
+      data: result,
     });
   });
 }

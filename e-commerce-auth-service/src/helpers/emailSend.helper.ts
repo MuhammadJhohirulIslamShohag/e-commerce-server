@@ -1,6 +1,17 @@
 import nodemailer from 'nodemailer';
 import config from '../config';
 
+import AWS from 'aws-sdk';
+
+const ses = new AWS.SES({
+  apiVersion: '2010-12-01',
+  region: config?.aws?.aws_region,
+  credentials: {
+    accessKeyId: config.aws.aws_access_key_id as string,
+    secretAccessKey: config.aws.aws_secret_access_key as string,
+  },
+});
+
 // nodemailer data type
 type SendNodemailerDataType = {
   to: string;
@@ -8,15 +19,8 @@ type SendNodemailerDataType = {
   message: string;
 };
 
-// create nodemailer transporter with AWS SES SMTP service configuration
 const transporter = nodemailer.createTransport({
-  host: config?.aws?.aws_email_host,
-  port: 465,
-  secure: true,
-  auth: {
-    user: config?.aws?.aws_email_user,
-    pass: config?.aws?.aws_email_pass,
-  },
+  SES: { ses, aws: AWS },
 });
 
 // send email with mailer
@@ -24,7 +28,7 @@ const sendEmailWithNodeMailer = async (data: SendNodemailerDataType) => {
   try {
     // send mail with defined transport object
     const info = await transporter.sendMail({
-      from: '<noreply@introbangla.com>',
+      from: config.email,
       to: data?.to,
       subject: data?.subject,
       text: data?.message,
