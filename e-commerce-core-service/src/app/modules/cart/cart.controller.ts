@@ -4,8 +4,8 @@ import httpStatus from 'http-status';
 import catchAsync from '../../shared/catchAsync';
 import responseReturn from '../../shared/responseReturn';
 
-import { CartService } from './cart.service';
 import { JwtPayload } from 'jsonwebtoken';
+import { CartService } from './cart.service';
 
 class CartControllerClass {
   #CartService: typeof CartService;
@@ -56,9 +56,9 @@ class CartControllerClass {
 
   // delete cart controller
   readonly deleteCart = catchAsync(async (req: Request, res: Response) => {
-    const { userId } = req.user as JwtPayload;
+    const { id } = req.body;
 
-    const result = await this.#CartService.deleteCart(userId);
+    const result = await this.#CartService.deleteCart(id);
 
     responseReturn(res, {
       statusCode: httpStatus.OK,

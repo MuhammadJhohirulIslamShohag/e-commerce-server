@@ -12,6 +12,7 @@ import { ReviewRoutes } from '../modules/review/review.route';
 import { BlogRoutes } from '../modules/blogs/blog/blog.route';
 import { CommentRoutes } from '../modules/blogs/comment/comment.route';
 import { CartRoutes } from '../modules/cart/cart.route';
+import { StripeRoutes } from '../modules/stripe/stripe.route';
 
 const router: Router = express.Router();
 
@@ -71,6 +72,10 @@ const moduleRoutes = [
   {
     path: '/advertise-banners',
     route: AdvertiseBannerRoutes,
+  },
+  {
+    path: '/stripes',
+    route: StripeRoutes,
   },
 ];
 

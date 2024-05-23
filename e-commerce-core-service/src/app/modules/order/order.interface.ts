@@ -10,16 +10,23 @@ type PaymentStatusType =
   | 'Completed'
   | 'Cash On Delivery';
 
-type BillingAddress = {
-  fullName: string;
-  addressLine1: string;
-  addressLine2?: string;
+// payment status enum type
+type PaymentByType = 'Stripe' | 'Card';
+
+export type TBillingAddress = {
+  firstName: string;
+  lastName: string;
+  company: string;
+  address1: string;
+  address2: string;
   city: string;
-  stateProvince: string;
-  postalCode: string;
+  postCode: string;
   country: string;
+  state: string;
   phoneNumber: string;
 };
+
+
 
 // order interface model type
 export type IOrder = {
@@ -29,9 +36,9 @@ export type IOrder = {
     color: string;
     size: string;
   };
-  paymentIntents: any;
+  paymentIntents: { [key: string]: unknown };
   orderStatus: PaymentStatusType;
-  paymentBy: string;
+  paymentBy: PaymentByType;
   trackingInfo: {
     title: string;
     courier: string;
@@ -42,7 +49,7 @@ export type IOrder = {
     timestamp: string;
     isDone: boolean;
   };
-  billingAddress: BillingAddress;
+  billingAddress: TBillingAddress;
   orderedBy: Types.ObjectId;
 };
 

@@ -1,6 +1,10 @@
 import { Schema, model } from 'mongoose';
 
-import { orderTrackingStatus, paymentStatus } from './order.constant';
+import {
+  orderTrackingStatus,
+  paymentBy,
+  paymentStatus,
+} from './order.constant';
 import { OrderModel, IOrder } from './order.interface';
 
 // order schema
@@ -25,6 +29,8 @@ const orderSchema = new Schema<IOrder, OrderModel>(
     },
     paymentBy: {
       type: String,
+      default: 'Stripe',
+      enum: paymentBy,
     },
     orderedBy: {
       type: Schema.Types.ObjectId,
@@ -57,34 +63,36 @@ const orderSchema = new Schema<IOrder, OrderModel>(
       },
     ],
     billingAddress: {
-      fullName: {
-        type: String,
-      },
-      addressLine1: {
-        type: String,
-      },
-      addressLine2: {
-        type: String,
-      },
-      city: {
-        type: String,
-      },
-      stateProvince: {
-        type: String,
-      },
-      postalCode: {
-        type: String,
-      },
-      country: {
-        type: String,
-      },
-      phoneNumber: {
-        type: String,
-        validate: {
-          validator: function (v: string) {
-            return /^\+?[1-9]\d{1,14}$/.test(v);
-          },
-          message: props => `${props.value} is not a valid contact number!`,
+      type: {
+        firstName: {
+          type: String,
+        },
+        lastName: {
+          type: String,
+        },
+        company: {
+          type: String,
+        },
+        address1: {
+          type: String,
+        },
+        address2: {
+          type: String,
+        },
+        city: {
+          type: String,
+        },
+        postCode: {
+          type: String,
+        },
+        country: {
+          type: String,
+        },
+        state: {
+          type: String,
+        },
+        phoneNumber: {
+          type: String,
         },
       },
     },

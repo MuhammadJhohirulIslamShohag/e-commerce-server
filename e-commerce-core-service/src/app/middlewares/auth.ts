@@ -7,13 +7,12 @@ import config from '../config';
 
 import { jwtHelpers } from '../helpers/jwt.helper';
 
-
 const auth =
   (...requiredRole: string[]) =>
   async (req: Request, res: Response, next: NextFunction) => {
     try {
       // check authentication
-      const token = req.headers.authorization;
+      const token = req.headers.authorization?.split(' ')?.[1];
       if (!token) {
         throw new ApiError(httpStatus.UNAUTHORIZED, 'You are not authorized!');
       }

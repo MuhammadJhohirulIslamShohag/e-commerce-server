@@ -7,9 +7,11 @@ import config from '../../config';
 
 import { stripe } from '../../shared/stripe';
 import { IStripe } from './stripe.interface';
+import { ICart } from '../cart/cart.interface';
 
 class StripeServiceClass {
   #CartModel;
+  
   constructor() {
     this.#CartModel = Cart;
   }
@@ -20,7 +22,7 @@ class StripeServiceClass {
     // getting who payment or order
     const user = await axios.get(
       `${config.user_url_auth_service_endpoint}/${userId}` ||
-        'https://localhost:7000/api/vi/users'
+        `https://localhost:7000/api/vi/users/${userId}`
     );
 
     if (!user?.data) {
@@ -28,11 +30,11 @@ class StripeServiceClass {
     }
 
     // getting total price before discount
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const cart: any = await this.#CartModel
+    const cart = await this.#CartModel
       .findOne({ orderedBy: userId })
       .exec();
-    const { cartTotal, totalPriceAfterDiscount, products } = cart;
+
+    const { cartTotal, totalPriceAfterDiscount, products } = cart as ICart;
 
     // checking order amount based on couped
     let orderAmount = 0;

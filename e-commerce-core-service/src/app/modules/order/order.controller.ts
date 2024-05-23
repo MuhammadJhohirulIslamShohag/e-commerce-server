@@ -5,11 +5,8 @@ import catchAsync from '../../shared/catchAsync';
 import responseReturn from '../../shared/responseReturn';
 import ApiError from '../../errors/ApiError';
 
-import { orderFilterableFields } from './order.constant';
 import { IOrder } from './order.interface';
 import { OrderService } from './order.service';
-import { pick } from '../../shared/pick';
-import { paginationOptionFields } from '../../constants/pagination';
 import { JwtPayload } from 'jsonwebtoken';
 
 class OrderControllerClass {
@@ -66,15 +63,29 @@ class OrderControllerClass {
     }
   );
 
+  // get total discount price controller
+  readonly totalDiscountPrice = catchAsync(
+    async (req: Request, res: Response) => {
+      const { couponName } = req.body;
+      const { userId } = req.user as JwtPayload;
+
+      const result = await this.#OrderService.totalDiscountPrice(
+        couponName,
+        userId
+      );
+
+      responseReturn(res, {
+        statusCode: httpStatus.OK,
+        success: true,
+        message: 'Get Total Discount Price Successfully!',
+        data: result,
+      });
+    }
+  );
+
   // get all orders controller
   readonly allOrders = catchAsync(async (req: Request, res: Response) => {
-    const paginationOptions = pick(req.query, paginationOptionFields);
-    const filters = pick(req.query, orderFilterableFields);
-
-    const result = await this.#OrderService.allOrders(
-      paginationOptions,
-      filters
-    );
+    const result = await this.#OrderService.allOrders(req.query);
 
     responseReturn(res, {
       statusCode: httpStatus.OK,

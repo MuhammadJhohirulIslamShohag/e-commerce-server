@@ -4,8 +4,9 @@ import { Model, Types } from 'mongoose';
 export type ICart = {
   products: [
     {
-      productId: Types.ObjectId | string;
-      quantity: number;
+      product: Types.ObjectId;
+      count: number;
+      price: number;
     }
   ];
   cartTotal: number;

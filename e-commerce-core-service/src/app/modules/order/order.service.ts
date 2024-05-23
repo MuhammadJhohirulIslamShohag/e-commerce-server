@@ -1,6 +1,6 @@
 import httpStatus from 'http-status';
 import axios from 'axios';
-import { SortOrder } from 'mongoose';
+import { Types } from 'mongoose';
 
 import config from '../../config';
 import Cart from '../cart/cart.model';
@@ -10,34 +10,34 @@ import Coupon from '../coupon/coupon.model';
 import ApiError from '../../errors/ApiError';
 
 import { orderSearchableFields } from './order.constant';
-import {
-  OrderFilters,
-  IOrder,
-  IOrderTacking,
-} from './order.interface';
-import { paginationHelper } from '../../helpers/pagination.helper';
-import { PaginationOptionType } from '../../interfaces/pagination';
+import { IOrder, IOrderTacking } from './order.interface';
 import { getUniqueKey } from '../../shared/getUniqueKey';
+import { ICart } from '../cart/cart.interface';
+import { ICoupon } from '../coupon/coupon.interface';
+import QueryBuilder from '../../builder/query.builder';
 
 class OrderServiceClass {
   #OrderModel;
   #ProductModel;
   #CartModel;
   #CouponModel;
+  #QueryBuilder: typeof QueryBuilder;
+
   constructor() {
     this.#OrderModel = Order;
     this.#ProductModel = Product;
     this.#CartModel = Cart;
     this.#CouponModel = Coupon;
+    this.#QueryBuilder = QueryBuilder;
   }
 
   // create order service
-  readonly createOrder = async (payload: any, user: string) => {
-    const { paymentIntent, paymentBy } = payload;
+  readonly createOrder = async (payload: IOrder, user: string) => {
+    const { paymentIntents, paymentBy } = payload;
     // who order
     const userData = await axios.get(
       `${config.user_url_auth_service_endpoint}/${user}` ||
-        'https://localhost:7000/api/vi/users'
+        `https://localhost:5000/api/vi/users/${user}`
     );
 
     if (!userData?.data) {
@@ -45,46 +45,47 @@ class OrderServiceClass {
     }
 
     // which product carts
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const carts: any = await this.#CartModel
-      .findOne({ orderedBy: user })
-      .exec();
-    const { products } = carts;
+    const carts = await this.#CartModel.findOne({ orderedBy: user }).exec();
+    const { products } = carts as ICart;
 
     // save to the database
     await new Order({
       products,
-      paymentIntents: paymentIntent,
+      paymentIntents: paymentIntents,
       orderedBy: user,
       paymentBy,
     }).save();
 
     // decrement quantity and sold increment
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const bulkOption = products.map((item: any) => {
-      return {
-        updateOne: {
-          filter: {
-            _id: item.product._id,
-          },
-          update: {
-            $inc: {
-              quantity: -item.count,
-              sold: +item.count,
+    const bulkOption = products.map(
+      (item: { product: Types.ObjectId; count: number; price: number }) => {
+        return {
+          updateOne: {
+            filter: {
+              _id: item.product,
+            },
+            update: {
+              $inc: {
+                quantity: -item.count,
+                sold: +item.count,
+              },
             },
           },
-        },
-      };
-    });
+        };
+      }
+    );
 
     // update
-    await Product.bulkWrite(bulkOption, {});
+    await this.#ProductModel.bulkWrite(bulkOption, {});
     return { ok: true };
   };
 
   // create order with cash_on_delivery service
   readonly createOrderWithCashOnDelivery = async (
-    payload: any,
+    payload: {
+      isCashOnDelivery: boolean;
+      isCoupon: boolean;
+    },
     user: string
   ) => {
     const { isCashOnDelivery, isCoupon } = payload;
@@ -100,7 +101,7 @@ class OrderServiceClass {
     // who payment on the cash
     const userData = await axios.get(
       `${config.user_url_auth_service_endpoint}/${user}` ||
-        'https://localhost:7000/api/vi/users'
+        `https://localhost:5000/api/vi/users/${user}`
     );
 
     if (!userData?.data) {
@@ -108,16 +109,21 @@ class OrderServiceClass {
     }
 
     // which carts
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const userCarts: any = await this.#CartModel
-      .findOne({ orderedBy: user })
-      .lean();
+    const userCarts = await this.#CartModel.findOne({ orderedBy: user }).lean();
+
+    if (!userCarts) {
+      throw new ApiError(httpStatus.NOT_FOUND, 'Cart Not Found!');
+    }
+
+    const { products, totalPriceAfterDiscount, cartTotal } = userCarts as ICart;
 
     let finalAmount = 0;
-    if (isCoupon && userCarts && userCarts?.totalPriceAfterDiscount) {
-      finalAmount = userCarts?.totalPriceAfterDiscount * 100;
-    } else {
-      finalAmount = userCarts.cartTotal * 100;
+    if (isCoupon) {
+      if (totalPriceAfterDiscount) {
+        finalAmount = totalPriceAfterDiscount * 100;
+      } else {
+        finalAmount = cartTotal * 100;
+      }
     }
 
     const update = await new Order({
@@ -134,89 +140,104 @@ class OrderServiceClass {
       orderedBy: user,
     }).save();
 
-    // increment sold and decrement quantity
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const bulkWrites = userCarts?.products.map((item: any) => {
-      return {
-        updateOne: {
-          filter: {
-            _id: item.product._id,
-          },
-          update: {
-            $inc: {
-              quantity: -item.count,
-              sold: +item.count,
+    // decrement quantity and sold increment
+    const bulkOption = products.map(
+      (item: { product: Types.ObjectId; count: number; price: number }) => {
+        return {
+          updateOne: {
+            filter: {
+              _id: item.product,
+            },
+            update: {
+              $inc: {
+                quantity: -item.count,
+                sold: +item.count,
+              },
             },
           },
-        },
-      };
-    });
-    await Product.bulkWrite(bulkWrites, {});
+        };
+      }
+    );
+
+    // update
+    await this.#ProductModel.bulkWrite(bulkOption, {});
 
     return { ok: true, update };
   };
 
+  // get total discount price service
+  readonly totalDiscountPrice = async (couponName: string, user: string) => {
+    // checking is it valid coupon or not
+    const validationCoupon = await this.#CouponModel
+      .findOne({
+        name: couponName,
+      })
+      .exec();
+
+    if (validationCoupon === null) {
+      throw new ApiError(httpStatus.NOT_FOUND, 'Invalid Coupon');
+    }
+
+    // get user who want to process ordering
+    const userData = await axios.get(
+      `${config.user_url_auth_service_endpoint}/${user}` ||
+        `https://localhost:5000/api/vi/users/${user}`
+    );
+
+    if (!userData?.data) {
+      throw new ApiError(httpStatus.NOT_FOUND, 'User Not Found!');
+    }
+
+    // getting carts by the userId
+    const carts = await this.#CartModel
+      .findOne({ orderedBy: user })
+      .populate('products.product', '_id title price')
+      .exec();
+
+    const { cartTotal } = carts as ICart;
+
+    const { discountAmount, discountType } = validationCoupon as ICoupon;
+
+    let totalPriceAfterDiscount = 0;
+
+    if (discountType == 'Percentage') {
+      totalPriceAfterDiscount = cartTotal - (cartTotal * discountAmount) / 100;
+    } else {
+      totalPriceAfterDiscount = cartTotal - discountAmount;
+    }
+
+    await this.#CartModel
+      .findOneAndUpdate(
+        { orderedBy: user },
+        {
+          totalPriceAfterDiscount,
+        },
+        { new: true }
+      )
+      .exec();
+
+    return totalPriceAfterDiscount;
+  };
+
   // get all orders service
-  readonly allOrders = async (
-    paginationOption: PaginationOptionType,
-    filters: OrderFilters
-  ) => {
-    const { page, limit, sortBy, sortOrder, skip } =
-      paginationHelper.calculatePagination(paginationOption);
+  readonly allOrders = async (query: Record<string, unknown>) => {
+    const orderQuery = new this.#QueryBuilder(this.#OrderModel.find(), query)
+      .search(orderSearchableFields)
+      .filter()
+      .sort()
+      .paginate()
+      .fields()
+      .populate();
 
-    // exact search term
-    const { searchTerm, ...filterData } = filters;
+    // result of orders
+    const result = await orderQuery.modelQuery;
 
-    const andConditions = [];
-
-    // searching specific filed with dynamic way
-    if (searchTerm) {
-      andConditions.push({
-        $or: orderSearchableFields.map(field => ({
-          [field]: {
-            $regex: searchTerm,
-            $options: 'i',
-          },
-        })),
-      });
-    }
-
-    // exact filtering with dynamic way
-    if (Object.keys(filterData).length) {
-      andConditions.push({
-        $and: Object.entries(filterData).map(([field, value]) => ({
-          [field]: value,
-        })),
-      });
-    }
-
-    // dynamic sorting
-    const sortConditions: { [key: string]: SortOrder } = {};
-
-    if (sortBy && sortOrder) sortConditions[sortBy] = sortOrder;
-
-    const whereConditions =
-      andConditions.length > 0 ? { $and: andConditions } : {};
-
-    // result of order
-    const result = await this.#OrderModel
-      .find(whereConditions)
-      .populate('products.productId')
-      .populate('customer.customerId')
-      .sort(sortConditions)
-      .skip(skip)
-      .limit(limit);
-
-    // get total order
-    const total = await this.#OrderModel.countDocuments(whereConditions);
+    // get meta orders
+    const meta = await orderQuery.countTotal();
 
     return {
-      meta: {
-        page,
-        limit,
-        total,
-      },
-      data: result,
+      meta,
+      result,
     };
   };
 

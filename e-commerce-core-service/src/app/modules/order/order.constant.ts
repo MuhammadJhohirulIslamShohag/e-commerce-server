@@ -17,6 +17,12 @@ export const paymentStatus = [
   'Cash On Delivery',
 ];
 
+// list of payment status
+export const paymentBy = [
+  'Stripe',
+  'Card'
+];
+
 // list of order tracking status
 export const orderTrackingStatus = ['ordered', 'shipped', 'delivered'];
 
