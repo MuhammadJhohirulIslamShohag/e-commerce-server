@@ -10,6 +10,7 @@ import { pick } from '../../shared/pick';
 import { paginationOptionFields } from '../../constants/pagination';
 import { ImageUploadHelpers } from '../../helpers/image-upload.helper';
 import { validateRequireFields } from '../../shared/validateRequireFields';
+import { productFilterableFields } from './product.constant';
 
 class ProductControllerClass {
   #ProductService: typeof ProductService;
@@ -103,6 +104,27 @@ class ProductControllerClass {
       data: result.result,
     });
   });
+
+  // get all products by filters controller
+  readonly getProductsByFilter = catchAsync(
+    async (req: Request, res: Response) => {
+      const paginationOptions = pick(req.query, paginationOptionFields);
+      const filters = pick(req.query, productFilterableFields);
+
+      const result = await this.#ProductService.getProductsByFilter(
+        paginationOptions,
+        filters
+      );
+
+      responseReturn(res, {
+        statusCode: httpStatus.OK,
+        success: true,
+        message: 'All Products Retrieved Successfully!',
+        meta: result.meta,
+        data: result.data,
+      });
+    }
+  );
 
   // get single product  controller
   readonly getSingleProduct = catchAsync(

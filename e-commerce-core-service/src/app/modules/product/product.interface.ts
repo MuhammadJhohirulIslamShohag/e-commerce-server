@@ -52,6 +52,7 @@ export type IProduct = {
       sizeId: Types.ObjectId | ISize;
     }
   ];
+  userId: Types.ObjectId;
 };
 
 // create product interface type
@@ -87,6 +88,7 @@ export type ICreateProduct = {
     name: string;
     sizeId: Types.ObjectId | ISize;
   }[];
+  userId: Types.ObjectId;
 };
 
 // product model
@@ -95,8 +97,11 @@ export type ProductModel = Model<IProduct>;
 // product filterable filed
 export type ProductFilters = {
   searchTerm?: string;
+  isFeatured?: boolean;
+  userId?: Types.ObjectId;
   minPrice?: string;
   maxPrice?: string;
+  [key: string]: unknown
 };
 
 // product review data

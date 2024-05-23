@@ -45,44 +45,6 @@ class QueryBuilder<T> {
     ];
 
     excludeFields.forEach(excludeField => delete queryObject[excludeField]);
-
-    // Handle minPrice and maxPrice separately
-    if (this?.query?.minPrice) {
-      // Ensure price field exists and initialize it if it doesn't
-      if (!queryObject.price) {
-        queryObject.price = {};
-      }
-      // Add $gte condition to price
-      queryObject.price = { ...queryObject.price, $gte: this.query.minPrice };
-      delete queryObject.minPrice;
-    }
-
-    if (this?.query?.maxPrice) {
-      // Ensure price field exists and initialize it if it doesn't
-      if (!queryObject.price) {
-        queryObject.price = {};
-      }
-      // Add $lte condition to price
-      queryObject.price = { ...queryObject.price, $lte: this.query.maxPrice };
-      delete queryObject.maxPrice;
-    }
-
-    // Handling multiple categoryId values
-    const categoryNames = (this?.query?.['category.name'] as string)?.split(
-      ','
-    );
-    if (categoryNames && Array.isArray(categoryNames)) {
-      queryObject['category.name'] = { $in: categoryNames };
-    }
-
-    const subCategoryNames = (
-      this?.query?.['subCategories.name'] as string
-    )?.split(',');
-    
-    if (subCategoryNames && Array.isArray(subCategoryNames)) {
-      queryObject['subCategories.name'] = { $in: subCategoryNames };
-    }
-
     this.modelQuery = this.modelQuery.find(queryObject as FilterQuery<T>);
 
     return this;

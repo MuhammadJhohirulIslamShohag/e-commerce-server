@@ -7,23 +7,26 @@ import Review from '../review/review.model';
 import ApiError from '../../errors/ApiError';
 import QueryBuilder from '../../builder/query.builder';
 
-import { ICreateProduct, IProduct } from './product.interface';
+import { ICreateProduct, IProduct, ProductFilters } from './product.interface';
 import { paginationHelper } from '../../helpers/pagination.helper';
 import { PaginationOptionType } from '../../interfaces/pagination';
 import { ImageUploadHelpers } from '../../helpers/image-upload.helper';
 import { productSearchableFields } from './product.constant';
 import { customSlug } from '../../shared/customSlug';
 import { IFile } from '../../interfaces';
+import { getProductsByFilter } from './product.filter';
 
 class ProductServiceClass {
   #ProductModel;
   #ReviewModel;
+  #ProductsByFilter;
   #QueryBuilder: typeof QueryBuilder;
 
   constructor() {
     this.#ProductModel = Product;
     this.#ReviewModel = Review;
     this.#QueryBuilder = QueryBuilder;
+    this.#ProductsByFilter = getProductsByFilter;
   }
 
   /* --------- create product service --------- */
@@ -148,6 +151,40 @@ class ProductServiceClass {
     return {
       meta,
       result,
+    };
+  };
+
+  // get all products by filter service
+  readonly getProductsByFilter = async (
+    paginationOption: PaginationOptionType,
+    filters: ProductFilters
+  ) => {
+    const { page, limit } =
+      paginationHelper.calculatePagination(paginationOption);
+
+    const { aggregateArray, whereConditions } = await this.#ProductsByFilter(
+      paginationOption,
+      filters
+    );
+    const result = await this.#ProductModel.aggregate(aggregateArray);
+
+    // get total products
+    const total = await this.#ProductModel.countDocuments(whereConditions);
+
+    const totalPages = Math.ceil(total / limit);
+    const nextPage = page < totalPages ? page + 1 : null;
+    const prevPage = page > 1 ? page - 1 : null;
+
+    return {
+      meta: {
+        page,
+        limit,
+        next: nextPage,
+        prev: prevPage,
+        totalPage: totalPages,
+        totalItems: total,
+      },
+      data: result,
     };
   };
 
@@ -333,7 +370,6 @@ class ProductServiceClass {
         'Quantity must not be negative or zero!'
       );
     }
-
 
     // check discount
     if (
