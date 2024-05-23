@@ -155,9 +155,9 @@ class AuthControllerClass {
   });
 
   // password reset
-  readonly passwordReset = catchAsync(async (req: Request, res: Response) => {
+  readonly forgotPassword = catchAsync(async (req: Request, res: Response) => {
     const { ...userData } = req.body;
-    const result = await this.#AuthService.passwordReset(userData);
+    const result = await this.#AuthService.forgotPassword(userData);
 
     responseReturn(res, {
       statusCode: httpStatus.OK,
@@ -168,11 +168,11 @@ class AuthControllerClass {
   });
 
   // password reset
-  readonly userChangePasswordReset = catchAsync(
+  readonly changePassword = catchAsync(
     async (req: Request, res: Response) => {
       const { ...userData } = req.body;
       const user = req.user as JwtPayload;
-      const result = await this.#AuthService.userChangePassword(user, userData);
+      const result = await this.#AuthService.changePassword(user, userData);
 
       responseReturn(res, {
         statusCode: httpStatus.OK,

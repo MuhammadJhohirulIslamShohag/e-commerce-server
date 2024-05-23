@@ -1,4 +1,3 @@
-import bcrypt from 'bcrypt';
 import httpStatus from 'http-status';
 import { JwtPayload, Secret } from 'jsonwebtoken';
 
@@ -72,12 +71,14 @@ class AuthServiceClass {
       throw new ApiError(httpStatus.NOT_ACCEPTABLE, 'User not found!');
     }
 
-    // hash the new password
-    const hashedPassword = await PasswordHelpers.hashPassword(password);
+    const isPasswordMatch = await PasswordHelpers.comparePassword(
+      password as string,
+      isUserExit.password
+    );
 
     // check password
-    if (isUserExit.password && !hashedPassword) {
-      throw new ApiError(httpStatus.UNAUTHORIZED, 'Password is incorrect!');
+    if (!isPasswordMatch) {
+      throw new ApiError(httpStatus.BAD_REQUEST, 'Password is incorrect!');
     }
 
     return isUserExit;
@@ -107,33 +108,37 @@ class AuthServiceClass {
   };
 
   // password reset
-  readonly passwordReset = async (payload: TForgotPassword) => {
+  readonly forgotPassword = async (payload: TForgotPassword) => {
     // check user is already exit
-    const isUserExit = await this.#UserModel.findOne({ email: payload.email });
+    const isUserExit = await this.#UserModel
+      .findOne({ email: payload?.email })
+      .select('password email');
 
     if (!isUserExit) {
       throw new ApiError(httpStatus.NOT_ACCEPTABLE, 'User Not Found!');
     }
 
     // check user is exit with email
-    if (payload?.email) {
-      if (isUserExit?.email !== payload?.email) {
-        throw new ApiError(httpStatus.UNAUTHORIZED, 'Unauthorized user!');
-      }
+    if (isUserExit?.email !== payload?.email) {
+      throw new ApiError(httpStatus.UNAUTHORIZED, 'Unauthorized user!');
     }
 
     // verifying otp
     await this.#OTPService.isOTPOk(payload.email, payload.otp);
 
     // hash the password
-    const hashedPassword = await bcrypt.hash(
-      payload?.password,
-      Number(config?.bcrypt_salt_rounds)
+    const hashedPassword = await PasswordHelpers.hashPassword(
+      payload?.password
     );
+
+    // check password
+    if (!hashedPassword) {
+      throw new ApiError(httpStatus.UNAUTHORIZED, 'Password is incorrect!');
+    }
 
     // set new has password to exiting user
     const result = await this.#UserModel.findOneAndUpdate(
-      { email: payload.email },
+      { email: payload?.email },
       {
         $set: {
           password: hashedPassword,
@@ -142,16 +147,11 @@ class AuthServiceClass {
       { new: true }
     );
 
-    // after reset password, delete otp from otp collection
-    if (result) {
-      await this.#OTPService.deleteOTP(payload.email, payload.otp);
-    }
-
     return result;
   };
 
   // user change password
-  readonly userChangePassword = async (
+  readonly changePassword = async (
     user: JwtPayload,
     userData: {
       email: string;
@@ -160,7 +160,7 @@ class AuthServiceClass {
     }
   ) => {
     // check user exits or not
-    const isUserExit = await this.#UserModel.findById(
+    const isUserExit = await this.#UserModel.findOne(
       { _id: user.userId },
       {
         password: 1,
@@ -177,39 +177,41 @@ class AuthServiceClass {
     }
 
     // check user is exit with email
-    if (userData?.email) {
-      if (isUserExit?.email !== userData?.email) {
-        throw new ApiError(httpStatus.UNAUTHORIZED, 'Unauthorized user!');
-      }
+    if (isUserExit?.email !== userData?.email) {
+      throw new ApiError(httpStatus.UNAUTHORIZED, 'Unauthorized user!');
     }
 
-    const isPasswordMatch = await PasswordHelpers.comparePassword(
+    const isNewPasswordMatch = await PasswordHelpers.comparePassword(
+      userData?.newPassword,
+      isUserExit.password
+    );
+
+    const isOldPasswordMatch = await PasswordHelpers.comparePassword(
       userData?.oldPassword,
       isUserExit.password
     );
 
-    // check password
-    if (isUserExit?.password && !isPasswordMatch) {
+    // check password not same regarding old password
+    if (isUserExit?.password && !isOldPasswordMatch) {
       throw new ApiError(httpStatus.UNAUTHORIZED, 'Password is incorrect!');
     }
 
     // check password same regarding old password
-    if (isUserExit?.password && isPasswordMatch) {
+    if (isUserExit?.password && isNewPasswordMatch) {
       throw new ApiError(
         httpStatus.UNAUTHORIZED,
-        'Your old and confirm password same!'
+        'Your old and new password same!'
       );
     }
 
     // hash the password
-    const hashedPassword = await bcrypt.hash(
-      userData?.newPassword,
-      Number(config?.bcrypt_salt_rounds)
+    const hashedPassword = await PasswordHelpers.hashPassword(
+      userData?.newPassword
     );
 
     // set new has password to exiting user
     const result = await this.#UserModel.findOneAndUpdate(
-      { email: userData.email },
+      { email: userData?.email },
       {
         $set: {
           password: hashedPassword,

@@ -17,7 +17,7 @@ const otpSchema = new Schema<IOtp, OtpModel>({
   expireDate: {
     type: Date,
     required: true,
-    default: () => new Date(Date.now() + 5 * 60 * 1000),
+    default: () => new Date(Date.now() + 10 * 60 * 1000),
   },
 });
 

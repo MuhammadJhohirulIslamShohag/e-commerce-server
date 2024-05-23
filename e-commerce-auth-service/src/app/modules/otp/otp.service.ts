@@ -1,7 +1,6 @@
 import httpStatus from 'http-status';
 
 import Otp from '../otp/opt.model';
-import User from '../user/user.model';
 import ApiError from '../../../errors/ApiError';
 import OtpEmailTemplate from '../../../utils/emailTemplate/otpemailTemplate';
 
@@ -10,22 +9,14 @@ import { GenerateNumberHelpers } from '../../../helpers/generateNumber.helper';
 import { ICreateOtp } from './opt.interface';
 
 class OTPServiceClass {
-  #UserModel;
   #OtpModel;
 
   constructor() {
-    this.#UserModel = User;
     this.#OtpModel = Otp;
   }
 
   // send otp
   readonly sendOTP = async (payload: ICreateOtp) => {
-    // check user is already exit
-    const isUserExit = await this.#UserModel.findOne({ email: payload.email });
-
-    if (isUserExit) {
-      throw new ApiError(httpStatus.NOT_ACCEPTABLE, 'User is already exit!');
-    }
 
     // check otp is already exit
     const isOTPExit = await this.#OtpModel.findOne({ email: payload.email });
@@ -41,7 +32,7 @@ class OTPServiceClass {
         {
           otp,
           email: payload.email,
-          expireDate: new Date(Date.now() + 5 * 60 * 1000),
+          expireDate: new Date(Date.now() + 10 * 60 * 1000),
         },
         { new: true }
       );

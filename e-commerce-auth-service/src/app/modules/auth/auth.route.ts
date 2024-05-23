@@ -39,16 +39,16 @@ class AuthRoutesClass {
     );
 
     this.routers.post(
-      '/reset-password',
-      validateRequest(AuthValidation.resetPasswordZodSchema),
-      AuthController.passwordReset
+      '/forgot-password',
+      validateRequest(AuthValidation.forgotPasswordZodSchema),
+      AuthController.forgotPassword
     );
 
     this.routers.post(
       '/change-password',
-      validateRequest(AuthValidation.userChangePasswordZodSchema),
+      validateRequest(AuthValidation.changePasswordZodSchema),
       auth(ENUM_USER_ROLE.ADMIN, ENUM_USER_ROLE.USER),
-      AuthController.userChangePasswordReset
+      AuthController.changePassword
     );
   }
 }

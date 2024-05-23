@@ -51,7 +51,7 @@ const OtpEmailTemplate = (otp: number) => {
         <div>
           <p style="font-size: 60px; font-weight: bold; margin: 25px 0 0 0;">${otp}</p>
           <p style="margin: 0; color: red; font-size: 16px; margin-top: 5px">Valid for ${new Date(
-            Date.now() + 5 * 60 * 1000
+            Date.now() + 10 * 60 * 1000
           )} only</p>
         </div>
       </div>
