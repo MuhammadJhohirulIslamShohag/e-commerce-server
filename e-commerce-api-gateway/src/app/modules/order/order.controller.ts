@@ -19,6 +19,13 @@ class OrderControllerClass {
     responseReturn(res, result);
   });
 
+  // total discount price controller
+  readonly totalDiscountPrice = catchAsync(async (req: Request, res: Response) => {
+    const result = await this.#OrderService.totalDiscountPrice(req);
+
+    responseReturn(res, result);
+  });
+
   // create order with cash_on_delivery controller
   readonly createOrderWithCashOnDelivery = catchAsync(
     async (req: Request, res: Response) => {

@@ -11,7 +11,7 @@ class StripeServiceClass {
   // create stripe service
   readonly createStripe = async (req: Request) => {
     const response: IGenericResponse = await this.#CoreService.post(
-      `stripes`,
+      `stripes/create-payment-intent`,
       req.body,
       {
         headers: {

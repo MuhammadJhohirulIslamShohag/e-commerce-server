@@ -23,6 +23,20 @@ class OrderServiceClass {
     return response;
   };
 
+  // total discount price service
+  readonly totalDiscountPrice = async (req: Request) => {
+    const response: IGenericResponse = await this.#CoreService.patch(
+      `orders/total-discount-price`,
+      req.body,
+      {
+        headers: {
+          Authorization: req.headers.authorization,
+        },
+      }
+    );
+    return response;
+  };
+
   // create order with cash_on_delivery service
   readonly createOrderWithCashOnDelivery = async (req: Request) => {
     const response: IGenericResponse = await this.#CoreService.post(

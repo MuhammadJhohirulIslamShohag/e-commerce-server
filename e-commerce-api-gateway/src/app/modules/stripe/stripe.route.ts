@@ -19,7 +19,7 @@ class StripeRouterClass {
     this.routers
       .route('/create-payment-intent')
       .post(
-        auth(ENUM_USER_ROLE.ADMIN),
+        auth(ENUM_USER_ROLE.ADMIN, ENUM_USER_ROLE.USER),
         validateRequest(StripeValidation.intentsCreateStripeZodSchema),
         StripeController.createStripe
       );

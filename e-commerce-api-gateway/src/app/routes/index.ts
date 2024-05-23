@@ -14,6 +14,7 @@ import { CommentRoutes } from '../modules/comment/comment.route';
 import { UserRoutes } from '../modules/user/user.route';
 import { AuthRoutes } from '../modules/auth/auth.route';
 import { OTPRoutes } from '../modules/otp/otp.route';
+import { StripeRoutes } from '../modules/stripe/stripe.route';
 
 const router = express.Router();
 
@@ -77,6 +78,10 @@ const moduleRoutes = [
   {
     path: '/advertise-banners',
     route: AdvertiseBannerRoutes,
+  },
+  {
+    path: '/stripes',
+    route: StripeRoutes,
   },
 ];
 
