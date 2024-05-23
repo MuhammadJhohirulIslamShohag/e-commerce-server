@@ -13,15 +13,15 @@ class AuthControllerClass {
   }
 
   // create user
-  readonly createUser = catchAsync(async (req: Request, res: Response) => {
-    const result = await this.#AuthServices.createUser(req);
+  readonly register = catchAsync(async (req: Request, res: Response) => {
+    const result = await this.#AuthServices.register(req);
 
     responseReturn(res, result);
   });
 
   // login user
-  readonly loginUser = catchAsync(async (req: Request, res: Response) => {
-    const result = await this.#AuthServices.loginUser(req);
+  readonly login = catchAsync(async (req: Request, res: Response) => {
+    const result = await this.#AuthServices.login(req);
     responseReturn(res, result);
   });
 
@@ -38,15 +38,9 @@ class AuthControllerClass {
   });
 
   // password reset
-  readonly passwordReset = catchAsync(async (req: Request, res: Response) => {
-    const result = await this.#AuthServices.passwordReset(req);
-    responseReturn(res, result);
-  });
-
-  // password reset
-  readonly userChangePasswordReset = catchAsync(
+  readonly changePassword = catchAsync(
     async (req: Request, res: Response) => {
-      const result = await this.#AuthServices.userChangePasswordReset(req);
+      const result = await this.#AuthServices.changePassword(req);
       responseReturn(res, result);
     }
   );

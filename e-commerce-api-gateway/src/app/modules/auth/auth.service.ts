@@ -10,7 +10,7 @@ class AuthServiceClass {
   }
 
   // create user
-  readonly createUser = async (req: Request) => {
+  readonly register = async (req: Request) => {
     const response: IGenericResponse = await this.#AuthService.post(
       `auth/register`,
       req.body
@@ -19,7 +19,7 @@ class AuthServiceClass {
   };
 
   // login user
-  readonly loginUser = async (req: Request) => {
+  readonly login = async (req: Request) => {
     const response: IGenericResponse = await this.#AuthService.post(
       `auth/login`,
       req.body
@@ -46,19 +46,15 @@ class AuthServiceClass {
   };
 
   // password reset
-  readonly passwordReset = async (req: Request) => {
-    const response: IGenericResponse = await this.#AuthService.post(
-      `auth/reset-password`,
-      req.body
-    );
-    return response;
-  };
-
-  // password reset
-  readonly userChangePasswordReset = async (req: Request) => {
+  readonly changePassword = async (req: Request) => {
     const response: IGenericResponse = await this.#AuthService.post(
       `auth/change-password`,
-      req.body
+      req.body,
+      {
+        headers: {
+          Authorization: req.headers.authorization,
+        },
+      }
     );
     return response;
   };

@@ -26,6 +26,15 @@ class ProductControllerClass {
     responseReturn(res, result);
   });
 
+  // get all products by filters controller
+  readonly getProductsByFilter = catchAsync(
+    async (req: Request, res: Response) => {
+      const result = await this.#ProductService.getProductsByFilter(req);
+
+      responseReturn(res, result);
+    }
+  );
+
   // get products by category controller
   readonly getProductsByCategory = catchAsync(
     async (req: Request, res: Response) => {

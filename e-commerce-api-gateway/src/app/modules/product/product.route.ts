@@ -29,6 +29,9 @@ class ProductRouterClass {
       ProductController.getProductsBySubCategory
     );
 
+    // get all products by filters
+    this.routers.get('/by-filters', ProductController.getProductsByFilter);
+
     // create and get all products routes
     this.routers
       .route('/')

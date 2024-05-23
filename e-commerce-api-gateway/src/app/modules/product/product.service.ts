@@ -26,10 +26,18 @@ class ProductServiceClass {
   readonly allProducts = async (req: Request) => {
     const response: IGenericResponse = await CoreService.get(`products`, {
       params: req.query,
-      headers: {
-        Authorization: req.headers.authorization,
-      },
     });
+    return response;
+  };
+
+  // get all products by filter service
+  readonly getProductsByFilter = async (req: Request) => {
+    const response: IGenericResponse = await CoreService.get(
+      `products/by-filters`,
+      {
+        params: req.query,
+      }
+    );
     return response;
   };
 
@@ -37,14 +45,9 @@ class ProductServiceClass {
   readonly getProductsByCategory = async (req: Request) => {
     const { categoryId } = req.params;
 
-    const response: IGenericResponse = await CoreService.patch(
+    const response: IGenericResponse = await CoreService.get(
       `products/categories/${categoryId}`,
-      req.body,
-      {
-        headers: {
-          Authorization: req.headers.authorization,
-        },
-      }
+      req.body
     );
     return response;
   };
@@ -53,14 +56,9 @@ class ProductServiceClass {
   readonly getProductsBySubCategory = async (req: Request) => {
     const { subCategoryId } = req.params;
 
-    const response: IGenericResponse = await CoreService.patch(
+    const response: IGenericResponse = await CoreService.get(
       `products/sub-categories/${subCategoryId}`,
-      req.body,
-      {
-        headers: {
-          Authorization: req.headers.authorization,
-        },
-      }
+      req.body
     );
     return response;
   };
@@ -69,11 +67,7 @@ class ProductServiceClass {
   readonly getSingleProduct = async (req: Request) => {
     const { id } = req.params;
 
-    const response: IGenericResponse = await CoreService.get(`products/${id}`, {
-      headers: {
-        Authorization: req.headers.authorization,
-      },
-    });
+    const response: IGenericResponse = await CoreService.get(`products/${id}`);
     return response;
   };
 

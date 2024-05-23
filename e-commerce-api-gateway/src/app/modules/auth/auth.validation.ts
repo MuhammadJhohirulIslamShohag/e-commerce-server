@@ -73,18 +73,8 @@ const refreshTokenZodSchema = z.object({
   }),
 });
 
-const forgotPasswordZodSchema = z.object({
-  body: z.object({
-    email: z
-      .string({
-        required_error: 'Email is required!',
-      })
-      .email()
-      .optional(),
-  }),
-});
 
-const resetPasswordZodSchema = z.object({
+const forgotPasswordZodSchema = z.object({
   body: z.object({
     otp: z.number({
       required_error: 'OTP is required!',
@@ -113,11 +103,10 @@ const resetPasswordZodSchema = z.object({
         required_error: 'Email is required!',
       })
       .email()
-      .optional(),
   }),
 });
 
-const userChangePasswordZodSchema = z.object({
+const changePasswordZodSchema = z.object({
   body: z.object({
     newPassword: z
       .string({
@@ -170,6 +159,5 @@ export const AuthValidation = {
   loginUserZodSchema,
   refreshTokenZodSchema,
   forgotPasswordZodSchema,
-  resetPasswordZodSchema,
-  userChangePasswordZodSchema,
+  changePasswordZodSchema,
 };
