@@ -9,7 +9,7 @@ type UserAddress = {
   location: string;
 };
 
-export type ShippingAddress = {
+export type TShippingAddress = {
   firstName: string;
   lastName: string;
   company: string;
@@ -19,20 +19,8 @@ export type ShippingAddress = {
   postCode: string;
   country: string;
   state: string;
-  shippingAddressId?: string;
-};
-
-// shipping address interface model type
-export type IShippingAddress = {
-  recipientName: string;
-  streetAddress: string;
-  city: string;
-  stateProvince: string;
-  postalCode: string;
-  country: string;
   phoneNumber: string;
 };
-
 
 export type IUser = {
   _id?: string;
@@ -46,7 +34,7 @@ export type IUser = {
   password: string;
   profileImage?: string;
   address: UserAddress;
-  shippingAddress: ShippingAddress;
+  shippingAddress: TShippingAddress;
   role: UserRoleType;
 };
 

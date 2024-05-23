@@ -75,6 +75,9 @@ const userSchema = new Schema<IUser, UserModel>({
       state: {
         type: String,
       },
+      phoneNumber: {
+        type: String,
+      },
     },
   },
   role: {
