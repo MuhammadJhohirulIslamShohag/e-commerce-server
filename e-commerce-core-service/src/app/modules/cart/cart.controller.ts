@@ -16,10 +16,10 @@ class CartControllerClass {
 
   // create brand controller
   readonly createCart = catchAsync(async (req: Request, res: Response) => {
-    const { ...cartData } = req.body;
+    const cart = req.body;
     const { userId } = req.user as JwtPayload;
 
-    const result = await this.#CartService.createCart(cartData, userId);
+    const result = await this.#CartService.createCart(cart, userId);
 
     responseReturn(res, {
       statusCode: httpStatus.OK,

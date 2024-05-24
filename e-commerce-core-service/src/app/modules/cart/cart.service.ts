@@ -1,10 +1,6 @@
 import { Types } from 'mongoose';
-import httpStatus from 'http-status';
-import axios from 'axios';
 
-import config from '../../config';
 import QueryBuilder from '../../builder/query.builder';
-import ApiError from '../../errors/ApiError';
 import Product from '../product/product.model';
 import Cart from './cart.model';
 
@@ -22,20 +18,11 @@ class CartServiceClass {
   }
   // create Cart service
   readonly createCart = async (payload: ICreateCart[], userId: string) => {
-    // finding user who save order cart into the database
-    const user = await axios.get(
-      `${config.user_url_auth_service_endpoint}/${userId}` ||
-        'https://localhost:7000/api/vi/users'
-    );
-
-    if (!user?.data) {
-      throw new ApiError(httpStatus.NOT_FOUND, 'User Not Found!');
-    }
 
     // checking already exist cart which to save database
     const existingCartsInUser = await this.#CartModel
       .findOne({
-        orderedBy: user?.data?._id,
+        orderedBy: userId,
       })
       .exec();
 
@@ -46,6 +33,7 @@ class CartServiceClass {
 
     const products = [];
     for (let i = 0; i < payload.length; i++) {
+      
       const object: {
         product?: Types.ObjectId | string;
         count?: number;
@@ -74,7 +62,7 @@ class CartServiceClass {
     await new this.#CartModel({
       products,
       cartTotal,
-      orderedBy: user?.data?._id,
+      orderedBy: userId,
     }).save();
 
     return { ok: true };
@@ -116,20 +104,6 @@ class CartServiceClass {
 
   // delete cart service
   readonly deleteCart = async (payload: string) => {
-    // to get user who delete the cart
-    const user = await axios.get(
-      `${config.user_url_auth_service_endpoint}/${payload}` ||
-        'https://localhost:7000/api/vi/users'
-    );
-
-    if (!user?.data) {
-      throw new ApiError(httpStatus.NOT_FOUND, 'User Not Found!');
-    }
-
-    if (!user) {
-      throw new ApiError(httpStatus.NOT_FOUND, 'User Not Found!');
-    }
-
     // delete cart which delete the the database
     const deleteCart = await Cart.findOneAndDelete({
       orderedBy: payload,

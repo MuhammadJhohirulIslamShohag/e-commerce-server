@@ -1,10 +1,4 @@
-import axios from 'axios';
-import httpStatus from 'http-status';
-
-import ApiError from '../../errors/ApiError';
 import Cart from '../cart/cart.model';
-import config from '../../config';
-
 import { stripe } from '../../shared/stripe';
 import { IStripe } from './stripe.interface';
 import { ICart } from '../cart/cart.interface';
@@ -19,19 +13,10 @@ class StripeServiceClass {
   readonly intentsCreateStripe = async (payload: IStripe, userId: string) => {
     const { isCouped } = payload;
 
-    // getting who payment or order
-    const user = await axios.get(
-      `${config.user_url_auth_service_endpoint}/${userId}` ||
-        `https://localhost:7000/api/vi/users/${userId}`
-    );
-
-    if (!user?.data) {
-      throw new ApiError(httpStatus.NOT_FOUND, 'User Not Found!');
-    }
-
     // getting total price before discount
     const cart = await this.#CartModel
       .findOne({ orderedBy: userId })
+      .populate('products.product')
       .exec();
 
     const { cartTotal, totalPriceAfterDiscount, products } = cart as ICart;
@@ -58,7 +43,7 @@ class StripeServiceClass {
       cartTotal,
       totalPriceAfterDiscount,
       payable: orderAmount,
-      product: products.length && products[0],
+      product: products.length && products,
     };
   };
 }

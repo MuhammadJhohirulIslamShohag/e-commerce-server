@@ -1,8 +1,6 @@
 import httpStatus from 'http-status';
-import axios from 'axios';
 import { Types } from 'mongoose';
 
-import config from '../../config';
 import Cart from '../cart/cart.model';
 import Order from './order.model';
 import Product from '../product/product.model';
@@ -34,15 +32,6 @@ class OrderServiceClass {
   // create order service
   readonly createOrder = async (payload: IOrder, user: string) => {
     const { paymentIntents, paymentBy } = payload;
-    // who order
-    const userData = await axios.get(
-      `${config.user_url_auth_service_endpoint}/${user}` ||
-        `https://localhost:5000/api/vi/users/${user}`
-    );
-
-    if (!userData?.data) {
-      throw new ApiError(httpStatus.NOT_FOUND, 'User Not Found!');
-    }
 
     // which product carts
     const carts = await this.#CartModel.findOne({ orderedBy: user }).exec();
@@ -96,16 +85,6 @@ class OrderServiceClass {
         httpStatus.BAD_REQUEST,
         'Create Cash Order is Failed!'
       );
-    }
-
-    // who payment on the cash
-    const userData = await axios.get(
-      `${config.user_url_auth_service_endpoint}/${user}` ||
-        `https://localhost:5000/api/vi/users/${user}`
-    );
-
-    if (!userData?.data) {
-      throw new ApiError(httpStatus.NOT_FOUND, 'User Not Found!');
     }
 
     // which carts
@@ -176,16 +155,6 @@ class OrderServiceClass {
 
     if (validationCoupon === null) {
       throw new ApiError(httpStatus.NOT_FOUND, 'Invalid Coupon');
-    }
-
-    // get user who want to process ordering
-    const userData = await axios.get(
-      `${config.user_url_auth_service_endpoint}/${user}` ||
-        `https://localhost:5000/api/vi/users/${user}`
-    );
-
-    if (!userData?.data) {
-      throw new ApiError(httpStatus.NOT_FOUND, 'User Not Found!');
     }
 
     // getting carts by the userId
