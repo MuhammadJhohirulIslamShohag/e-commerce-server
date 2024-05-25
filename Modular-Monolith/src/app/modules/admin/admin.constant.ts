@@ -2,6 +2,7 @@
 export const adminRoles = [
   'superAdmin',
   'admin',
+  "manager"
 ]
 
 // list of admin status
