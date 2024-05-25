@@ -24,7 +24,7 @@ app.use('/api/v1', AllRouters);
 
 // root router or health router
 app.get('/', (_req: Request, res: Response) => {
-  res.json('E-Commerce Core Service is running');
+  res.json('E-Commerce Server is running');
 });
 
 // global error handler

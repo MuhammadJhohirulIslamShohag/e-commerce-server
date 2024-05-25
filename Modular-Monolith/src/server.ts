@@ -1,14 +1,16 @@
+/* eslint-disable no-console */
 import { Server } from 'http';
 
 import app from './app';
 import config from './app/config';
 
-import { errorLogger, logger } from './app/shared/logger';
+// import { errorLogger, logger } from './app/shared/logger';
 import { database_connection } from './app/db/mongo.db';
 
 // handle uncaught exception error if any developer take mistake, work it synchronous
 process.on('uncaughtException', error => {
-  errorLogger.error(error);
+  // errorLogger.error(error);
+  console.log(error);
   process.exit(1);
 });
 
@@ -22,11 +24,13 @@ const startServer = async () => {
 
     // server listening
     server = app.listen(config.port, () => {
-      logger.info(`E-Commerce Server is Running on ${config.port}`);
+      // logger.info(`E-Commerce Server is Running on ${config.port}`);
+      console.log(`E-Commerce Server is Running on ${config.port}`);
     });
   } catch (error) {
     if (error instanceof Error) {
-      errorLogger.error(error.message);
+      console.log(error.message);
+      // errorLogger.error(error.message);
     }
   }
 
@@ -36,7 +40,8 @@ const startServer = async () => {
     // otherwise server stop immediately
     if (server) {
       server.close(() => {
-        errorLogger.error(error);
+        // errorLogger.error(error);
+        console.log(error);
         process.exit(1);
       });
     } else {

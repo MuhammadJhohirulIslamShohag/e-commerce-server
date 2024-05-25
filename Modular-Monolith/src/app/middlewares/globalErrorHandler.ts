@@ -12,7 +12,7 @@ import handleCastError from '../errors/handleCastError';
 import handleValidationError from '../errors/handleValidationError';
 
 import { IGenericErrorMessage } from '../interfaces/error';
-import { errorLogger } from '../shared/logger';
+// import { errorLogger } from '../shared/logger';
 
 // global error handler
 const globalErrorHandler: ErrorRequestHandler = (
@@ -23,7 +23,7 @@ const globalErrorHandler: ErrorRequestHandler = (
 ) => {
   config.env === 'development'
     ? console.log(`global error handler~~~`, error)
-    : errorLogger.error(`global error handler~~~`, error);
+    : console.log(`global error handler~~~`, error);
 
   let statusCode = 500;
   let message = 'Something went wrong!';

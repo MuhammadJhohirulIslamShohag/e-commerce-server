@@ -1,8 +1,8 @@
 import httpStatus from 'http-status';
 
-import ApiError from '../../../errors/ApiError';
+import ApiError from '../../errors/ApiError';
 import User from './user.model';
-import QueryBuilder from '../../../builder/query.builder';
+import QueryBuilder from '../../builder/query.builder';
 
 import { IUser } from './user.interface';
 import { userSearchableFields } from './user.constant';
