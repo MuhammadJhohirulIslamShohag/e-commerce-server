@@ -326,17 +326,17 @@ class ProductServiceClass {
   readonly getSingleProduct = async (payload: string) => {
     const product = await this.#ProductModel.findOne({ slug: payload });
 
+
     // handle the case when the product is not found
     if (!product) {
       throw new ApiError(httpStatus.NOT_FOUND, 'Product Not Found!');
     }
 
-    // increment the view count
-    product.clickedProductCount += 1;
+    // // increment the view count
+    // product.clickedProductCount += 1;
 
-    // save the updated product
-    await product.save();
-
+    // // save the updated product
+    // await product.save();
     return product;
   };
 

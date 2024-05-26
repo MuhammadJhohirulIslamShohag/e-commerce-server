@@ -129,9 +129,9 @@ const ProductSchema = new Schema<IProduct, ProductModel>(
     ],
     userId: {
       type: Schema.Types.ObjectId,
-      ref: "User",
-      required: [true, "User Id is required"],
-  },
+      ref: 'User',
+      required: [true, 'User Id is required'],
+    },
   },
   {
     timestamps: true,

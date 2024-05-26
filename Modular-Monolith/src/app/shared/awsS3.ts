@@ -20,7 +20,8 @@ export const imageUploadToAwsS3 = (
   filename: string,
   file:any
 ) => {
-  const fileData = Buffer.from(file.data);
+  
+  const fileData = file.data ? Buffer.from(file.data) : file
 
   // Check if file is undefined or not a Buffer object
   if (!fileData || !(fileData instanceof Buffer)) {

@@ -1,4 +1,4 @@
-import { Request, Response } from 'express';
+  import { Request, Response } from 'express';
 import httpStatus from 'http-status';
 
 import catchAsync from '../../shared/catchAsync';
@@ -16,7 +16,6 @@ class ReviewControllerClass {
   // create review controller
   readonly createReview = catchAsync(async (req: Request, res: Response) => {
     const { ...createReviewData } = req.body;
-
     const result = await this.#ReviewService.createReview(createReviewData);
 
     responseReturn(res, {
@@ -43,7 +42,6 @@ class ReviewControllerClass {
   // get single review controller
   readonly getSingleReview = catchAsync(async (req: Request, res: Response) => {
     const reviewId = req.params.id;
-
     const result = await this.#ReviewService.getSingleReview(reviewId);
 
     responseReturn(res, {

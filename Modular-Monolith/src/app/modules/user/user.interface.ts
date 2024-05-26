@@ -27,6 +27,7 @@ export type IUser = {
   name?: string;
   email: string;
   location: string;
+  about: string;
   wishLists: {
     productId: Types.ObjectId;
   };

@@ -7,7 +7,7 @@ import catchAsync from '../../shared/catchAsync';
 import responseReturn from '../../shared/responseReturn';
 import { validateRequireFields } from '../../shared/validateRequireFields';
 import { ImageUploadHelpers } from '../../helpers/image-upload.helper';
-
+import { TFileRequestBody } from '../../interfaces/common';
 
 class SubCategoryControllerClass {
   #SubCategoryService: typeof SubCategoryService;
@@ -19,14 +19,14 @@ class SubCategoryControllerClass {
   // create sub category method
   readonly createSubCategory = catchAsync(
     async (req: Request, res: Response) => {
-      const { name, categoryId, files } = req.body;
+      const { name, categoryId } = req.body;
 
       // validate body data
       await validateRequireFields({ name, categoryId });
 
       // sub category image file
       const subCategoryImageFile = await ImageUploadHelpers.imageFileValidate(
-        files,
+        req.files as unknown as TFileRequestBody,
         'subCategoryImage',
         'subCategory'
       );
@@ -88,7 +88,7 @@ class SubCategoryControllerClass {
   readonly updateSubCategory = catchAsync(
     async (req: Request, res: Response) => {
       const subCategoryId = req.params.id;
-      const { files, ...updateSubCategoryData } = req.body;
+      const { ...updateSubCategoryData } = req.body;
 
       // check validity request payload body
       await validateRequireFields(updateSubCategoryData);
@@ -96,7 +96,7 @@ class SubCategoryControllerClass {
       // sub category image file
       const subCategoryImageFile =
         await ImageUploadHelpers.imageFileValidateForUpdate(
-          files,
+          req.files as unknown as TFileRequestBody,
           'subCategoryImage',
           'subCategory'
         );

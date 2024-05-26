@@ -6,6 +6,8 @@ import QueryBuilder from '../../builder/query.builder';
 
 import { IUser } from './user.interface';
 import { userSearchableFields } from './user.constant';
+import { IFile } from '../../interfaces';
+import { ImageUploadHelpers } from '../../helpers/image-upload.helper';
 
 class UserServiceClass {
   #UserModel;
@@ -159,6 +161,33 @@ class UserServiceClass {
           },
         },
       },
+      {
+        new: true,
+      }
+    );
+
+    return result;
+  };
+
+  // upload profile image service
+  readonly uploadProfileImage = async (payload: IFile, userId: string) => {
+    const isExitUser = await this.#UserModel.findOne({ _id: userId });
+
+    // check already user exit, throw error
+    if (!isExitUser) {
+      throw new ApiError(httpStatus.BAD_REQUEST, 'User Not Exit!');
+    }
+   
+    // upload image to aws s3 bucket
+    const profileImageURL = await ImageUploadHelpers.imageUploadToS3Bucket(
+      'PFL',
+      'profile',
+      payload.buffer
+    );
+
+    const result = await this.#UserModel.findOneAndUpdate(
+      { _id: userId },
+      { profileImage: profileImageURL },
       {
         new: true,
       }

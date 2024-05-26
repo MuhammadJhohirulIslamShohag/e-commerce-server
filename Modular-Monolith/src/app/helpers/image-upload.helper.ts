@@ -20,7 +20,7 @@ const imageUploadToS3Bucket = async (
     `${imageName}-image-${uniqueId}.jpg`,
     file
   )) as { Location: string };
-
+  
   // check image is upload or not
   if (!uploadedImageURL) {
     throw new ApiError(

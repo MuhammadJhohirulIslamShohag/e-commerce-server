@@ -7,6 +7,7 @@ import responseReturn from '../../shared/responseReturn';
 import { AdvertiseBannerService } from './advertiseBanner.service';
 import { validateRequireFields } from '../../shared/validateRequireFields';
 import { ImageUploadHelpers } from '../../helpers/image-upload.helper';
+import { TFileRequestBody } from '../../interfaces/common';
 
 class AdvertiseBannerControllerClass {
   #AdvertiseBannerService: typeof AdvertiseBannerService;
@@ -18,7 +19,7 @@ class AdvertiseBannerControllerClass {
   // create advertise banner controller
   readonly createAdvertiseBanner = catchAsync(
     async (req: Request, res: Response) => {
-      const { name, startDate, duration, endDate, files, ...other } = req.body;
+      const { name, startDate, duration, endDate, ...other } = req.body;
 
       // validate body data
       await validateRequireFields({ name, startDate, duration, endDate });
@@ -26,7 +27,7 @@ class AdvertiseBannerControllerClass {
       // advertise banner image file
       const advertiseBannerImageFile =
         await ImageUploadHelpers.imageFileValidate(
-          files,
+          req.files as unknown as TFileRequestBody,
           'advertiseBannerImage',
           'advertiseBanner'
         );
@@ -93,7 +94,7 @@ class AdvertiseBannerControllerClass {
   readonly updateAdvertiseBanner = catchAsync(
     async (req: Request, res: Response) => {
       const advertiseBannerId = req.params.id;
-      const { files, ...updateAdvertiseBannerData } = req.body;
+      const { ...updateAdvertiseBannerData } = req.body;
 
       // check validity request payload body
       await validateRequireFields(updateAdvertiseBannerData);
@@ -101,7 +102,7 @@ class AdvertiseBannerControllerClass {
       // advertise banner image file
       const advertiseBannerImageFile =
         await ImageUploadHelpers.imageFileValidateForUpdate(
-          files,
+          req.files as unknown as TFileRequestBody,
           'advertiseBannerImage',
           'advertise banner'
         );

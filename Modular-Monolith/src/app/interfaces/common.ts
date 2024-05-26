@@ -1,3 +1,4 @@
+import { IFile } from '.';
 import { IGenericErrorMessage } from './error';
 
 export type IGenericResponse<T> = {
@@ -14,3 +15,7 @@ export type IGenericErrorResponse = {
   message: string;
   errorMessages: IGenericErrorMessage[];
 };
+
+export type TFileRequestBody = { [key: string]: IFile[] };
+
+

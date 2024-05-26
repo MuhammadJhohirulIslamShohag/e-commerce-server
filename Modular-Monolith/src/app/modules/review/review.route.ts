@@ -5,7 +5,7 @@ import { ReviewController } from './review.controller';
 
 import validateRequest from '../../middlewares/validateRequest';
 
-class BannerRouterClass {
+class ReviewRouterClass {
   readonly routers: Router;
   constructor() {
     this.routers = Router();
@@ -18,7 +18,7 @@ class BannerRouterClass {
       .route('/')
       .post(
         validateRequest(ReviewValidation.reviewCreateZodSchema),
-        ReviewController.deleteReview
+        ReviewController.createReview
       )
       .get(ReviewController.allReviews);
 
@@ -34,6 +34,6 @@ class BannerRouterClass {
   }
 }
 
-const allRoutes = new BannerRouterClass().routers;
+const allRoutes = new ReviewRouterClass().routers;
 
 export { allRoutes as ReviewRoutes };

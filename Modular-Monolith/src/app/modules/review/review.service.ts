@@ -20,8 +20,9 @@ class ReviewServiceClass {
 
   // create review service
   readonly createReview = async (payload: IReview) => {
+
     const isExitProduct = await this.#ProductModel.findOne({
-      productId: payload.productId,
+      _id: payload.productId,
     });
 
     // check product is not exit

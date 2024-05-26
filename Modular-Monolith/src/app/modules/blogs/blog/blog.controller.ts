@@ -9,6 +9,7 @@ import responseReturn from '../../../shared/responseReturn';
 import { BlogService } from './blog.service';
 import { validateRequireFields } from '../../../shared/validateRequireFields';
 import { ImageUploadHelpers } from '../../../helpers/image-upload.helper';
+import { TFileRequestBody } from '../../../interfaces/common';
 
 class BlogControllerClass {
   #BlogService: typeof BlogService;
@@ -26,7 +27,6 @@ class BlogControllerClass {
       shortDescription,
       authorName,
       categoryId,
-      files,
     } = req.body;
 
     // validate value
@@ -45,7 +45,7 @@ class BlogControllerClass {
 
     // blog image file validation
     const blogImageFile = await ImageUploadHelpers.imageFileValidate(
-      files,
+      req.files as unknown as TFileRequestBody,
       'blogImage',
       'blog'
     );
@@ -105,14 +105,14 @@ class BlogControllerClass {
   // update blog controller
   readonly updateBlog = catchAsync(async (req: Request, res: Response) => {
     const blogId = req.params.id;
-    const { files, ...updateBlogData } = req.body;
+    const { ...updateBlogData } = req.body;
 
     // check validity request payload body
     await validateRequireFields(updateBlogData);
 
     // blog image file
     const blogImageFile = await ImageUploadHelpers.imageFileValidateForUpdate(
-      files,
+      req.files as unknown as TFileRequestBody,
       'blogImage',
       'blog'
     );

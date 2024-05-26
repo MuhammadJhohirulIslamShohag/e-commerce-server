@@ -16,9 +16,7 @@ const orderSchema = new Schema<IOrder, OrderModel>(
           type: Schema.Types.ObjectId,
           ref: 'Product',
         },
-        quantity: Number,
-        color: String,
-        size: String,
+        quantity: Number
       },
     ],
     paymentIntents: Schema.Types.Mixed,

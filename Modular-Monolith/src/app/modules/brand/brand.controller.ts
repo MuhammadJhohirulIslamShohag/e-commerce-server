@@ -7,6 +7,7 @@ import responseReturn from '../../shared/responseReturn';
 import { BrandService } from './brand.service';
 import { validateRequireFields } from '../../shared/validateRequireFields';
 import { ImageUploadHelpers } from '../../helpers/image-upload.helper';
+import { TFileRequestBody } from '../../interfaces/common';
 
 class BrandControllerClass {
   #BrandService: typeof BrandService;
@@ -17,14 +18,14 @@ class BrandControllerClass {
 
   // create brand controller
   readonly createBrand = catchAsync(async (req: Request, res: Response) => {
-    const { name, email, description, files, ...other } = req.body;
+    const { name, email, description, ...other } = req.body;
 
     // validate body data
     await validateRequireFields({ name, email, description });
 
     // brand image file
     const brandImageFile = await ImageUploadHelpers.imageFileValidate(
-      files,
+      req.files as unknown as TFileRequestBody,
       'brandImage',
       'brand'
     );
@@ -78,14 +79,14 @@ class BrandControllerClass {
   // update brand controller
   readonly updateBrand = catchAsync(async (req: Request, res: Response) => {
     const brandId = req.params.id;
-    const { files, ...updateBrandData } = req.body;
+    const { ...updateBrandData } = req.body;
 
     // check validity request payload body
     await validateRequireFields(updateBrandData);
 
     // advertise banner image file
     const brandImageFile = await ImageUploadHelpers.imageFileValidateForUpdate(
-      files,
+      req.files as unknown as TFileRequestBody,
       'brandImage',
       'brand'
     );

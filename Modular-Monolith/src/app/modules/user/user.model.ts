@@ -17,6 +17,9 @@ const userSchema = new Schema<IUser, UserModel>({
     trim: true,
     validate: [validator.isEmail, 'Provide a valid email!'],
   },
+  about: {
+    type: String
+  },
   password: {
     type: String,
     required: [true, 'Password is required!'],

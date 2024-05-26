@@ -5,6 +5,7 @@ const updateUserZodSchema = z.object({
   body: z.object({
     name: z.string().optional(),
     email: z.string().email().optional(),
+    about: z.string().optional(),
     password: z
       .string({
         required_error: 'Password is required!',

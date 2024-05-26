@@ -1,4 +1,5 @@
 import { Router } from 'express';
+import multer from 'multer';
 
 import validateRequest from '../../middlewares/validateRequest';
 import auth from '../../middlewares/auth';
@@ -6,6 +7,9 @@ import auth from '../../middlewares/auth';
 import { UserValidation } from './user.validation';
 import { UserController } from './user.controller';
 import { ENUM_USER_ROLE } from '../../enum/user';
+
+const storage = multer.memoryStorage();
+const upload = multer({ storage: storage });
 
 class UserRoutesClass {
   readonly routers: Router;
@@ -18,15 +22,25 @@ class UserRoutesClass {
     // add wish list
     this.routers.post(
       '/wishlist',
-      auth(ENUM_USER_ROLE.USER),
+      auth(ENUM_USER_ROLE.USER, ENUM_USER_ROLE.ADMIN),
       validateRequest(UserValidation.addWishListProductZodSchema),
       UserController.addWishListProduct
     );
 
     // delete wish list
-    this.routers.route('/wishlist/:wishlistId').delete(
-      auth(ENUM_USER_ROLE.USER),
-      UserController.deleteProductFromWishlist
+    this.routers
+      .route('/wishlist/:wishlistId')
+      .delete(
+        auth(ENUM_USER_ROLE.USER, ENUM_USER_ROLE.ADMIN),
+        UserController.deleteProductFromWishlist
+      );
+
+    // profile image upload
+    this.routers.patch(
+      '/upload-profile-image',
+      auth(ENUM_USER_ROLE.USER, ENUM_USER_ROLE.ADMIN),
+      upload.fields([{ name: 'profileImage', maxCount: 1 }]),
+      UserController.uploadProfileImage
     );
 
     // all user
@@ -37,17 +51,11 @@ class UserRoutesClass {
       .route('/:id')
       .patch(
         validateRequest(UserValidation.updateUserZodSchema),
-        auth(
-          ENUM_USER_ROLE.ADMIN,
-          ENUM_USER_ROLE.USER
-        ),
+        auth(ENUM_USER_ROLE.ADMIN, ENUM_USER_ROLE.USER),
         UserController.updateUser
       )
       .delete(
-        auth(
-          ENUM_USER_ROLE.ADMIN,
-          ENUM_USER_ROLE.USER
-        ),
+        auth(ENUM_USER_ROLE.ADMIN, ENUM_USER_ROLE.USER),
         UserController.deleteUser
       )
       .get(

@@ -130,6 +130,13 @@ export const getProductsByFilter = async (
             else: 0,
           },
         },
+        ratingLength: {
+          $cond: {
+            if: { $gt: [{ $size: '$reviews' }, 0] },
+            then: { $size: '$reviews' },
+            else: 0,
+          },
+        },
       },
     },
     {
@@ -152,6 +159,7 @@ export const getProductsByFilter = async (
         user: 1,
         createdAt: 1,
         averageRating: 1,
+        ratingLength: 1,
       },
     },
     {

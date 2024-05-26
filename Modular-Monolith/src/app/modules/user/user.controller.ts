@@ -6,6 +6,8 @@ import catchAsync from '../../shared/catchAsync';
 import responseReturn from '../../shared/responseReturn';
 
 import { UserService } from './user.service';
+import { ImageUploadHelpers } from '../../helpers/image-upload.helper';
+import { TFileRequestBody } from '../../interfaces/common';
 
 class UserControllerClass {
   #UserService: typeof UserService;
@@ -124,6 +126,33 @@ class UserControllerClass {
   //     });
   //   }
   // );
+
+  readonly uploadProfileImage = catchAsync(
+    async (req: Request, res: Response) => {
+
+     
+      const { userId } = req.user as JwtPayload;
+
+      // profile image file
+      const profileImageFile = await ImageUploadHelpers.imageFileValidate(
+        req.files as unknown as TFileRequestBody,
+        'profileImage',
+        'profile'
+      );
+
+      const result = await this.#UserService.uploadProfileImage(
+        profileImageFile,
+        userId
+      );
+
+      responseReturn(res, {
+        statusCode: httpStatus.OK,
+        success: true,
+        message: 'Profile Image Uploaded Successfully!',
+        data: result,
+      });
+    }
+  );
 }
 
 export const UserController = new UserControllerClass(UserService);

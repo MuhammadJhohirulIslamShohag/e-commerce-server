@@ -11,6 +11,7 @@ import { paginationOptionFields } from '../../constants/pagination';
 import { ImageUploadHelpers } from '../../helpers/image-upload.helper';
 import { validateRequireFields } from '../../shared/validateRequireFields';
 import { productFilterableFields } from './product.constant';
+import { TFileRequestBody } from '../../interfaces/common';
 
 class ProductControllerClass {
   #ProductService: typeof ProductService;
@@ -22,7 +23,6 @@ class ProductControllerClass {
   // create product controller
   readonly createProduct = catchAsync(async (req: Request, res: Response) => {
     const {
-      files,
       brand,
       sizes,
       colors,
@@ -59,7 +59,7 @@ class ProductControllerClass {
 
     // product image file
     const productImageFile = await ImageUploadHelpers.imageFilesValidate(
-      files,
+      req.files as unknown as TFileRequestBody,
       'productImage',
       'product'
     );
@@ -131,7 +131,7 @@ class ProductControllerClass {
     async (req: Request, res: Response) => {
       const productId = req.params.id;
       const result = await this.#ProductService.getSingleProduct(productId);
-
+      
       responseReturn(res, {
         statusCode: httpStatus.OK,
         success: true,
@@ -146,7 +146,6 @@ class ProductControllerClass {
     const productId = req.params.id;
 
     const {
-      files,
       brand,
       sizes,
       colors,
@@ -184,7 +183,7 @@ class ProductControllerClass {
     // product image file
     const productImageFile =
       await ImageUploadHelpers.imageFilesValidateForUpdate(
-        files,
+        req.files as unknown as TFileRequestBody,
         'productImage',
         'product'
       );

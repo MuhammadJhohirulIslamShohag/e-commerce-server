@@ -7,6 +7,7 @@ import responseReturn from '../../shared/responseReturn';
 import { CategoryService } from './category.service';
 import { ImageUploadHelpers } from '../../helpers/image-upload.helper';
 import { validateRequireFields } from '../../shared/validateRequireFields';
+import { TFileRequestBody } from '../../interfaces/common';
 
 class CategoryControllerClass {
   #CategoryService: typeof CategoryService;
@@ -17,14 +18,14 @@ class CategoryControllerClass {
 
   // create category method
   readonly createCategory = catchAsync(async (req: Request, res: Response) => {
-    const { name, files } = req.body;
+    const { name } = req.body;
 
     // validate body data
     await validateRequireFields({ name });
 
     // category image file
     const categoryImageFiles = await ImageUploadHelpers.imageFilesValidate(
-      files,
+      req.files as unknown as TFileRequestBody,
       'categoryImage',
       'category'
     );
@@ -79,7 +80,7 @@ class CategoryControllerClass {
   // update category method
   readonly updateCategory = catchAsync(async (req: Request, res: Response) => {
     const categoryId = req.params.id;
-    const { files, name, imageURLs } = req.body;
+    const { name, imageURLs } = req.body;
 
     // check validity request payload body
     await validateRequireFields({ name, imageURLs });
@@ -87,7 +88,7 @@ class CategoryControllerClass {
     // category image file
     const categoryImageFile =
       await ImageUploadHelpers.imageFilesValidateForUpdate(
-        files,
+        req.files as unknown as TFileRequestBody,
         'categoryImage',
         'category'
       );
