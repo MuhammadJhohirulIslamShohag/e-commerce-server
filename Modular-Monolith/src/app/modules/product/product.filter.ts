@@ -4,6 +4,7 @@ import { paginationHelper } from '../../helpers/pagination.helper';
 import { PaginationOptionType } from '../../interfaces/pagination';
 import { productSearchableFields } from './product.constant';
 import { ProductFilters } from './product.interface';
+import { isEmptyObject } from '../../shared/isEmptyObject';
 
 // get all products by filter service
 export const getProductsByFilter = async (
@@ -69,7 +70,8 @@ export const getProductsByFilter = async (
         field !== 'category.name' &&
         field !== 'subCategories.name' &&
         field !== 'minPrice' &&
-        field !== 'maxPrice'
+        field !== 'maxPrice' &&
+        field !== 'rating'
       ) {
         // Skip category.name, subCategories.name,  minPrice, and maxPrice since they are already handled
         filterMatch[field] = value;
@@ -146,6 +148,7 @@ export const getProductsByFilter = async (
         metaTitle: 1,
         description: 1,
         price: 1,
+        slug: 1,
         status: 1,
         discount: 1,
         quantity: 1,
@@ -185,6 +188,17 @@ export const getProductsByFilter = async (
     }
   }
 
+  // Add $match stage based on rating if filterData.rating exists
+  if (filterData?.rating) {
+    aggregateArray.push({
+      $match: {
+        averageRating: {
+          $gte: parseFloat(filterData.rating),
+        },
+      },
+    });
+  }
+
   // check limit
   if (limit != 0) {
     await aggregateArray.push({
@@ -194,13 +208,16 @@ export const getProductsByFilter = async (
       $limit: limit,
     });
   }
-
+  
   // condition check
-  const whereConditions = filterMatch
-    ? { $and: [filterMatch] }
-    : filterSearchMatch
-    ? { $or: filterSearchMatch }
-    : {};
+  const addCondition = [];
+  if (!isEmptyObject(filterMatch)) {
+    addCondition.push(filterMatch);
+  }
+  if (filterSearchMatch) {
+    addCondition.push({ $or: filterSearchMatch });
+  }
+  const whereConditions = addCondition.length ? { $and: addCondition } : {};
 
   return {
     aggregateArray,

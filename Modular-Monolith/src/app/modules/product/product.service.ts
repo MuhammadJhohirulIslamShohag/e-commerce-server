@@ -171,7 +171,11 @@ class ProductServiceClass {
     // get total products
     const total = await this.#ProductModel.countDocuments(whereConditions);
 
-    const totalPages = Math.ceil(total / limit);
+    const isRating = filters?.rating;
+
+    const totalPages = isRating
+      ? Math.ceil(result.length / limit)
+      : Math.ceil(total / limit);
     const nextPage = page < totalPages ? page + 1 : null;
     const prevPage = page > 1 ? page - 1 : null;
 
@@ -182,7 +186,7 @@ class ProductServiceClass {
         next: nextPage,
         prev: prevPage,
         totalPage: totalPages,
-        totalItems: total,
+        totalItems: isRating ? result.length : total,
       },
       data: result,
     };
@@ -325,7 +329,6 @@ class ProductServiceClass {
   /* --------- get single product service --------- */
   readonly getSingleProduct = async (payload: string) => {
     const product = await this.#ProductModel.findOne({ slug: payload });
-
 
     // handle the case when the product is not found
     if (!product) {

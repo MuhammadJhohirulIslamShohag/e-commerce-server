@@ -43,16 +43,19 @@ const updateUserZodSchema = z.object({
       .optional(),
     location: z.string().optional(),
     role: z.enum([...userRoles] as [string, ...string[]]).optional(),
-    shippingAddress: z.object({
-      firstName: z.string().optional(),
-      lastName: z.string().optional(),
-      company: z.string().optional(),
-      address1: z.string().optional(),
-      address2: z.string().optional(),
-      postCode: z.string().optional(),
-      country: z.string().optional(),
-      state: z.string().optional(),
-    }),
+    shippingAddress: z
+      .object({
+        firstName: z.string().optional(),
+        lastName: z.string().optional(),
+        company: z.string().optional(),
+        address1: z.string().optional(),
+        address2: z.string().optional(),
+        postCode: z.string().optional(),
+        country: z.string().optional(),
+        state: z.string().optional(),
+        phoneNumber: z.string().optional(),
+      })
+      .optional(),
   }),
 });
 
@@ -72,7 +75,6 @@ const updateShippingAddressZodSchema = z.object({
     }),
   }),
 });
-
 
 const addWishListProductZodSchema = z.object({
   body: z.object({

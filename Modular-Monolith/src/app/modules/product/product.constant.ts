@@ -1,9 +1,5 @@
 // list of product status
-export const productStatus = [
-  'available',
-  'discontinue',
-  'upcoming',
-]
+export const productStatus = ['available', 'discontinue', 'upcoming'];
 
 // searchable fields
 export const productSearchableFields = [
@@ -11,7 +7,7 @@ export const productSearchableFields = [
   'description',
   'status',
   'keyFeature',
-]
+];
 // filterable fields
 export const productFilterableFields = [
   'searchTerm',
@@ -25,4 +21,5 @@ export const productFilterableFields = [
   'brand.name',
   'subCategories.name',
   'category.name',
-]
+  'rating',
+];

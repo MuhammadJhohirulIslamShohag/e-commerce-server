@@ -3,12 +3,6 @@ import { Model, Types } from 'mongoose';
 // user role enum
 type UserRoleType = 'user';
 
-type UserAddress = {
-  presentAddress: string;
-  permanentAddress: string;
-  location: string;
-};
-
 export type TShippingAddress = {
   firstName: string;
   lastName: string;
@@ -34,7 +28,6 @@ export type IUser = {
   emailVerified: boolean;
   password: string;
   profileImage?: string;
-  address: UserAddress;
   shippingAddress: TShippingAddress;
   role: UserRoleType;
 };

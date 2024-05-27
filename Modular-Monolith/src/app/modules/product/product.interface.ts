@@ -101,6 +101,7 @@ export type ProductFilters = {
   userId?: Types.ObjectId;
   minPrice?: string;
   maxPrice?: string;
+  rating?: string;
   [key: string]: unknown
 };
 
