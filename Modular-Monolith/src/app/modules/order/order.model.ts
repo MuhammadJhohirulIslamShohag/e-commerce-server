@@ -3,7 +3,7 @@ import { Schema, model } from 'mongoose';
 import {
   orderTrackingStatus,
   paymentBy,
-  paymentStatus,
+  orderStatus,
 } from './order.constant';
 import { OrderModel, IOrder } from './order.interface';
 
@@ -16,14 +16,15 @@ const orderSchema = new Schema<IOrder, OrderModel>(
           type: Schema.Types.ObjectId,
           ref: 'Product',
         },
-        quantity: Number
+        count: Number,
+        price: Number,
       },
     ],
     paymentIntents: Schema.Types.Mixed,
     orderStatus: {
       type: String,
-      default: 'Not Processed',
-      enum: paymentStatus,
+      default: 'ordered',
+      enum: orderStatus,
     },
     paymentBy: {
       type: String,
@@ -66,9 +67,6 @@ const orderSchema = new Schema<IOrder, OrderModel>(
           type: String,
         },
         lastName: {
-          type: String,
-        },
-        company: {
           type: String,
         },
         address1: {

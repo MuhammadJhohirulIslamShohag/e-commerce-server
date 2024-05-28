@@ -35,7 +35,7 @@ class OrderRouterClass {
       .route('/order-cash-on-delivery')
       .post(
         auth(ENUM_USER_ROLE.ADMIN, ENUM_USER_ROLE.USER),
-        validateRequest(OrderValidation.orderCreateZodSchema),
+        validateRequest(OrderValidation.orderCashOnDeliveryZodSchema),
         OrderController.createOrderWithCashOnDelivery
       );
 

@@ -6,13 +6,17 @@ import Order from './order.model';
 import Product from '../product/product.model';
 import Coupon from '../coupon/coupon.model';
 import ApiError from '../../errors/ApiError';
+import QueryBuilder from '../../builder/query.builder';
 
-import { orderSearchableFields } from './order.constant';
-import { IOrder, IOrderTacking } from './order.interface';
+import { orderSearchableFields, orderTrackingStatus } from './order.constant';
+import {
+  ICreateOrderWithCashOnDelivery,
+  IOrder,
+  IOrderTacking,
+} from './order.interface';
 import { getUniqueKey } from '../../shared/getUniqueKey';
 import { ICart } from '../cart/cart.interface';
 import { ICoupon } from '../coupon/coupon.interface';
-import QueryBuilder from '../../builder/query.builder';
 
 class OrderServiceClass {
   #OrderModel;
@@ -31,18 +35,45 @@ class OrderServiceClass {
 
   // create order service
   readonly createOrder = async (payload: IOrder, user: string) => {
-    const { paymentIntents, paymentBy } = payload;
+    const { paymentIntents, paymentBy, billingAddress } = payload;
 
     // which product carts
     const carts = await this.#CartModel.findOne({ orderedBy: user }).exec();
     const { products } = carts as ICart;
+
+    // *** tracking order *** //
+    const modifyOrderTracking = {
+      title: 'ordered',
+      courier: '',
+      trackingNumber: '',
+    };
+
+    // ordered history
+    const modifyOrderedHistory = orderTrackingStatus.map(ots => {
+      if (ots === 'ordered') {
+        return {
+          status: ots,
+          isDone: true,
+          timestamp: `${new Date()}`,
+        };
+      } else {
+        return {
+          status: ots,
+          isDone: false,
+          timestamp: '',
+        };
+      }
+    });
 
     // save to the database
     await new Order({
       products,
       paymentIntents: paymentIntents,
       orderedBy: user,
+      trackingInfo: modifyOrderTracking,
+      orderHistory: modifyOrderedHistory,
       paymentBy,
+      billingAddress,
     }).save();
 
     // decrement quantity and sold increment
@@ -71,13 +102,10 @@ class OrderServiceClass {
 
   // create order with cash_on_delivery service
   readonly createOrderWithCashOnDelivery = async (
-    payload: {
-      isCashOnDelivery: boolean;
-      isCoupon: boolean;
-    },
+    payload: ICreateOrderWithCashOnDelivery,
     user: string
   ) => {
-    const { isCashOnDelivery, isCoupon } = payload;
+    const { isCashOnDelivery, isCoupon, billingAddress } = payload;
 
     // if isCashOnDelivery is true, it is going to process to the cash on delivery
     if (!isCashOnDelivery) {
@@ -103,10 +131,36 @@ class OrderServiceClass {
       } else {
         finalAmount = cartTotal * 100;
       }
+    } else {
+      finalAmount = cartTotal * 100;
     }
 
+    // *** tracking order *** //
+    const modifyOrderTracking = {
+      title: 'ordered',
+      courier: '',
+      trackingNumber: '',
+    };
+
+    // ordered history
+    const modifyOrderedHistory = orderTrackingStatus.map(ots => {
+      if (ots === 'ordered') {
+        return {
+          status: ots,
+          isDone: true,
+          timestamp: `${new Date()}`,
+        };
+      } else {
+        return {
+          status: ots,
+          isDone: false,
+          timestamp: '',
+        };
+      }
+    });
+
     const update = await new Order({
-      products: userCarts?.products,
+      products,
       paymentIntents: {
         id: getUniqueKey('ORD'),
         amount: finalAmount,
@@ -115,8 +169,12 @@ class OrderServiceClass {
         status: 'succeeded',
         created: Date.now(),
       },
-      orderStatus: 'Cash On Delivery',
+      orderStatus: 'ordered',
+      paymentBy: 'Cash',
       orderedBy: user,
+      trackingInfo: modifyOrderTracking,
+      orderHistory: modifyOrderedHistory,
+      billingAddress,
     }).save();
 
     // decrement quantity and sold increment

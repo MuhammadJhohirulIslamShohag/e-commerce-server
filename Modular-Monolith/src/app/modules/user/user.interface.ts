@@ -6,7 +6,6 @@ type UserRoleType = 'user';
 export type TShippingAddress = {
   firstName: string;
   lastName: string;
-  company: string;
   address1: string;
   address2: string;
   city: string;

@@ -1,9 +1,9 @@
-import { z } from 'zod'
+import { z } from 'zod';
 import {
   orderTrackingStatus,
   paymentMethod,
   paymentStatus,
-} from './order.constant'
+} from './order.constant';
 
 const orderCreateZodSchema = z.object({
   body: z.object({
@@ -31,26 +31,30 @@ const orderCreateZodSchema = z.object({
     payment_method: z.enum([...paymentMethod] as [string, ...string[]], {
       required_error: 'Payment method is Required!',
     }),
-    customer: z.object({
-      customerId: z.string({
-        required_error: 'Customer Id is Required!',
-      }),
+    orderedBy: z.string({
+      required_error: 'Ordered By is Required!',
     }),
+
     billingAddress: z.object({
-      fullName: z.string({
-        required_error: 'Full Name is Required!',
+      firstName: z.string({
+        required_error: 'First Name is Required!',
       }),
-      addressLine1: z.string({
-        required_error: 'Full Name is Required!',
+      lastName: z.string({
+        required_error: 'Last Name is Required!',
       }),
-      addressLine2: z.string().optional(),
+      address1: z.string({
+        required_error: 'Address1 is Required!',
+      }),
+      address2: z.string({
+        required_error: 'Address1 is Required!',
+      }),
       city: z.string({
         required_error: 'City is Required!',
       }),
-      stateProvince: z.string({
+      state: z.string({
         required_error: 'State Province is Required!',
       }),
-      postalCode: z.string({
+      postCode: z.string({
         required_error: 'Postal Code is Required!',
       }),
       country: z.string({
@@ -61,7 +65,43 @@ const orderCreateZodSchema = z.object({
       }),
     }),
   }),
-})
+});
+
+const orderCashOnDeliveryZodSchema = z.object({
+  body: z.object({
+    isCashOnDelivery: z.boolean(),
+    isCouped: z.boolean(),
+    billingAddress: z.object({
+      firstName: z.string({
+        required_error: 'First Name is Required!',
+      }),
+      lastName: z.string({
+        required_error: 'Last Name is Required!',
+      }),
+      address1: z.string({
+        required_error: 'Address1 is Required!',
+      }),
+      address2: z.string({
+        required_error: 'Address1 is Required!',
+      }),
+      city: z.string({
+        required_error: 'City is Required!',
+      }),
+      state: z.string({
+        required_error: 'State Province is Required!',
+      }),
+      postCode: z.string({
+        required_error: 'Postal Code is Required!',
+      }),
+      country: z.string({
+        required_error: 'Country is Required!',
+      }),
+      phoneNumber: z.string({
+        required_error: 'Phone Number is Required!',
+      }),
+    }),
+  }),
+});
 
 const orderUpdateZodSchema = z.object({
   body: z.object({
@@ -70,7 +110,7 @@ const orderUpdateZodSchema = z.object({
       ...string[]
     ]),
   }),
-})
+});
 
 const orderTrackingStatusUpdateZodSchema = z.object({
   body: z.object({
@@ -89,12 +129,11 @@ const orderTrackingStatusUpdateZodSchema = z.object({
       isDone: z.boolean().optional(),
     }),
   }),
-})
-
-
+});
 
 export const OrderValidation = {
   orderCreateZodSchema,
   orderUpdateZodSchema,
-  orderTrackingStatusUpdateZodSchema
-}
+  orderTrackingStatusUpdateZodSchema,
+  orderCashOnDeliveryZodSchema,
+};

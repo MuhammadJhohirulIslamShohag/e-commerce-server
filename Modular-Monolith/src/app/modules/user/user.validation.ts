@@ -54,6 +54,7 @@ const updateUserZodSchema = z.object({
         country: z.string().optional(),
         state: z.string().optional(),
         phoneNumber: z.string().optional(),
+        city: z.string().optional(),
       })
       .optional(),
   }),

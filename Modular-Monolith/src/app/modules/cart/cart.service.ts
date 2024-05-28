@@ -1,11 +1,10 @@
-import { Types } from 'mongoose';
-
 import QueryBuilder from '../../builder/query.builder';
 import Product from '../product/product.model';
 import Cart from './cart.model';
 
 import { ICreateCart } from './cart.interface';
 import { cartSearchableFields } from './cart.constant';
+import { IProduct } from '../product/product.interface';
 
 class CartServiceClass {
   #CartModel;
@@ -18,7 +17,6 @@ class CartServiceClass {
   }
   // create Cart service
   readonly createCart = async (payload: ICreateCart[], userId: string) => {
-
     // checking already exist cart which to save database
     const existingCartsInUser = await this.#CartModel
       .findOne({
@@ -31,23 +29,25 @@ class CartServiceClass {
       existingCartsInUser.deleteOne();
     }
 
-    const products = [];
-    for (let i = 0; i < payload.length; i++) {
-      
-      const object: {
-        product?: Types.ObjectId | string;
-        count?: number;
-        price?: number;
-      } = {};
+    const products: { [key: string]: unknown }[] = [];
 
-      object.product = payload[i]._id;
-      object.count = payload[i].count;
+    for (let i = 0; i < payload?.length; i++) {
+      const object: { [key: string]: unknown } = {};
 
-      const priceOfProduct = await this.#ProductModel
-        .findOne({ _id: payload?.[i]._id })
-        .select('price')
-        .lean();
-      object.price = priceOfProduct?.price;
+      object.product = payload?.[i]?._id;
+      object.count = payload?.[i]?.count;
+
+      const priceOfProduct = (await this.#ProductModel
+        .findOne({ _id: payload?.[i]?._id })
+        .select('price discount')
+        .lean()) as IProduct;
+
+      const discountPrice = Math.ceil(
+        priceOfProduct?.price * (priceOfProduct?.discount / 100)
+      );
+      const netPrice =
+        Math.ceil(priceOfProduct?.price - discountPrice) * payload?.[i].count;
+      object.price = netPrice;
 
       // push object products array
       products.push(object);
@@ -55,8 +55,8 @@ class CartServiceClass {
 
     // calculate cart total
     let cartTotal = 0;
-    for (let i = 0; i < payload.length; i++) {
-      cartTotal += payload[i].price * payload[i].count;
+    for (let i = 0; i < products?.length; i++) {
+      cartTotal += products?.[i]?.price as number;
     }
     // creating new cart
     await new this.#CartModel({

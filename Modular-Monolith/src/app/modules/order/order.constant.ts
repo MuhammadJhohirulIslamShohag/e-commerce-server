@@ -18,10 +18,10 @@ export const paymentStatus = [
 ];
 
 // list of payment status
-export const paymentBy = [
-  'Stripe',
-  'Card'
-];
+export const orderStatus = ['ordered', 'shipped', 'delivered'];
+
+// list of payment status
+export const paymentBy = ['Stripe', 'Card', 'Cash'];
 
 // list of order tracking status
 export const orderTrackingStatus = ['ordered', 'shipped', 'delivered'];

@@ -2,7 +2,7 @@
 import { Model, Types } from 'mongoose';
 
 // payment status enum type
-type PaymentStatusType =
+export type PaymentStatusType =
   | 'Not Processed'
   | 'Processing'
   | 'Dispatched'
@@ -10,13 +10,15 @@ type PaymentStatusType =
   | 'Completed'
   | 'Cash On Delivery';
 
+// order status enum type
+type OrderStatusType = 'ordered' | 'shipped' | 'delivered';
+
 // payment status enum type
-type PaymentByType = 'Stripe' | 'Card';
+type PaymentByType = 'Stripe' | 'Card' | 'Cash';
 
 export type TBillingAddress = {
   firstName: string;
   lastName: string;
-  company: string;
   address1: string;
   address2: string;
   city: string;
@@ -26,18 +28,15 @@ export type TBillingAddress = {
   phoneNumber: string;
 };
 
-
-
 // order interface model type
 export type IOrder = {
   products: {
     productId: Types.ObjectId | string;
-    quantity: number;
-    color: string;
-    size: string;
+    count: number;
+    price: number;
   };
   paymentIntents: { [key: string]: unknown };
-  orderStatus: PaymentStatusType;
+  orderStatus: OrderStatusType;
   paymentBy: PaymentByType;
   trackingInfo: {
     title: string;
@@ -65,6 +64,13 @@ export type IOrderTacking = {
     isDone: boolean;
     timestamp: string;
   };
+};
+
+// order tracking interface type
+export type ICreateOrderWithCashOnDelivery = {
+  isCashOnDelivery: boolean;
+  isCoupon: boolean;
+  billingAddress: TBillingAddress;
 };
 
 // order model type
