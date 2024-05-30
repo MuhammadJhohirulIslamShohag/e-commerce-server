@@ -1,17 +1,18 @@
 import { Request, Response } from 'express';
 import httpStatus from 'http-status';
 
+import ApiError from '../../errors/ApiError';
 import catchAsync from '../../shared/catchAsync';
 import responseReturn from '../../shared/responseReturn';
-import ApiError from '../../errors/ApiError';
 
-import { ProductService } from './product.service';
-import { pick } from '../../shared/pick';
+import { JwtPayload } from 'jsonwebtoken';
 import { paginationOptionFields } from '../../constants/pagination';
 import { ImageUploadHelpers } from '../../helpers/image-upload.helper';
+import { TFileRequestBody } from '../../interfaces/common';
+import { pick } from '../../shared/pick';
 import { validateRequireFields } from '../../shared/validateRequireFields';
 import { productFilterableFields } from './product.constant';
-import { TFileRequestBody } from '../../interfaces/common';
+import { ProductService } from './product.service';
 
 class ProductControllerClass {
   #ProductService: typeof ProductService;
@@ -22,14 +23,10 @@ class ProductControllerClass {
 
   // create product controller
   readonly createProduct = catchAsync(async (req: Request, res: Response) => {
-    const {
-      brand,
-      sizes,
-      colors,
-      subCategories,
-      category,
-      ...productData
-    } = req.body;
+    const { brand, sizes, colors, subCategories, category, ...productData } =
+      req.body;
+
+    const { userId } = req.user as JwtPayload;
 
     // check validity request payload body
     await validateRequireFields(productData);
@@ -78,6 +75,7 @@ class ProductControllerClass {
         JSON.parse(str)
       ),
       category: JSON.parse(category),
+      userId,
     };
 
     const result = await this.#ProductService.createProduct(
@@ -131,7 +129,7 @@ class ProductControllerClass {
     async (req: Request, res: Response) => {
       const productId = req.params.id;
       const result = await this.#ProductService.getSingleProduct(productId);
-      
+
       responseReturn(res, {
         statusCode: httpStatus.OK,
         success: true,
@@ -145,14 +143,8 @@ class ProductControllerClass {
   readonly updateProduct = catchAsync(async (req: Request, res: Response) => {
     const productId = req.params.id;
 
-    const {
-      brand,
-      sizes,
-      colors,
-      subCategories,
-      category,
-      ...productData
-    } = req.body;
+    const { brand, sizes, colors, subCategories, category, ...productData } =
+      req.body;
 
     // check validity request payload body
     await validateRequireFields(productData);

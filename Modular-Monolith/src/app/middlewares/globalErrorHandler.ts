@@ -21,9 +21,9 @@ const globalErrorHandler: ErrorRequestHandler = (
   res: Response,
   next: NextFunction
 ) => {
-  config.env === 'development'
-    ? console.log(`global error handler~~~`, error)
-    : console.log(`global error handler~~~`, error);
+  // config.env === 'development'
+  //   ? console.log(`global error handler~~~`, error)
+  //   : console.log(`global error handler~~~`, error);
 
   let statusCode = 500;
   let message = 'Something went wrong!';
@@ -74,9 +74,9 @@ const globalErrorHandler: ErrorRequestHandler = (
     success: false,
     message,
     errorMessages,
-    stack: config.env !== 'production' ? error.stack : undefined,
+    stack: config.env === 'development' ? error.stack : undefined,
   });
-  next();
+  next(new ApiError(statusCode, message));
 };
 
 export default globalErrorHandler;

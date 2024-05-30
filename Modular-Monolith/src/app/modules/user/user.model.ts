@@ -57,9 +57,6 @@ const userSchema = new Schema<IUser, UserModel>({
       lastName: {
         type: String,
       },
-      company: {
-        type: String,
-      },
       address1: {
         type: String,
       },

@@ -7,7 +7,6 @@ import { AdminValidation } from './admin.validation';
 import { AdminController } from './admin.controller';
 import { ENUM_USER_ROLE } from '../../enum/user';
 
-
 class AdminRoutesClass {
   readonly routers: Router;
   constructor() {
@@ -18,51 +17,67 @@ class AdminRoutesClass {
   #RouterAction() {
     // create and login admin
     this.routers.post(
-      '/signup',
-      validateRequest(AdminValidation.AdminCreateZodSchema),
-      AdminController.createAdmin
+      '/register',
+      validateRequest(AdminValidation.createAdminZodSchema),
+      AdminController.register
     );
 
     this.routers.post(
       '/login',
-      validateRequest(AdminValidation.AdminLoginZodSchema),
-      AdminController.loginAdmin
+      validateRequest(AdminValidation.loginZodSchema),
+      AdminController.login
     );
 
     // get all admin
-    this.routers.route('/').get(AdminController.allAdmins);
+    this.routers
+      .route('/')
+      .get(
+        auth(ENUM_USER_ROLE.ADMIN, ENUM_USER_ROLE.SELLER),
+        AdminController.allAdmins
+      );
 
     // refresh token
     this.routers.post(
       '/admin-refresh-token',
-      validateRequest(AdminValidation.RefreshTokenAdminZodSchema),
-      AdminController.refreshTokenForAdmin
+      validateRequest(AdminValidation.refreshTokenZodSchema),
+      AdminController.refreshToken
     );
     // refresh token
     this.routers.get(
       '/admin-refresh-token',
-      validateRequest(AdminValidation.RefreshTokenAdminZodSchema),
-      AdminController.refreshTokenForAdmin
+      validateRequest(AdminValidation.refreshTokenZodSchema),
+      AdminController.refreshToken
     );
 
-    // password reset
-    this.routers.post(
-      '/reset-password',
-      validateRequest(AdminValidation.ResetAdminPasswordZodSchema),
-      auth(ENUM_USER_ROLE.ADMIN),
-      AdminController.adminPasswordReset
+    this.routers.patch(
+      '/forgot-password',
+      validateRequest(AdminValidation.forgotPasswordZodSchema),
+      AdminController.forgotPassword
+    );
+
+    this.routers.patch(
+      '/change-password',
+      validateRequest(AdminValidation.changePasswordZodSchema),
+      auth(ENUM_USER_ROLE.ADMIN, ENUM_USER_ROLE.SELLER),
+      AdminController.changePassword
     );
 
     // update and get single admin, delete
     this.routers
       .route('/:id')
       .patch(
-        auth(ENUM_USER_ROLE.ADMIN),
+        auth(ENUM_USER_ROLE.ADMIN, ENUM_USER_ROLE.SELLER),
         validateRequest(AdminValidation.AdminUpdateZodSchema),
         AdminController.updateAdmin
       )
-      .get(auth(ENUM_USER_ROLE.ADMIN), AdminController.getSingleAdmin)
-      .delete(auth(ENUM_USER_ROLE.ADMIN), AdminController.deleteAdmin);
+      .get(
+        auth(ENUM_USER_ROLE.ADMIN, ENUM_USER_ROLE.SELLER),
+        AdminController.getSingleAdmin
+      )
+      .delete(
+        auth(ENUM_USER_ROLE.ADMIN, ENUM_USER_ROLE.SELLER),
+        AdminController.deleteAdmin
+      );
   }
 }
 

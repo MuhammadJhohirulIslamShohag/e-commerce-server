@@ -6,7 +6,7 @@ import { productStatus } from './product.constant';
 import { IProduct, ProductModel } from './product.interface';
 
 // product schema
-const ProductSchema = new Schema<IProduct, ProductModel>(
+const productSchema = new Schema<IProduct, ProductModel>(
   {
     name: {
       type: String,
@@ -142,6 +142,6 @@ const ProductSchema = new Schema<IProduct, ProductModel>(
 );
 
 // product model
-const Product = model<IProduct, ProductModel>('Product', ProductSchema);
+const Product = model<IProduct, ProductModel>('Product', productSchema);
 
 export default Product;

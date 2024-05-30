@@ -18,6 +18,12 @@ class OTPRoutesClass {
       validateRequest(OtpValidation.createOtpZodSchema),
       OTPController.sendOTP
     );
+
+    this.routers.post(
+      '/send-otp-verify-user',
+      validateRequest(OtpValidation.sendOtpVerifyUserZodSchema),
+      OTPController.sendOTPUserVerified
+    );
   }
 }
 

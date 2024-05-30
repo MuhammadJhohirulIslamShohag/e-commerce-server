@@ -26,6 +26,19 @@ class OTPControllerClass {
       data: result,
     });
   });
+
+  // send otp with user verified
+  readonly sendOTPUserVerified = catchAsync(async (req: Request, res: Response) => {
+    const { ...userData } = req.body;
+    const result = await this.#OTPService.sendOTPUserVerified(userData);
+
+    responseReturn(res, {
+      statusCode: httpStatus.OK,
+      success: true,
+      message: 'OTP Send Successfully!',
+      data: result,
+    });
+  });
 }
 
 export const OTPController = new OTPControllerClass(OTPService);

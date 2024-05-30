@@ -38,13 +38,13 @@ class AuthRoutesClass {
       AuthController.refreshToken
     );
 
-    this.routers.post(
+    this.routers.patch(
       '/forgot-password',
       validateRequest(AuthValidation.forgotPasswordZodSchema),
       AuthController.forgotPassword
     );
 
-    this.routers.post(
+    this.routers.patch(
       '/change-password',
       validateRequest(AuthValidation.changePasswordZodSchema),
       auth(ENUM_USER_ROLE.ADMIN, ENUM_USER_ROLE.USER),

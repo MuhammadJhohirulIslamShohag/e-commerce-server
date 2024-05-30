@@ -10,16 +10,16 @@ const adminSchema = new Schema<IAdmin, AdminModel>(
       type: String,
       trim: true,
       required: [true, 'Please provide a name!'],
-      minLength: [3, 'Name must be at least 3 characters1'],
+      minLength: [3, 'Name must be at least 3 characters'],
       maxLength: [120, 'Name is to large!'],
     },
     email: {
       type: String,
-      unique: true,
       trim: true,
-      lowercase: true,
       validate: [validator.isEmail, 'Provide a valid email!'],
-      required: [true, 'Please provide a email!'],
+    },
+    about: {
+      type: String,
     },
     password: {
       type: String,
@@ -37,61 +37,59 @@ const adminSchema = new Schema<IAdmin, AdminModel>(
       },
       select: 0,
     },
-    phone: {
-      type: String,
-      validate: {
-        validator: function (v: string) {
-          return /^\+?[1-9]\d{1,14}$/.test(v);
-        },
-        message: props => `${props.value} is not a valid phone number!`,
-      },
-      unique: true,
-    },
     profileImage: {
       type: String,
       validate: [validator.isURL, 'Please provide valid profile image url!'],
+      default: 'https://cdn-icons-png.flaticon.com/512/7930/7930853.png',
     },
-    address: {
-      country: {
-        type: String,
+    wishLists: [
+      {
+        productId: {
+          type: Schema.Types.ObjectId,
+          ref: 'Product',
+        },
       },
-      town: {
-        type: String,
+    ],
+    shippingAddress: {
+      type: {
+        firstName: {
+          type: String,
+        },
+        lastName: {
+          type: String,
+        },
+        address1: {
+          type: String,
+        },
+        address2: {
+          type: String,
+        },
+        city: {
+          type: String,
+        },
+        postCode: {
+          type: String,
+        },
+        country: {
+          type: String,
+        },
+        state: {
+          type: String,
+        },
+        phoneNumber: {
+          type: String,
+        },
       },
-      city: {
-        type: String,
-      },
-      hometown: {
-        type: String,
-      },
-    },
-    about: {
-      type: String,
-    },
-    designation: {
-      type: String,
-    },
-    workAs: {
-      type: String,
-    },
-    education: {
-      type: String,
-    },
-    language: {
-      type: String,
-    },
-    emailVerified: {
-      type: Boolean,
-    },
-    role: {
-      type: String,
-      enum: adminRoles,
-      default: 'admin',
     },
     status: {
       type: String,
       enum: adminStatus,
-      default: 'inActive',
+      default: 'active',
+    },
+    role: {
+      type: String,
+      enum: adminRoles,
+      default: 'seller',
     },
   },
   {

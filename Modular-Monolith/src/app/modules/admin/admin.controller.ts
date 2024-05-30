@@ -5,11 +5,12 @@ import { JwtPayload, Secret } from 'jsonwebtoken';
 import config from '../../config';
 import catchAsync from '../../shared/catchAsync';
 import responseReturn from '../../shared/responseReturn';
+import signUpSuccessEmailTemplate from '../../helpers/emailTemplate/signUpSuccessEmailTemplate';
 
 import { IAdmin } from './admin.interface';
 import { AdminService } from './admin.service';
 import { jwtHelpers } from '../../helpers/jwt.helper';
-
+import { EmailSenderHelpers } from '../../helpers/email-send.helper';
 
 class AdminControllerClass {
   #AdminService: typeof AdminService;
@@ -18,22 +19,21 @@ class AdminControllerClass {
     this.#AdminService = service;
   }
 
-  // create admin method
-  readonly createAdmin = catchAsync(async (req: Request, res: Response) => {
-    const { ...adminData } = req.body;
-    const result = await this.#AdminService.createAdmin(adminData);
+  // create user
+  readonly register = catchAsync(async (req: Request, res: Response) => {
+    const { ...userData } = req.body;
+    const result = await this.#AdminService.register(userData);
 
-    // access token
+    // create access token
     const accessToken = jwtHelpers.createToken(
       {
-        userId: result._id,
-        role: result.role,
+        userId: result?._id,
+        role: result?.role,
       },
       config?.jwt?.jwt_secret as Secret,
       config?.jwt?.jwt_expire_in as string
     );
 
-    // refresh token
     const refreshToken = jwtHelpers.createToken(
       {
         userId: result?._id,
@@ -44,30 +44,42 @@ class AdminControllerClass {
     );
 
     // set cookie to browser
-    const cookieOptions = {
+    const cookieOption = {
       secure: config.env === 'production',
       httpOnly: config.env === 'production',
       sameSite: 'none' as const,
     };
-    res.cookie('refreshToken', refreshToken, cookieOptions);
-    res.cookie('accessToken', accessToken, cookieOptions);
+
+    res.cookie('refreshToken', refreshToken || '', cookieOption);
+    res.cookie('accessToken', accessToken, cookieOption);
+
+    const mailData = {
+      to: userData?.email,
+      subject: 'Success',
+      message: signUpSuccessEmailTemplate(result?.name || ''),
+    };
+    await EmailSenderHelpers.sendEmailWithNodeMailer(mailData);
 
     responseReturn(res, {
       statusCode: httpStatus.OK,
       success: true,
-      message: 'Admin Created Successfully!',
+      message: 'User registered successfully!',
       data: {
-        accessToken: accessToken,
+        user: result,
+        token: {
+          accessToken,
+          refreshToken,
+        },
       },
     });
   });
 
-  // login admin method
-  readonly loginAdmin = catchAsync(async (req: Request, res: Response) => {
+  // login user
+  readonly login = catchAsync(async (req: Request, res: Response) => {
     const { ...loginData } = req.body;
-    const result = await this.#AdminService.loginAdmin(loginData);
+    const result = await this.#AdminService.login(loginData);
 
-    // access token
+    // create access token and refresh token
     const accessToken = jwtHelpers.createToken(
       {
         userId: result._id,
@@ -77,33 +89,96 @@ class AdminControllerClass {
       config?.jwt?.jwt_expire_in as string
     );
 
-    // refresh token
     const refreshToken = jwtHelpers.createToken(
       {
-        userId: result?._id,
-        role: result?.role,
+        userId: result._id,
+        role: result.role,
       },
       config?.jwt?.jwt_refresh_secret as Secret,
       config?.jwt?.jwt_refresh_expire_in as string
     );
 
     // set cookie to browser
-    const cookieOptions = {
+    const cookieOption = {
       secure: config.env === 'production',
-      httpOnly: config.env === 'production',
+      httpOnly: config.env === 'production' || false,
       sameSite: 'none' as const,
     };
-    res.cookie('refreshToken', refreshToken, cookieOptions);
-    res.cookie('accessToken', accessToken, cookieOptions);
+
+    res.cookie('refreshToken', refreshToken, cookieOption);
+    res.cookie('accessToken', accessToken, cookieOption);
 
     responseReturn(res, {
       statusCode: httpStatus.OK,
       success: true,
-      message: 'Admin login Successfully!',
+      message: 'User logged successfully!',
       data: {
-        accessToken: accessToken,
-        userInfo: result,
+        user: result,
+        token: {
+          accessToken,
+          refreshToken,
+        },
       },
+    });
+  });
+
+  // refresh token controller
+  readonly refreshToken = catchAsync(async (req: Request, res: Response) => {
+    const { refreshToken } = req.cookies;
+    const result = await this.#AdminService.refreshToken(refreshToken);
+
+    // create access token
+    const accessToken = jwtHelpers.createToken(
+      {
+        userId: result._id,
+        role: result.role,
+      },
+      config?.jwt?.jwt_secret as Secret,
+      config?.jwt?.jwt_expire_in as string
+    );
+
+    // set cookie to browser
+    const cookieOption = {
+      secure: config.env === 'production',
+      httpOnly: config.env === 'production',
+      sameSite: 'none' as const,
+    };
+
+    res.cookie('refreshToken', refreshToken, cookieOption);
+    res.cookie('accessToken', accessToken, cookieOption);
+
+    responseReturn(res, {
+      statusCode: httpStatus.OK,
+      success: true,
+      message: 'Access token created successfully!',
+      data: result,
+    });
+  });
+
+  // password reset
+  readonly forgotPassword = catchAsync(async (req: Request, res: Response) => {
+    const { ...userData } = req.body;
+    const result = await this.#AdminService.forgotPassword(userData);
+
+    responseReturn(res, {
+      statusCode: httpStatus.OK,
+      success: true,
+      message: 'Password Reset successfully!',
+      data: result,
+    });
+  });
+
+  // password reset
+  readonly changePassword = catchAsync(async (req: Request, res: Response) => {
+    const { ...userData } = req.body;
+    const user = req.user as JwtPayload;
+    const result = await this.#AdminService.changePassword(user, userData);
+
+    responseReturn(res, {
+      statusCode: httpStatus.OK,
+      success: true,
+      message: 'Password change successfully!',
+      data: result,
     });
   });
 
@@ -162,62 +237,6 @@ class AdminControllerClass {
       data: result,
     });
   });
-
-  // refresh token method
-  readonly refreshTokenForAdmin = catchAsync(
-    async (req: Request, res: Response) => {
-      const { refreshToken } = req.cookies;
-      const result = await this.#AdminService.refreshTokenForAdmin(
-        refreshToken
-      );
-
-      // generate new token
-      const accessToken = jwtHelpers.createToken(
-        {
-          userId: result._id,
-          role: result.role,
-        },
-        config?.jwt?.jwt_secret as Secret,
-        config?.jwt?.jwt_expire_in as string
-      );
-
-      // set cookie to browser
-      const cookieOption = {
-        secure: config.env === 'production',
-        httpOnly: config.env === 'production',
-        sameSite: 'none' as const,
-      };
-
-      res.cookie('refreshToken', refreshToken, cookieOption);
-      res.cookie('accessToken', accessToken, cookieOption);
-
-      responseReturn(res, {
-        statusCode: httpStatus.OK,
-        success: true,
-        message: 'Access token created successfully!',
-        data: result,
-      });
-    }
-  );
-
-  // admin password reset method
-  readonly adminPasswordReset = catchAsync(
-    async (req: Request, res: Response) => {
-      const { ...userData } = req.body;
-      const user = req.user as JwtPayload;
-      const result = await this.#AdminService.adminPasswordReset(
-        user,
-        userData
-      );
-
-      responseReturn(res, {
-        statusCode: httpStatus.OK,
-        success: true,
-        message: 'Password Reset successfully!',
-        data: result,
-      });
-    }
-  );
 }
 
 export const AdminController = new AdminControllerClass(AdminService);

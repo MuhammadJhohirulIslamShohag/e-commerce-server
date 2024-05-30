@@ -1,7 +1,9 @@
 import { Router } from 'express';
 import multer from 'multer';
+import auth from '../../middlewares/auth';
 
 import { ProductController } from './product.controller';
+import { ENUM_USER_ROLE } from '../../enum/user';
 
 const storage = multer.memoryStorage();
 const upload = multer({ storage: storage });
@@ -33,6 +35,7 @@ class ProductRouterClass {
     this.routers
       .route('/')
       .post(
+        auth(ENUM_USER_ROLE.ADMIN, ENUM_USER_ROLE.USER),
         upload.fields([{ name: 'productImage', maxCount: 10 }]),
         ProductController.createProduct
       )
@@ -42,11 +45,15 @@ class ProductRouterClass {
     this.routers
       .route('/:id')
       .patch(
+        auth(ENUM_USER_ROLE.ADMIN, ENUM_USER_ROLE.USER),
         upload.fields([{ name: 'productImage', maxCount: 10 }]),
         ProductController.updateProduct
       )
       .get(ProductController.getSingleProduct)
-      .delete(ProductController.deleteProduct);
+      .delete(
+        auth(ENUM_USER_ROLE.ADMIN, ENUM_USER_ROLE.USER),
+        ProductController.deleteProduct
+      );
   }
 }
 

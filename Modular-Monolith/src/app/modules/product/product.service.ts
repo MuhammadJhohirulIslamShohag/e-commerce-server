@@ -5,6 +5,7 @@ import Product from './product.model';
 import Category from '../category/category.model';
 import Review from '../review/review.model';
 import ApiError from '../../errors/ApiError';
+import User from '../user/user.model';
 import QueryBuilder from '../../builder/query.builder';
 
 import { ICreateProduct, IProduct, ProductFilters } from './product.interface';
@@ -19,12 +20,14 @@ import { getProductsByFilter } from './product.filter';
 class ProductServiceClass {
   #ProductModel;
   #ReviewModel;
+  #UserModel;
   #ProductsByFilter;
   #QueryBuilder: typeof QueryBuilder;
 
   constructor() {
     this.#ProductModel = Product;
     this.#ReviewModel = Review;
+    this.#UserModel = User
     this.#QueryBuilder = QueryBuilder;
     this.#ProductsByFilter = getProductsByFilter;
   }
@@ -38,7 +41,13 @@ class ProductServiceClass {
       // start a session for the transaction
       await session.startTransaction();
 
-      const { imageURLs } = payload;
+      // check user is exit, if not exit return error
+      const isExit = await this.#UserModel.findOne({ _id: payload?.userId });
+      if (!isExit) {
+        throw new ApiError(httpStatus.NOT_FOUND, 'User not found!');
+      }
+
+      
       const isExitProduct = await this.#ProductModel.findOne({
         name: payload?.name,
       });
@@ -75,7 +84,7 @@ class ProductServiceClass {
       // upload image to aws s3 bucket
       const imageUrls: string[] = [];
 
-      for (const imgFile of imageURLs) {
+      for (const imgFile of payload.imageURLs) {
         const productImageURL = await ImageUploadHelpers.imageUploadToS3Bucket(
           'PRD',
           'productImage',
@@ -83,6 +92,8 @@ class ProductServiceClass {
         );
         imageUrls.push(productImageURL);
       }
+
+      console.log(payload, 'payload');
 
       const slug = customSlug(payload.name);
 

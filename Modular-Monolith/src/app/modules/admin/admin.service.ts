@@ -6,96 +6,224 @@ import QueryBuilder from '../../builder/query.builder';
 import config from '../../config';
 import ApiError from '../../errors/ApiError';
 
-import { IAdmin } from './admin.interface';
+import { IAdmin, IRegister, TForgotPassword } from './admin.interface';
 import { adminSearchableFields } from './admin.constant';
 import { PasswordHelpers } from '../../helpers/password.helper';
 import { jwtHelpers } from '../../helpers/jwt.helper';
+import { OTPService } from '../otp/otp.service';
 
 class AdminServiceClass {
   #AdminModel;
+  #OTPService;
   #QueryBuilder: typeof QueryBuilder;
 
   constructor() {
     this.#AdminModel = Admin;
     this.#QueryBuilder = QueryBuilder;
+    this.#OTPService = OTPService;
   }
+  // create user
+  readonly register = async (payload: IRegister) => {
+    // check user is already exit
+    const isUserExit = await this.#AdminModel.findOne({ email: payload.email });
 
-  // create admin method
-  readonly createAdmin = async (payload: IAdmin) => {
-    // check already Admin exit, if not, throw error
-    const isExitAdmin = await this.#AdminModel.findOne({
-      email: payload?.email,
-    });
-    if (isExitAdmin) {
-      throw new ApiError(httpStatus.CONFLICT, `Admin Is Already Exit!`);
-    }
-
-    // check password and email has on payload, if not throw error
-    if (!payload.email || !payload.password) {
-      throw new ApiError(httpStatus.CONFLICT, 'Invalid Credentials!');
+    if (isUserExit) {
+      throw new ApiError(httpStatus.NOT_ACCEPTABLE, 'User is already exit!');
     }
 
     // hash the password
-    const hashedPassword = PasswordHelpers.hashPassword(payload.password);
+    const hashedPassword = await PasswordHelpers.hashPassword(payload.password);
 
-    // create new Admin
+    // verifying otp
+    await this.#OTPService.isOTPOk(payload.email, payload.otp);
+
+    // create user
     const result = await this.#AdminModel.create({
       ...payload,
       password: hashedPassword,
     });
 
     if (!result) {
-      throw new ApiError(httpStatus.CONFLICT, 'Invalid Credentials!');
+      throw new ApiError(
+        httpStatus.INTERNAL_SERVER_ERROR,
+        'User create failed!'
+      );
     }
 
     return result;
   };
 
-  // login admin method
-  readonly loginAdmin = async (payload: IAdmin) => {
-    const { email } = payload;
-    if (!email && !payload?.password) {
-      throw new ApiError(httpStatus.CONFLICT, `Invalid credentials!`);
-    }
+  // login user
+  readonly login = async (payload: Pick<IAdmin, 'email' | 'password'>) => {
+    const { email, password } = payload;
 
-    // check already admin exit, if not, throw error
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const isExitAdmin: any = await this.#AdminModel.findOne(
-      { email: payload?.email },
+    // check user exits or not
+    const isUserExit = await this.#AdminModel.findOne(
+      { email },
       {
         password: 1,
         name: 1,
         email: 1,
         profileImage: 1,
+        shippingAddress: 1,
         role: 1,
-        status: 1,
-        workAs: 1,
       }
     );
 
-    if (!isExitAdmin) {
-      throw new ApiError(httpStatus.NOT_FOUND, `Admin not found!`);
+    if (!isUserExit) {
+      throw new ApiError(httpStatus.NOT_ACCEPTABLE, 'User not found!');
     }
 
     const isPasswordMatch = await PasswordHelpers.comparePassword(
-      payload.password,
-      isExitAdmin?.password
+      password as string,
+      isUserExit.password
     );
 
     // check password
-    if (isExitAdmin.password && !isPasswordMatch) {
-      throw new ApiError(httpStatus.CONFLICT, 'Password does not match!');
+    if (!isPasswordMatch) {
+      throw new ApiError(httpStatus.BAD_REQUEST, 'Password is incorrect!');
     }
 
-    // password delete
-    delete isExitAdmin._doc.password;
+    return isUserExit;
+  };
 
-    // if not created admin, throw error
-    if (!isExitAdmin) {
-      throw new ApiError(httpStatus.CONFLICT, `Admin Create Failed!`);
+  // refresh token
+  readonly refreshToken = async (token: string) => {
+    // verify token
+    let verifiedUser = null;
+    try {
+      verifiedUser = jwtHelpers.verifyToken(
+        token,
+        config?.jwt?.jwt_refresh_secret as Secret
+      );
+    } catch (error) {
+      throw new ApiError(httpStatus.FORBIDDEN, 'Invalid refresh token!');
+    }
+    const { userId } = verifiedUser;
+
+    // check user exits or not
+    const isUserExit = await this.#AdminModel.findOne({ _id: userId });
+    if (!isUserExit) {
+      throw new ApiError(httpStatus.NOT_FOUND, 'User not found!');
     }
 
-    return isExitAdmin;
+    return isUserExit;
+  };
+
+  // password reset
+  readonly forgotPassword = async (payload: TForgotPassword) => {
+    // check user is already exit
+    const isUserExit = await this.#AdminModel
+      .findOne({ email: payload?.email })
+      .select('password email');
+
+    if (!isUserExit) {
+      throw new ApiError(httpStatus.NOT_ACCEPTABLE, 'User Not Found!');
+    }
+
+    // check user is exit with email
+    if (isUserExit?.email !== payload?.email) {
+      throw new ApiError(httpStatus.UNAUTHORIZED, 'Unauthorized user!');
+    }
+
+    // verifying otp
+    await this.#OTPService.isOTPOk(payload.email, payload.otp);
+
+    // hash the password
+    const hashedPassword = await PasswordHelpers.hashPassword(
+      payload?.password
+    );
+
+    // check password
+    if (!hashedPassword) {
+      throw new ApiError(httpStatus.UNAUTHORIZED, 'Password is incorrect!');
+    }
+
+    // set new has password to exiting user
+    const result = await this.#AdminModel.findOneAndUpdate(
+      { email: payload?.email },
+      {
+        $set: {
+          password: hashedPassword,
+        },
+      },
+      { new: true }
+    );
+
+    return result;
+  };
+
+  // user change password
+  readonly changePassword = async (
+    user: JwtPayload,
+    userData: {
+      email: string;
+      newPassword: string;
+      oldPassword: string;
+    }
+  ) => {
+    // check user exits or not
+    const isUserExit = await this.#AdminModel.findOne(
+      { _id: user.userId },
+      {
+        password: 1,
+        name: 1,
+        email: 1,
+        profileImage: 1,
+        address: 1,
+        role: 1,
+      }
+    );
+
+    if (!isUserExit) {
+      throw new ApiError(httpStatus.NOT_FOUND, 'User Not Found!');
+    }
+
+    // check user is exit with email
+    if (isUserExit?.email !== userData?.email) {
+      throw new ApiError(httpStatus.UNAUTHORIZED, 'Unauthorized user!');
+    }
+
+    const isNewPasswordMatch = await PasswordHelpers.comparePassword(
+      userData?.newPassword,
+      isUserExit.password
+    );
+
+    const isOldPasswordMatch = await PasswordHelpers.comparePassword(
+      userData?.oldPassword,
+      isUserExit.password
+    );
+
+    // check password not same regarding old password
+    if (isUserExit?.password && !isOldPasswordMatch) {
+      throw new ApiError(httpStatus.UNAUTHORIZED, 'Password is incorrect!');
+    }
+
+    // check password same regarding old password
+    if (isUserExit?.password && isNewPasswordMatch) {
+      throw new ApiError(
+        httpStatus.UNAUTHORIZED,
+        'Your old and new password same!'
+      );
+    }
+
+    // hash the password
+    const hashedPassword = await PasswordHelpers.hashPassword(
+      userData?.newPassword
+    );
+
+    // set new has password to exiting user
+    const result = await this.#AdminModel.findOneAndUpdate(
+      { email: userData?.email },
+      {
+        $set: {
+          password: hashedPassword,
+        },
+      },
+      { new: true }
+    );
+
+    return result;
   };
 
   // get all admins method
@@ -129,7 +257,7 @@ class AdminServiceClass {
     if (!isExitAdmin) {
       throw new ApiError(httpStatus.NOT_FOUND, 'Admin Not Found!');
     }
-    const { address, password, ...others } = payload;
+    const { shippingAddress, password, ...others } = payload;
 
     const updatedAdminData: Partial<IAdmin> = { ...others };
 
@@ -149,12 +277,12 @@ class AdminServiceClass {
     }
 
     // address update
-    if (address && Object.keys(address)?.length > 0) {
-      Object.keys(address).map(key => {
-        const addressKey = `address.${key}` as keyof Partial<IAdmin>;
+    if (shippingAddress && Object.keys(shippingAddress)?.length > 0) {
+      Object.keys(shippingAddress).map(key => {
+        const addressKey = `shippingAddress.${key}` as keyof Partial<IAdmin>;
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         (updatedAdminData as any)[addressKey] =
-          address[key as keyof typeof address];
+          shippingAddress[key as keyof typeof shippingAddress];
       });
     }
 
@@ -180,122 +308,6 @@ class AdminServiceClass {
 
     // delete the admin user
     const result = await this.#AdminModel.findByIdAndDelete(payload);
-    return result;
-  };
-
-  // refresh token for admin method
-  readonly refreshTokenForAdmin = async (token: string) => {
-    // verify token
-    let verifiedUser = null;
-    try {
-      verifiedUser = jwtHelpers.verifyToken(
-        token,
-        config?.jwt?.jwt_refresh_secret as Secret
-      );
-    } catch (error) {
-      throw new ApiError(httpStatus.FORBIDDEN, 'Invalid refresh token!');
-    }
-    const { userId } = verifiedUser;
-
-    // check user exits or not
-    const isAdminExit = await this.#AdminModel.findOne({ _id: userId });
-    if (!isAdminExit) {
-      throw new ApiError(httpStatus.NOT_FOUND, 'Admin not found!');
-    }
-
-    return isAdminExit;
-  };
-
-  // password reset method
-  readonly adminPasswordReset = async (
-    user: JwtPayload,
-    userData: {
-      email?: string;
-      newPassword: string;
-      oldPassword: string;
-      phone?: string;
-    }
-  ) => {
-    // check user exits or not
-    const isUserExit = await this.#AdminModel.findOne(
-      { _id: user.userId },
-      {
-        password: 1,
-        name: 1,
-        phone: 1,
-        email: 1,
-        profileImage: 1,
-        role: 1,
-      }
-    );
-
-    if (!isUserExit) {
-      throw new ApiError(httpStatus.NOT_FOUND, 'User Not Found!');
-    }
-
-    // check user is exit with email
-    if (userData?.email) {
-      if (isUserExit?.email !== userData?.email) {
-        throw new ApiError(httpStatus.UNAUTHORIZED, 'Unauthorized user!');
-      }
-    }
-
-    // check user is exit with phone
-    if (userData?.phone) {
-      if (isUserExit?.phone !== userData?.phone) {
-        throw new ApiError(httpStatus.UNAUTHORIZED, 'Unauthorized user!');
-      }
-    }
-
-    // check otp is expire or not
-    // if (optResult && new Date().getDay() > optResult?.expireDate.getDay()) {
-    //   throw new ApiError(httpStatus.CONFLICT, 'Otp is Expired!')
-    // }
-
-    const isPasswordMatch = await PasswordHelpers.comparePassword(
-      userData?.oldPassword,
-      isUserExit.password
-    );
-
-    // check password
-    if (isUserExit.password && !isPasswordMatch) {
-      throw new ApiError(httpStatus.UNAUTHORIZED, 'Password is incorrect!');
-    }
-
-    // check password same regarding old password
-    if (isUserExit?.password && isPasswordMatch) {
-      throw new ApiError(
-        httpStatus.UNAUTHORIZED,
-        'Your old and confirm password same!'
-      );
-    }
-
-    // hash the password
-    const hashedPassword = await PasswordHelpers.hashPassword(
-      userData?.newPassword
-    );
-
-    const query: Partial<{ email: string; phone: string }> = {};
-
-    if (userData?.email) {
-      query.email = userData.email;
-    }
-
-    if (userData?.phone !== undefined) {
-      query.phone = userData.phone;
-    }
-
-    // set new has password to exiting user
-    const result = await this.#AdminModel.findOneAndUpdate(
-      query,
-      {
-        $set: {
-          password: hashedPassword,
-        },
-      },
-      { new: true }
-    );
-
     return result;
   };
 }
