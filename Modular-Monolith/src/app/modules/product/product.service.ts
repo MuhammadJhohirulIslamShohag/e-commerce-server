@@ -93,8 +93,6 @@ class ProductServiceClass {
         imageUrls.push(productImageURL);
       }
 
-      console.log(payload, 'payload');
-
       const slug = customSlug(payload.name);
 
       // create product

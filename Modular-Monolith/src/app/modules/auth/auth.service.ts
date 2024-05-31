@@ -47,22 +47,26 @@ class AuthServiceClass {
       );
     }
 
-    return result;
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars, no-unused-vars
+    const { password, ...user } = result.toObject();
+
+    return user;
   };
 
   // login user
   readonly loginUser = async (payload: Pick<IUser, 'email' | 'password'>) => {
-    const { email, password } = payload;
-
     // check user exits or not
     const isUserExit = await this.#UserModel.findOne(
-      { email },
+      { email: payload?.email },
       {
+        email: 1,
+        about: 1,
+        wishLists: 1,
+        shippingAddress: 1,
+        status: 1,
         password: 1,
         name: 1,
-        email: 1,
         profileImage: 1,
-        shippingAddress: 1,
         role: 1,
       }
     );
@@ -72,7 +76,7 @@ class AuthServiceClass {
     }
 
     const isPasswordMatch = await PasswordHelpers.comparePassword(
-      password as string,
+      payload?.password as string,
       isUserExit.password
     );
 
@@ -80,8 +84,10 @@ class AuthServiceClass {
     if (!isPasswordMatch) {
       throw new ApiError(httpStatus.BAD_REQUEST, 'Password is incorrect!');
     }
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars, no-unused-vars
+    const { password, ...user } = isUserExit.toObject();
 
-    return isUserExit;
+    return user;
   };
 
   // refresh token
@@ -163,22 +169,20 @@ class AuthServiceClass {
     const isUserExit = await this.#UserModel.findOne(
       { _id: user.userId },
       {
+        email: 1,
+        about: 1,
+        wishLists: 1,
+        shippingAddress: 1,
+        status: 1,
         password: 1,
         name: 1,
-        email: 1,
         profileImage: 1,
-        address: 1,
         role: 1,
       }
     );
 
     if (!isUserExit) {
       throw new ApiError(httpStatus.NOT_FOUND, 'User Not Found!');
-    }
-
-    // check user is exit with email
-    if (isUserExit?.email !== userData?.email) {
-      throw new ApiError(httpStatus.UNAUTHORIZED, 'Unauthorized user!');
     }
 
     const isNewPasswordMatch = await PasswordHelpers.comparePassword(

@@ -67,7 +67,7 @@ class AdminRoutesClass {
       .route('/:id')
       .patch(
         auth(ENUM_USER_ROLE.ADMIN, ENUM_USER_ROLE.SELLER),
-        validateRequest(AdminValidation.AdminUpdateZodSchema),
+        validateRequest(AdminValidation.updateUserZodSchema),
         AdminController.updateAdmin
       )
       .get(

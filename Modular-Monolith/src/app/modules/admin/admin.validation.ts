@@ -154,10 +154,11 @@ const changePasswordZodSchema = z.object({
   }),
 });
 
-const AdminUpdateZodSchema = z.object({
+const updateUserZodSchema = z.object({
   body: z.object({
     name: z.string().optional(),
     email: z.string().email().optional(),
+    about: z.string().optional(),
     password: z
       .string({
         required_error: 'Password is required!',
@@ -193,21 +194,22 @@ const AdminUpdateZodSchema = z.object({
         }
       )
       .optional(),
-    address: z
-      .object({
-        country: z.string().optional(),
-        town: z.string().optional(),
-        city: z.string().optional(),
-        hometown: z.string().optional(),
-      })
-      .optional(),
-    about: z.string().optional(),
-    designation: z.string().optional(),
-    workAs: z.string().optional(),
-    education: z.string().optional(),
-    language: z.string().optional(),
     role: z.enum([...adminRoles] as [string, ...string[]]).optional(),
     status: z.enum([...adminStatus] as [string, ...string[]]).optional(),
+    shippingAddress: z
+      .object({
+        firstName: z.string().optional(),
+        lastName: z.string().optional(),
+        company: z.string().optional(),
+        address1: z.string().optional(),
+        address2: z.string().optional(),
+        postCode: z.string().optional(),
+        country: z.string().optional(),
+        state: z.string().optional(),
+        phoneNumber: z.string().optional(),
+        city: z.string().optional(),
+      })
+      .optional(),
   }),
 });
 
@@ -217,5 +219,5 @@ export const AdminValidation = {
   refreshTokenZodSchema,
   forgotPasswordZodSchema,
   changePasswordZodSchema,
-  AdminUpdateZodSchema,
+  updateUserZodSchema,
 };

@@ -17,6 +17,7 @@ import { AdminRoutes } from '../modules/admin/admin.route';
 import { UserRoutes } from '../modules/user/user.route';
 import { AuthRoutes } from '../modules/auth/auth.route';
 import { OTPRoutes } from '../modules/otp/otp.route';
+import { DashboardRoutes } from '../modules/dashboard/dashboard.route';
 
 const router: Router = express.Router();
 
@@ -92,6 +93,10 @@ const moduleRoutes = [
   {
     path: '/advertise-banners',
     route: AdvertiseBannerRoutes,
+  },
+  {
+    path: '/dashboards',
+    route: DashboardRoutes,
   },
   {
     path: '/stripes',
