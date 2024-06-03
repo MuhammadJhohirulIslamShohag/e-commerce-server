@@ -23,6 +23,4 @@ jobs:
         run: docker pull ${{secrets.DOCKERHUB_USERNAME}}/modular-monolith-server:latest
 
       - name: Run the image
-        run: |
-          cd ./Modular-Monolith
-          docker compose up -d
+        run: docker compose up -d
