@@ -1,6 +1,6 @@
 version: '3'
 services:
   node-app:
-    image: muhammadshohagislam/modular-monolith-server
+    image: ${{secrets.DOCKERHUB_USERNAME}}/modular-monolith-server:latest
     container_name: modular-monolith-server
     network_mode: 'host'
