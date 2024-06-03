@@ -5,4 +5,4 @@ RUN yarn install
 RUN yarn build
 EXPOSE 9000
 RUN ["chmod", "+x", "./entrypoint.sh"]
-ENTRYPOINT [ "sh", "./enterypoint.sh" ]
+ENTRYPOINT [ "sh", "./entrypoint.sh" ]
