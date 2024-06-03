@@ -3,3 +3,4 @@
 .env
 logs
 .vercel
+/monolith.pem
