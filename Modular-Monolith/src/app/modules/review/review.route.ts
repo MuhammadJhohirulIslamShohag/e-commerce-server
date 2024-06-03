@@ -4,6 +4,8 @@ import { ReviewValidation } from './review.validation';
 import { ReviewController } from './review.controller';
 
 import validateRequest from '../../middlewares/validateRequest';
+import auth from '../../middlewares/auth';
+import { ENUM_USER_ROLE } from '../../enum/user';
 
 class ReviewRouterClass {
   readonly routers: Router;
@@ -17,6 +19,7 @@ class ReviewRouterClass {
     this.routers
       .route('/')
       .post(
+        auth(ENUM_USER_ROLE.ADMIN, ENUM_USER_ROLE.SELLER, ENUM_USER_ROLE.USER),
         validateRequest(ReviewValidation.reviewCreateZodSchema),
         ReviewController.createReview
       )
@@ -26,10 +29,14 @@ class ReviewRouterClass {
     this.routers
       .route('/:id')
       .patch(
+        auth(ENUM_USER_ROLE.ADMIN, ENUM_USER_ROLE.SELLER, ENUM_USER_ROLE.USER),
         validateRequest(ReviewValidation.reviewUpdateZodSchema),
         ReviewController.updateReview
       )
-      .delete(ReviewController.deleteReview)
+      .delete(
+        auth(ENUM_USER_ROLE.ADMIN, ENUM_USER_ROLE.SELLER, ENUM_USER_ROLE.USER),
+        ReviewController.deleteReview
+      )
       .get(ReviewController.getSingleReview);
   }
 }

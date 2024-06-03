@@ -35,7 +35,7 @@ class ProductRouterClass {
     this.routers
       .route('/')
       .post(
-        auth(ENUM_USER_ROLE.ADMIN, ENUM_USER_ROLE.USER),
+        auth(ENUM_USER_ROLE.ADMIN, ENUM_USER_ROLE.SELLER),
         upload.fields([{ name: 'productImage', maxCount: 10 }]),
         ProductController.createProduct
       )
@@ -45,13 +45,13 @@ class ProductRouterClass {
     this.routers
       .route('/:id')
       .patch(
-        auth(ENUM_USER_ROLE.ADMIN, ENUM_USER_ROLE.USER),
+        auth(ENUM_USER_ROLE.ADMIN, ENUM_USER_ROLE.SELLER),
         upload.fields([{ name: 'productImage', maxCount: 10 }]),
         ProductController.updateProduct
       )
       .get(ProductController.getSingleProduct)
       .delete(
-        auth(ENUM_USER_ROLE.ADMIN, ENUM_USER_ROLE.USER),
+        auth(ENUM_USER_ROLE.ADMIN, ENUM_USER_ROLE.SELLER),
         ProductController.deleteProduct
       );
   }

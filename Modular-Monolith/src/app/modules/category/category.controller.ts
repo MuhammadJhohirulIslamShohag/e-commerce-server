@@ -121,16 +121,15 @@ class CategoryControllerClass {
     });
   });
 
-  // get subcategories from category method
-  readonly allCategoriesUnderSubcategories = catchAsync(
+  // get get categories menu from category method
+  readonly getCategoriesMenu = catchAsync(
     async (_req: Request, res: Response) => {
-      const result =
-        await this.#CategoryService.allCategoriesUnderSubcategories();
+      const result = await this.#CategoryService.getCategoriesMenu();
 
       responseReturn(res, {
         statusCode: httpStatus.OK,
         success: true,
-        message: 'All Categories Retrieved Successfully!',
+        message: 'Categories Menu Retrieved Successfully!',
         data: result,
       });
     }

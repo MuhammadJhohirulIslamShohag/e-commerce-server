@@ -258,9 +258,9 @@ class AdminServiceClass {
   // update admin method
   readonly updateAdmin = async (id: string, payload: Partial<IAdmin>) => {
     // check already Admin exit, if not throw error
-    const isExitAdmin = await this.#AdminModel.findOne({ id: id });
+    const isExitAdmin = await this.#AdminModel.findOne({ _id: id });
     if (!isExitAdmin) {
-      throw new ApiError(httpStatus.NOT_FOUND, 'Admin Not Found!');
+      throw new ApiError(httpStatus.NOT_FOUND, 'User Not Found!');
     }
     const { shippingAddress, password, ...others } = payload;
 
@@ -308,7 +308,7 @@ class AdminServiceClass {
     // check already Admin exit, if not throw error
     const isExitAdmin = await this.#AdminModel.findOne({ _id: payload });
     if (!isExitAdmin) {
-      throw new ApiError(httpStatus.NOT_FOUND, 'Admin Not Found!');
+      throw new ApiError(httpStatus.NOT_FOUND, 'User Not Found!');
     }
 
     // delete the admin user

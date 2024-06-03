@@ -1,7 +1,9 @@
 import { Router } from 'express';
 import multer from 'multer';
+import auth from '../../middlewares/auth';
 
 import { CategoryController } from './category.controller';
+import { ENUM_USER_ROLE } from '../../enum/user';
 
 const storage = multer.memoryStorage();
 const upload = multer({ storage: storage });
@@ -14,15 +16,17 @@ class CategoryRoutesClass {
   }
 
   #RouterAction() {
-    // get subcategories from category routes
-    this.routers
-      .route('/allCategoriesUnderSubcategories')
-      .get(CategoryController.allCategoriesUnderSubcategories);
+    // get categories menu from category routes
+    this.routers.get(
+      '/get-categories-menu',
+      CategoryController.getCategoriesMenu
+    );
 
     // create and get all categories routes
     this.routers
       .route('/')
       .post(
+        auth(ENUM_USER_ROLE.ADMIN, ENUM_USER_ROLE.SELLER),
         upload.fields([{ name: 'categoryImage', maxCount: 4 }]),
         CategoryController.createCategory
       )
@@ -32,11 +36,15 @@ class CategoryRoutesClass {
     this.routers
       .route('/:id')
       .patch(
+        auth(ENUM_USER_ROLE.ADMIN, ENUM_USER_ROLE.SELLER),
         upload.fields([{ name: 'categoryImage', maxCount: 1 }]),
         CategoryController.updateCategory
       )
       .get(CategoryController.getSingleCategory)
-      .delete(CategoryController.deleteCategory);
+      .delete(
+        auth(ENUM_USER_ROLE.ADMIN, ENUM_USER_ROLE.SELLER),
+        CategoryController.deleteCategory
+      );
   }
 }
 

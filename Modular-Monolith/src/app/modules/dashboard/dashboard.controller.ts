@@ -6,14 +6,14 @@ import responseReturn from '../../shared/responseReturn';
 
 import { DashboardService } from './dashboard.service';
 
-
 class DashboardControllerClass {
   #DashboardService: typeof DashboardService;
 
   constructor(service: typeof DashboardService) {
     this.#DashboardService = service;
   }
-  // create Dashboard with cash_on_delivery controller
+
+  // dash widget info controller
   readonly dashWidgetInfo = catchAsync(async (req: Request, res: Response) => {
     const result = await this.#DashboardService.dashWidgetInfo();
 
@@ -24,7 +24,8 @@ class DashboardControllerClass {
       data: result,
     });
   });
-
 }
 
-export const dashboardController = new DashboardControllerClass(DashboardService);
+export const dashboardController = new DashboardControllerClass(
+  DashboardService
+);

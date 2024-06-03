@@ -197,35 +197,33 @@ class CategoryServiceClass {
     return result;
   };
 
-  // get subcategories from category method
-  readonly allCategoriesUnderSubcategories = async () => {
+  // get get categories menu from category method
+  readonly getCategoriesMenu = async () => {
     const result = await this.#CategoryModel.aggregate([
       {
         $lookup: {
           from: 'subcategories',
-          localField: 'subCategories.subCategoryId',
-          foreignField: '_id',
-          as: 'subCategories',
+          localField: '_id',
+          foreignField: 'categoryId',
+          as: 'subcategories',
         },
       },
       {
         $project: {
-          id: '$_id',
+          _id: 0,
           name: 1,
-          subCategories: {
+          id: '$_id',
+          subcategories: {
             $map: {
-              input: '$subCategories',
-              as: 'subCategory',
+              input: '$subcategories',
+              as: 'subcategory',
               in: {
-                id: '$categories._id',
-                name: '$categories.name',
+                id: '$$subcategory._id',
+                name: '$$subcategory.name',
               },
             },
           },
         },
-      },
-      {
-        $unset: '_id',
       },
     ]);
     return result;

@@ -1,0 +1,3057 @@
+openapi: 3.1.0
+info:
+  version: '1'
+  title: 'Micro-Service-E-Commerce'
+  description: 'Micro-Service-E-Commerce is the online shipping project, through this we can buy and sell product'
+  contact:
+    name: "Muhammad Jhohirul Islam Shohag"
+    url: "https://shohag.com"
+    email: "muhammadshohagislam83@gmail.com"
+
+servers: 
+  - description: Production
+    url: "https://e-commerce-modular-monolith.vercel.app/api/v1"
+  - description: Development
+    url: "http://localhost:9000/api/v1"
+
+tags: 
+  - name: Auth
+    description: "Authentication Endpoints (Public)"
+  - name: Advertise Banner
+    description: "Advertise Banner Endpoints (Public + Private)"
+  - name: Brand
+    description: "Brand Endpoints (Public + Private)"
+  - name: Category
+    description: "Category Endpoints (Public + Private)"
+  - name: Sub Category
+    description: "Sub Category Endpoints (Public + Private)"
+  - name: Size
+    description: "Size Endpoints (Public + Private)"
+  - name: Color
+    description: "Color Endpoints (Public + Private)"
+  - name: Coupon
+    description: "Coupon Endpoints (Public + Private)"
+  - name: Product
+    description: "Product Endpoints (Public + Private)"
+  - name: Review
+    description: "Review Endpoints (Public + Private)"
+
+paths:
+  "/auth/register":
+    post:
+      summary: "Register new user"
+      tags: [Auth]
+      requestBody:
+        content:
+          "application/json":
+            schema:
+              type: object
+              properties: 
+                name:
+                  type: string
+                  examples: ["username"]
+                email:
+                  type: string
+                  format: email
+                  examples: ["username@gmail.com"]
+                password:
+                  type: string
+                  format: password
+                  examples: ["username12345"]
+              required: 
+                - name
+                - email
+                - password
+                - 
+      responses:
+        '201':
+          description: User registered successfully!
+          content:
+           "application/json":
+             schema: 
+               type: object
+               properties:
+                statusCode:
+                  type: integer
+                  format: int32
+                  examples: 
+                    - 201
+                success:
+                  type: boolean
+                  format: boolean
+                  examples: 
+                    - true
+                    - false
+                message:
+                  type: string
+                  examples: ["User registered successfully!"]
+                data:
+                  type: object
+                  properties:
+                    accessToken:
+                      type: string
+                      examples: ["eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c"]
+                    _id:
+                      type: string
+                      examples: ["56cb91bdc3464f14678934ca"]
+                    username:
+                      type: string
+                      examples: ["username"]
+                    email:
+                      type: string
+                      format: email
+                      examples: ["username@gmail.com"]
+                links:
+                  type: object
+                  properties:
+                    self:
+                      type: string
+                      examples: ["/auth/register"]
+                    login:
+                      type: string
+                      examples: ["/auth/login"]
+
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '500':
+          $ref: '#/components/responses/500'
+  "/auth/login":
+    post:
+      summary: "Login new user"
+      tags: [Auth]
+      requestBody:
+        content:
+          "application/json":
+            schema:
+              type: object
+              properties: 
+                email:
+                  type: string
+                  format: email
+                  examples: ["username@gmail.com"]
+                password:
+                  type: string
+                  format: password
+                  examples: ["username12345"]
+              required: 
+                - email
+                - password
+                - 
+      responses:
+        '201':
+          description: User LogIn successfully!
+          content:
+           "application/json":
+             schema: 
+               type: object
+               properties:
+                statusCode:
+                  type: integer
+                  format: int32
+                  examples: 
+                    - 201
+                success:
+                  type: boolean
+                  format: boolean
+                  examples: 
+                    - true
+                    - false
+                message:
+                  type: string
+                  examples: ["User Loggin successfully!"]
+                data:
+                  type: object
+                  properties:
+                    accessToken:
+                      type: string
+                      examples: ["eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c"]
+                    _id:
+                      type: string
+                      examples: ["56cb91bdc3464f14678934ca"]
+                    username:
+                      type: string
+                      examples: ["username"]
+                    email:
+                      type: string
+                      format: email
+                      examples: ["username@gmail.com"]
+                links:
+                  type: object
+                  properties:
+                    self:
+                      type: string
+                      examples: ["/auth/login"]
+                    register:
+                      type: string
+                      examples: ["/auth/register"]
+  "/advertise-banners":
+    post:
+      security:
+        - BearerAuth: []
+      summary: "Advertise Banner Create"
+      tags: [Advertise Banner]
+      requestBody:
+        content:
+          "multipart/form-data":
+            schema:
+              $ref: "#/components/schemas/AdvertiseBanner"
+              required:
+                - name
+                - startDate
+                - endDate
+                - position
+                - advertiseBannerImage
+
+      responses:
+        '201':
+          description: Advertise Banner Created successfully!
+          content:
+           "application/json":
+             schema: 
+               type: object
+               properties:
+                statusCode:
+                  type: integer
+                  format: int32
+                  examples: 
+                    - 201
+                success:
+                  type: boolean
+                  format: boolean
+                  examples: 
+                    - true
+                    - false
+                message:
+                  type: string
+                  examples: ["Advertise Banner Created successfully!"]
+                data:
+                  allOf:
+                    - $ref: "#/components/schemas/AdvertiseBanner"
+                    - $ref: "#/components/schemas/Timestamp"
+                links:
+                  type: object
+                  properties:
+                    self:
+                      type: string
+                      examples: ["/advertiseBanner/507f191e810c19729de860ea"]
+
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '500':
+          $ref: '#/components/responses/500'
+
+    get:
+      summary: "Get All Advertise Banner"
+      tags: [Advertise Banner]
+      parameters:
+        - $ref: "#/components/parameters/pageParam"
+        - $ref: "#/components/parameters/limitParam"
+        - $ref: "#/components/parameters/sortParam"
+        - $ref: "#/components/parameters/searchParam"
+        - $ref: "#/components/parameters/fieldsParam"
+
+      responses:
+        '200':
+          description: All Advertise Banner Retrieved Successfully!
+          content:
+           "application/json":
+             schema: 
+               type: object
+               properties:
+                statusCode:
+                  type: integer
+                  format: int32
+                  examples: 
+                    - 200
+                success:
+                  type: boolean
+                  format: boolean
+                  examples: 
+                    - true
+                    - false
+                message:
+                  type: string
+                  examples: ["All Advertise Banner Retrieved Successfully!"]
+                data:
+                  type: array
+                  items:
+                    allOf:
+                      - $ref: "#/components/schemas/AdvertiseBanner"
+                      - $ref: "#/components/schemas/Timestamp"
+                mata:
+                  $ref: "#/components/schemas/Meta" 
+                links:
+                  type: object
+                  properties:
+                    self:
+                      type: string
+                      format: url
+                      examples: ["/advertiseBanner?page=1&limit=10"]
+                    next:
+                      type: string
+                      format: url
+                      examples: ["/advertiseBanner?page=2&limit=10"]
+                    prev:
+                      type: string
+                      format: url
+                      examples: ["/advertiseBanner?page=1&limit=10"]
+
+        '400':
+          $ref: '#/components/responses/CastError'
+        '500':
+          $ref: '#/components/responses/500'
+
+  
+  "/advertise-banners/{id}":
+    get:
+      summary: "Get Single Advertise Banner By Id"
+      tags: [Advertise Banner]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Advertise Banner Id of the Advertise Banner to get.
+          schema:
+            type: integer
+
+      responses:
+        '200':
+          description: Single Advertise Banner Retrieved Successfully!
+          content:
+           "application/json":
+             schema: 
+               type: object
+               properties:
+                statusCode:
+                  type: integer
+                  format: int32
+                  examples: 
+                    - 200
+                success:
+                  type: boolean
+                  format: boolean
+                  examples: 
+                    - true
+                    - false
+                message:
+                  type: string
+                  examples: ["Single Advertise Banner Retrieved Successfully!"]
+                data:
+                  allOf:
+                    - $ref: "#/components/schemas/AdvertiseBanner"
+                    - $ref: "#/components/schemas/Timestamp"
+                links:
+                  type: object
+                  properties:
+                    self:
+                      type: string
+                      examples: ["/advertiseBanner/507f191e810c19729de860ea"]
+
+        '400':
+          $ref: '#/components/responses/CastError'
+        '500':
+          $ref: '#/components/responses/500'
+
+    patch:
+      security:
+        - BearerAuth: []
+      summary: "Advertise Banner Updated By Id"
+      tags: [Advertise Banner]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Advertise Banner Id of the Advertise Banner to update.
+          schema:
+            type: integer
+      requestBody:
+        content:
+          "application/json":
+            schema:
+              $ref: "#/components/schemas/AdvertiseBanner"
+      responses:
+        '200':
+          description: Single Advertise Banner Updated Successfully!
+          content:
+            "application/json":
+              schema: 
+                type: object
+                properties:
+                  statusCode:
+                    type: integer
+                    format: int32
+                    examples: 
+                      - 200
+                  success:
+                    type: boolean
+                    format: boolean
+                    examples: 
+                      - true
+                      - false
+                  message:
+                    type: string
+                    examples: ["Single Advertise Banner Updated Successfully!"]
+                  data:
+                    allOf:
+                      - $ref: "#/components/schemas/AdvertiseBanner"
+                      - $ref: "#/components/schemas/Timestamp"
+                  links:
+                    type: object
+                    properties:
+                      self:
+                        type: string
+                        examples: ["/advertiseBanner/507f191e810c19729de860ea"]
+
+        '400':
+          $ref: '#/components/responses/CastError'
+        '500':
+          $ref: '#/components/responses/500'
+
+    delete:
+      security:
+        - BearerAuth: []
+      summary: "Delete Advertise Banner By Id"
+      tags: [Advertise Banner]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Advertise Banner Id of the Advertise Banner to Delete.
+          schema:
+            type: integer
+
+      responses:
+        '200':
+          description: Single Advertise Banner Removed Successfully!
+          content:
+           "application/json":
+             schema: 
+               type: object
+               properties:
+                statusCode:
+                  type: integer
+                  format: int32
+                  examples: 
+                    - 200
+                success:
+                  type: boolean
+                  format: boolean
+                  examples: 
+                    - true
+                    - false
+                message:
+                  type: string
+                  examples: ["Single Advertise Banner Removed Successfully!"]
+                data:
+                  allOf:
+                    - $ref: "#/components/schemas/AdvertiseBanner"
+                    - $ref: "#/components/schemas/Timestamp"
+                links:
+                  type: object
+                  properties:
+                    self:
+                      type: string
+                      examples: ["/advertiseBanner/507f191e810c19729de860ea"]
+
+        '400':
+          $ref: '#/components/responses/CastError'
+        '500':
+          $ref: '#/components/responses/500'
+  "/brands":
+    post:
+      security:
+        - BearerAuth: []
+      summary: "Brand Create"
+      tags: [Brand]
+      requestBody:
+        content:
+          "multipart/form-data":
+            schema:
+              $ref: "#/components/schemas/Brand"
+              required:
+                - name
+                - email
+                - location
+                - website
+                - brandImage
+
+      responses:
+        '201':
+          description: Brand Created successfully!
+          content:
+           "application/json":
+             schema: 
+               type: object
+               properties:
+                statusCode:
+                  type: integer
+                  format: int32
+                  examples: 
+                    - 201
+                success:
+                  type: boolean
+                  format: boolean
+                  examples: 
+                    - true
+                    - false
+                message:
+                  type: string
+                  examples: ["Brand Created successfully!"]
+                data:
+                  allOf:
+                    - $ref: "#/components/schemas/Brand"
+                    - $ref: "#/components/schemas/Timestamp"
+                links:
+                  type: object
+                  properties:
+                    self:
+                      type: string
+                      examples: ["/brands/507f191e810c19729de860ea"]
+
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '500':
+          $ref: '#/components/responses/500'
+    get:
+      summary: "Get All Brand"
+      tags: [Brand]
+      parameters:
+        - $ref: "#/components/parameters/pageParam"
+        - $ref: "#/components/parameters/limitParam"
+        - $ref: "#/components/parameters/sortParam"
+        - $ref: "#/components/parameters/searchParam"
+        - $ref: "#/components/parameters/fieldsParam"
+
+      responses:
+        '200':
+          description: All Brand Retrieved Successfully!
+          content:
+           "application/json":
+             schema: 
+               type: object
+               properties:
+                statusCode:
+                  type: integer
+                  format: int32
+                  examples: 
+                    - 200
+                success:
+                  type: boolean
+                  format: boolean
+                  examples: 
+                    - true
+                    - false
+                message:
+                  type: string
+                  examples: ["All Brand Retrieved Successfully!"]
+                data:
+                  type: array
+                  items:
+                    allOf:
+                      - $ref: "#/components/schemas/Brand"
+                      - $ref: "#/components/schemas/Timestamp"
+                mata:
+                  $ref: "#/components/schemas/Meta" 
+                links:
+                  type: object
+                  properties:
+                    self:
+                      type: string
+                      format: url
+                      examples: ["/brands?page=1&limit=10"]
+                    next:
+                      type: string
+                      format: url
+                      examples: ["/brands?page=2&limit=10"]
+                    prev:
+                      type: string
+                      format: url
+                      examples: ["/brands?page=1&limit=10"]
+
+        '400':
+          $ref: '#/components/responses/CastError'
+        '500':
+          $ref: '#/components/responses/500'
+  
+  "/brands/{id}":
+    get:
+      summary: "Get Single Brand By Id"
+      tags: [Brand]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Brand Id of the Brand to get.
+          schema:
+            type: integer
+
+      responses:
+        '200':
+          description: Single Brand Retrieved Successfully!
+          content:
+           "application/json":
+              schema: 
+                type: object
+                properties:
+                  statusCode:
+                    type: integer
+                    format: int32
+                    examples: 
+                      - 200
+                  success:
+                    type: boolean
+                    format: boolean
+                    examples: 
+                      - true
+                      - false
+                  message:
+                    type: string
+                    examples: ["Single Brand Retrieved Successfully!"]
+                  data:
+                    allOf:
+                      - $ref: "#/components/schemas/Brand"
+                      - $ref: "#/components/schemas/Timestamp"
+                  links:
+                    type: object
+                    properties:
+                      self:
+                        type: string
+                        examples: ["/brands/507f191e810c19729de860ea"]
+
+        '400':
+          $ref: '#/components/responses/CastError'
+        '500':
+          $ref: '#/components/responses/500'
+
+    patch:
+      security:
+        - BearerAuth: []
+      summary: "Brand Updated By Id"
+      tags: [Brand]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Brand Id of the Brand to update.
+          schema:
+            type: integer
+      requestBody:
+        content:
+          "application/json":
+            schema:
+              $ref: "#/components/schemas/Brand"
+      responses:
+        '200':
+          description: Single Brand Updated Successfully!
+          content:
+            "application/json":
+              schema: 
+                type: object
+                properties:
+                  statusCode:
+                    type: integer
+                    format: int32
+                    examples: 
+                      - 200
+                  success:
+                    type: boolean
+                    format: boolean
+                    examples: 
+                      - true
+                      - false
+                  message:
+                    type: string
+                    examples: ["Single Brand Updated Successfully!"]
+                  data:
+                    allOf:
+                      - $ref: "#/components/schemas/Brand"
+                      - $ref: "#/components/schemas/Timestamp"
+                  links:
+                    type: object
+                    properties:
+                      self:
+                        type: string
+                        examples: ["/brands/507f191e810c19729de860ea"]
+
+        '400':
+          $ref: '#/components/responses/CastError'
+        '500':
+          $ref: '#/components/responses/500'
+
+    delete:
+      security:
+        - BearerAuth: []
+      summary: "Delete Brand By Id"
+      tags: [Brand]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Brand Id of the Brand to Delete.
+          schema:
+            type: integer
+
+      responses:
+        '200':
+          description: Single Brand Removed Successfully!
+          content:
+           "application/json":
+             schema: 
+               type: object
+               properties:
+                statusCode:
+                  type: integer
+                  format: int32
+                  examples: 
+                    - 200
+                success:
+                  type: boolean
+                  format: boolean
+                  examples: 
+                    - true
+                    - false
+                message:
+                  type: string
+                  examples: ["Brand Removed Successfully!"]
+                data:
+                  allOf:
+                    - $ref: "#/components/schemas/Brand"
+                    - $ref: "#/components/schemas/Timestamp"
+                links:
+                  type: object
+                  properties:
+                    self:
+                      type: string
+                      examples: ["/brands/507f191e810c19729de860ea"]
+
+        '400':
+          $ref: '#/components/responses/CastError'
+        '500':
+          $ref: '#/components/responses/500'
+  "/categories":
+    post:
+      security:
+        - BearerAuth: []
+      summary: "Category Create"
+      tags: [Category]
+      requestBody:
+        content:
+          "multipart/form-data":
+            schema:
+              $ref: "#/components/schemas/Category"
+              required:
+                - name
+                - categoryImage
+      responses:
+        '201':
+          description: Category Created successfully!
+          content:
+           "application/json":
+             schema: 
+               type: object
+               properties:
+                statusCode:
+                  type: integer
+                  format: int32
+                  examples: 
+                    - 201
+                success:
+                  type: boolean
+                  format: boolean
+                  examples: 
+                    - true
+                    - false
+                message:
+                  type: string
+                  examples: ["Category Created successfully!"]
+                data:
+                  allOf:
+                    - $ref: "#/components/schemas/Category"
+                    - $ref: "#/components/schemas/Timestamp"
+                links:
+                  type: object
+                  properties:
+                    self:
+                      type: string
+                      examples: ["/categories/507f191e810c19729de860ea"]
+
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '500':
+          $ref: '#/components/responses/500'
+    get:
+      summary: "Get All Categories"
+      tags: [Category]
+      parameters:
+        - $ref: "#/components/parameters/pageParam"
+        - $ref: "#/components/parameters/limitParam"
+        - $ref: "#/components/parameters/sortParam"
+        - $ref: "#/components/parameters/searchParam"
+        - $ref: "#/components/parameters/fieldsParam"
+
+      responses:
+        '200':
+          description: All Categories Retrieved Successfully!
+          content:
+           "application/json":
+             schema: 
+               type: object
+               properties:
+                statusCode:
+                  type: integer
+                  format: int32
+                  examples: 
+                    - 200
+                success:
+                  type: boolean
+                  format: boolean
+                  examples: 
+                    - true
+                    - false
+                message:
+                  type: string
+                  examples: ["All Categories Retrieved Successfully!"]
+                data:
+                  type: array
+                  items:
+                    allOf:
+                      - $ref: "#/components/schemas/Category"
+                      - $ref: "#/components/schemas/Timestamp"
+                mata:
+                  $ref: "#/components/schemas/Meta" 
+                links:
+                  type: object
+                  properties:
+                    self:
+                      type: string
+                      format: url
+                      examples: ["/categories?page=1&limit=10"]
+                    next:
+                      type: string
+                      format: url
+                      examples: ["/categories?page=2&limit=10"]
+                    prev:
+                      type: string
+                      format: url
+                      examples: ["/categories?page=1&limit=10"]
+
+        '400':
+          $ref: '#/components/responses/CastError'
+        '500':
+          $ref: '#/components/responses/500'
+  
+  "/categories/{id}":
+    get:
+      summary: "Get Single Category By Id"
+      tags: [Category]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Category Id of the Category to get.
+          schema:
+            type: integer
+
+      responses:
+        '200':
+          description: Single Category Retrieved Successfully!
+          content:
+           "application/json":
+              schema: 
+                type: object
+                properties:
+                  statusCode:
+                    type: integer
+                    format: int32
+                    examples: 
+                      - 200
+                  success:
+                    type: boolean
+                    format: boolean
+                    examples: 
+                      - true
+                      - false
+                  message:
+                    type: string
+                    examples: ["Single Category Retrieved Successfully!"]
+                  data:
+                    allOf:
+                      - $ref: "#/components/schemas/Category"
+                      - $ref: "#/components/schemas/Timestamp"
+                  links:
+                    type: object
+                    properties:
+                      self:
+                        type: string
+                        examples: ["/categories/507f191e810c19729de860ea"]
+
+        '400':
+          $ref: '#/components/responses/CastError'
+        '500':
+          $ref: '#/components/responses/500'
+
+    patch:
+      security:
+        - BearerAuth: []
+      summary: "Category Updated By Id"
+      tags: [Category]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Category Id of the Category to update.
+          schema:
+            type: integer
+      requestBody:
+        content:
+          "application/json":
+            schema:
+              $ref: "#/components/schemas/Category"
+      responses:
+        '200':
+          description: Single Category Updated Successfully!
+          content:
+            "application/json":
+              schema: 
+                type: object
+                properties:
+                  statusCode:
+                    type: integer
+                    format: int32
+                    examples: 
+                      - 200
+                  success:
+                    type: boolean
+                    format: boolean
+                    examples: 
+                      - true
+                      - false
+                  message:
+                    type: string
+                    examples: ["Single Category Updated Successfully!"]
+                  data:
+                    allOf:
+                      - $ref: "#/components/schemas/Category"
+                      - $ref: "#/components/schemas/Timestamp"
+                  links:
+                    type: object
+                    properties:
+                      self:
+                        type: string
+                        examples: ["/categories/507f191e810c19729de860ea"]
+
+        '400':
+          $ref: '#/components/responses/CastError'
+        '500':
+          $ref: '#/components/responses/500'
+
+    delete:
+      security:
+        - BearerAuth: []
+      summary: "Delete Category By Id"
+      tags: [Category]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Category Id of the Category to Delete.
+          schema:
+            type: integer
+
+      responses:
+        '200':
+          description: Single Category Removed Successfully!
+          content:
+           "application/json":
+             schema: 
+               type: object
+               properties:
+                statusCode:
+                  type: integer
+                  format: int32
+                  examples: 
+                    - 200
+                success:
+                  type: boolean
+                  format: boolean
+                  examples: 
+                    - true
+                    - false
+                message:
+                  type: string
+                  examples: ["Category Removed Successfully!"]
+                data:
+                  allOf:
+                    - $ref: "#/components/schemas/Category"
+                    - $ref: "#/components/schemas/Timestamp"
+                links:
+                  type: object
+                  properties:
+                    self:
+                      type: string
+                      examples: ["/categories/507f191e810c19729de860ea"]
+
+        '400':
+          $ref: '#/components/responses/CastError'
+        '500':
+          $ref: '#/components/responses/500'
+  "/sub-categories":
+    post:
+      security:
+        - BearerAuth: []
+      summary: "Sub Category Create"
+      tags: [Sub Category]
+      requestBody:
+        content:
+          "multipart/form-data":
+            schema:
+              $ref: "#/components/schemas/SubCategory"
+              required:
+                - name
+                - subCategoryImage
+                - categoryId
+      responses:
+        '201':
+          description: Sub Category Created successfully!
+          content:
+           "application/json":
+             schema: 
+               type: object
+               properties:
+                statusCode:
+                  type: integer
+                  format: int32
+                  examples: 
+                    - 201
+                success:
+                  type: boolean
+                  format: boolean
+                  examples: 
+                    - true
+                    - false
+                message:
+                  type: string
+                  examples: ["Sub Category Created successfully!"]
+                data:
+                  allOf:
+                    - $ref: "#/components/schemas/SubCategory"
+                    - $ref: "#/components/schemas/Timestamp"
+                links:
+                  type: object
+                  properties:
+                    self:
+                      type: string
+                      examples: ["/sub-categories/507f191e810c19729de860ea"]
+
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '500':
+          $ref: '#/components/responses/500'
+    get:
+      summary: "Get All Sub Categories"
+      tags: [Sub Category]
+      parameters:
+        - $ref: "#/components/parameters/pageParam"
+        - $ref: "#/components/parameters/limitParam"
+        - $ref: "#/components/parameters/sortParam"
+        - $ref: "#/components/parameters/searchParam"
+        - $ref: "#/components/parameters/fieldsParam"
+        - $ref: "#/components/parameters/populateParam"
+
+      responses:
+        '200':
+          description: All Sub Categories Retrieved Successfully!
+          content:
+           "application/json":
+             schema: 
+               type: object
+               properties:
+                statusCode:
+                  type: integer
+                  format: int32
+                  examples: 
+                    - 200
+                success:
+                  type: boolean
+                  format: boolean
+                  examples: 
+                    - true
+                    - false
+                message:
+                  type: string
+                  examples: ["All Sub Categories Retrieved Successfully!"]
+                data:
+                  type: array
+                  items:
+                    allOf:
+                      - $ref: "#/components/schemas/SubCategory"
+                      - $ref: "#/components/schemas/Timestamp"
+                mata:
+                  $ref: "#/components/schemas/Meta" 
+                links:
+                  type: object
+                  properties:
+                    self:
+                      type: string
+                      format: url
+                      examples: ["/sub-categories?page=1&limit=10"]
+                    next:
+                      type: string
+                      format: url
+                      examples: ["/sub-categories?page=2&limit=10"]
+                    prev:
+                      type: string
+                      format: url
+                      examples: ["/sub-categories?page=1&limit=10"]
+
+        '400':
+          $ref: '#/components/responses/CastError'
+        '500':
+          $ref: '#/components/responses/500'
+  
+  "/sub-categories/{id}":
+    get:
+      summary: "Get Single Sub Category By Id"
+      tags: [Sub Category]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Sub Category Id of the Sub Category to get.
+          schema:
+            type: integer
+
+      responses:
+        '200':
+          description: Single Sub Category Retrieved Successfully!
+          content:
+           "application/json":
+              schema: 
+                type: object
+                properties:
+                  statusCode:
+                    type: integer
+                    format: int32
+                    examples: 
+                      - 200
+                  success:
+                    type: boolean
+                    format: boolean
+                    examples: 
+                      - true
+                      - false
+                  message:
+                    type: string
+                    examples: ["Single Sub Category Retrieved Successfully!"]
+                  data:
+                    allOf:
+                      - $ref: "#/components/schemas/SubCategory"
+                      - $ref: "#/components/schemas/Timestamp"
+                  links:
+                    type: object
+                    properties:
+                      self:
+                        type: string
+                        examples: ["/sub-categories/507f191e810c19729de860ea"]
+
+        '400':
+          $ref: '#/components/responses/CastError'
+        '500':
+          $ref: '#/components/responses/500'
+
+    patch:
+      security:
+        - BearerAuth: []
+      summary: "Sub Category Updated By Id"
+      tags: [Sub Category]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Sub Category Id of the Sub Categoy to update.
+          schema:
+            type: integer
+      requestBody:
+        content:
+          "application/json":
+            schema:
+              $ref: "#/components/schemas/SubCategory"
+      responses:
+        '200':
+          description: Single SubCategoy Updated Successfully!
+          content:
+            "application/json":
+              schema: 
+                type: object
+                properties:
+                  statusCode:
+                    type: integer
+                    format: int32
+                    examples: 
+                      - 200
+                  success:
+                    type: boolean
+                    format: boolean
+                    examples: 
+                      - true
+                      - false
+                  message:
+                    type: string
+                    examples: ["Single Sub Category Updated Successfully!"]
+                  data:
+                    allOf:
+                      - $ref: "#/components/schemas/SubCategory"
+                      - $ref: "#/components/schemas/Timestamp"
+                  links:
+                    type: object
+                    properties:
+                      self:
+                        type: string
+                        examples: ["/sub-categories/507f191e810c19729de860ea"]
+
+        '400':
+          $ref: '#/components/responses/CastError'
+        '500':
+          $ref: '#/components/responses/500'
+
+    delete:
+      security:
+        - BearerAuth: []
+      summary: "Delete Sub Category By Id"
+      tags: [Sub Category]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Sub Category Id of the Sub Category to Delete.
+          schema:
+            type: integer
+
+      responses:
+        '200':
+          description: Single Sub Category Removed Successfully!
+          content:
+           "application/json":
+             schema: 
+               type: object
+               properties:
+                statusCode:
+                  type: integer
+                  format: int32
+                  examples: 
+                    - 200
+                success:
+                  type: boolean
+                  format: boolean
+                  examples: 
+                    - true
+                    - false
+                message:
+                  type: string
+                  examples: ["Sub Category Removed Successfully!"]
+                data:
+                  allOf:
+                    - $ref: "#/components/schemas/SubCategory"
+                    - $ref: "#/components/schemas/Timestamp"
+                links:
+                  type: object
+                  properties:
+                    self:
+                      type: string
+                      examples: ["/sub-categories/507f191e810c19729de860ea"]
+
+        '400':
+          $ref: '#/components/responses/CastError'
+        '500':
+          $ref: '#/components/responses/500'
+  "/colors":
+    post:
+      security:
+        - BearerAuth: []
+      summary: "Color Create"
+      tags: [Color]
+      requestBody:
+        content:
+          "application/json":
+            schema:
+              $ref: "#/components/schemas/Colors"
+              required:
+                - name
+      responses:
+        '201':
+          description: Color Created successfully!
+          content:
+           "application/json":
+             schema: 
+               type: object
+               properties:
+                statusCode:
+                  type: integer
+                  format: int32
+                  examples: 
+                    - 201
+                success:
+                  type: boolean
+                  format: boolean
+                  examples: 
+                    - true
+                    - false
+                message:
+                  type: string
+                  examples: ["Color Created successfully!"]
+                data:
+                  allOf:
+                    - $ref: "#/components/schemas/Colors"
+                    - $ref: "#/components/schemas/Timestamp"
+                links:
+                  type: object
+                  properties:
+                    self:
+                      type: string
+                      examples: ["/colors/507f191e810c19729de860ea"]
+
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '500':
+          $ref: '#/components/responses/500'
+
+    get:
+      summary: "Get All Colors"
+      tags: [Color]
+      parameters:
+        - $ref: "#/components/parameters/pageParam"
+        - $ref: "#/components/parameters/limitParam"
+        - $ref: "#/components/parameters/sortParam"
+        - $ref: "#/components/parameters/searchParam"
+        - $ref: "#/components/parameters/fieldsParam"
+        - in: query
+          name: name
+          schema:
+            type: string
+          description: get items by name
+
+      responses:
+        '200':
+          description: All Colors Retrieved Successfully!
+          content:
+           "application/json":
+             schema: 
+               type: object
+               properties:
+                statusCode:
+                  type: integer
+                  format: int32
+                  examples: 
+                    - 200
+                success:
+                  type: boolean
+                  format: boolean
+                  examples: 
+                    - true
+                    - false
+                message:
+                  type: string
+                  examples: ["All Colors Retrieved Successfully!"]
+                data:
+                  type: array
+                  items:
+                    allOf:
+                      - $ref: "#/components/schemas/Colors"
+                      - $ref: "#/components/schemas/Timestamp"
+                mata:
+                  $ref: "#/components/schemas/Meta" 
+                links:
+                  type: object
+                  properties:
+                    self:
+                      type: string
+                      format: url
+                      examples: ["/colors?page=1&limit=10"]
+                    next:
+                      type: string
+                      format: url
+                      examples: ["/colors?page=2&limit=10"]
+                    prev:
+                      type: string
+                      format: url
+                      examples: ["/colors?page=1&limit=10"]
+
+        '400':
+          $ref: '#/components/responses/CastError'
+        '500':
+          $ref: '#/components/responses/500'
+  
+  "/colors/{id}":
+    get:
+      summary: "Get Single Color By Id"
+      tags: [Color]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Color Id of the Color to get.
+          schema:
+            type: integer
+
+      responses:
+        '200':
+          description: Single Color Retrieved Successfully!
+          content:
+           "application/json":
+              schema: 
+                type: object
+                properties:
+                  statusCode:
+                    type: integer
+                    format: int32
+                    examples: 
+                      - 200
+                  success:
+                    type: boolean
+                    format: boolean
+                    examples: 
+                      - true
+                      - false
+                  message:
+                    type: string
+                    examples: ["Single Color Retrieved Successfully!"]
+                  data:
+                    allOf:
+                      - $ref: "#/components/schemas/Colors"
+                      - $ref: "#/components/schemas/Timestamp"
+                  links:
+                    type: object
+                    properties:
+                      self:
+                        type: string
+                        examples: ["/colors/507f191e810c19729de860ea"]
+
+        '400':
+          $ref: '#/components/responses/CastError'
+        '500':
+          $ref: '#/components/responses/500'
+
+    patch:
+      security:
+        - BearerAuth: []
+      summary: "Color Updated By Id"
+      tags: [Color]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Color Id of the Sub Categoy to update.
+          schema:
+            type: integer
+      requestBody:
+        content:
+          "application/json":
+            schema:
+              $ref: "#/components/schemas/Colors"
+      responses:
+        '200':
+          description: Single SubCategoy Updated Successfully!
+          content:
+            "application/json":
+              schema: 
+                type: object
+                properties:
+                  statusCode:
+                    type: integer
+                    format: int32
+                    examples: 
+                      - 200
+                  success:
+                    type: boolean
+                    format: boolean
+                    examples: 
+                      - true
+                      - false
+                  message:
+                    type: string
+                    examples: ["Single Color Updated Successfully!"]
+                  data:
+                    allOf:
+                      - $ref: "#/components/schemas/Colors"
+                      - $ref: "#/components/schemas/Timestamp"
+                  links:
+                    type: object
+                    properties:
+                      self:
+                        type: string
+                        examples: ["/colors/507f191e810c19729de860ea"]
+
+        '400':
+          $ref: '#/components/responses/CastError'
+        '500':
+          $ref: '#/components/responses/500'
+
+    delete:
+      security:
+        - BearerAuth: []
+      summary: "Delete Color By Id"
+      tags: [Color]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Color Id of the Color to Delete.
+          schema:
+            type: integer
+
+      responses:
+        '200':
+          description: Single Color Removed Successfully!
+          content:
+           "application/json":
+             schema: 
+               type: object
+               properties:
+                statusCode:
+                  type: integer
+                  format: int32
+                  examples: 
+                    - 200
+                success:
+                  type: boolean
+                  format: boolean
+                  examples: 
+                    - true
+                    - false
+                message:
+                  type: string
+                  examples: ["Color Removed Successfully!"]
+                data:
+                  allOf:
+                    - $ref: "#/components/schemas/Colors"
+                    - $ref: "#/components/schemas/Timestamp"
+                links:
+                  type: object
+                  properties:
+                    self:
+                      type: string
+                      examples: ["/colors/507f191e810c19729de860ea"]
+
+        '400':
+          $ref: '#/components/responses/CastError'
+        '500':
+          $ref: '#/components/responses/500'
+  "/sizes":
+    post:
+      security:
+        - BearerAuth: []
+      summary: "Size Create"
+      tags: [Size]
+      requestBody:
+        content:
+          "application/json":
+            schema:
+              $ref: "#/components/schemas/Sizes"
+              required:
+                - name
+      responses:
+        '201':
+          description: Size Created successfully!
+          content:
+           "application/json":
+             schema: 
+               type: object
+               properties:
+                statusCode:
+                  type: integer
+                  format: int32
+                  examples: 
+                    - 201
+                success:
+                  type: boolean
+                  format: boolean
+                  examples: 
+                    - true
+                    - false
+                message:
+                  type: string
+                  examples: ["Size Created successfully!"]
+                data:
+                  allOf:
+                    - $ref: "#/components/schemas/Sizes"
+                    - $ref: "#/components/schemas/Timestamp"
+                links:
+                  type: object
+                  properties:
+                    self:
+                      type: string
+                      examples: ["/sizes/507f191e810c19729de860ea"]
+
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '500':
+          $ref: '#/components/responses/500'
+
+    get:
+      summary: "Get All Sizes"
+      tags: [Size]
+      parameters:
+        - $ref: "#/components/parameters/pageParam"
+        - $ref: "#/components/parameters/limitParam"
+        - $ref: "#/components/parameters/sortParam"
+        - $ref: "#/components/parameters/searchParam"
+        - $ref: "#/components/parameters/fieldsParam"
+        - in: query
+          name: name
+          schema:
+            type: string
+          description: get items by name
+
+      responses:
+        '200':
+          description: All Sizes Retrieved Successfully!
+          content:
+           "application/json":
+             schema: 
+               type: object
+               properties:
+                statusCode:
+                  type: integer
+                  format: int32
+                  examples: 
+                    - 200
+                success:
+                  type: boolean
+                  format: boolean
+                  examples: 
+                    - true
+                    - false
+                message:
+                  type: string
+                  examples: ["All Sizes Retrieved Successfully!"]
+                data:
+                  type: array
+                  items:
+                    allOf:
+                      - $ref: "#/components/schemas/Sizes"
+                      - $ref: "#/components/schemas/Timestamp"
+                mata:
+                  $ref: "#/components/schemas/Meta" 
+                links:
+                  type: object
+                  properties:
+                    self:
+                      type: string
+                      format: url
+                      examples: ["/sizes?page=1&limit=10"]
+                    next:
+                      type: string
+                      format: url
+                      examples: ["/sizes?page=2&limit=10"]
+                    prev:
+                      type: string
+                      format: url
+                      examples: ["/sizes?page=1&limit=10"]
+
+        '400':
+          $ref: '#/components/responses/CastError'
+        '500':
+          $ref: '#/components/responses/500'
+  
+  "/sizes/{id}":
+    get:
+      summary: "Get Single Size By Id"
+      tags: [Size]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Size Id of the Size to get.
+          schema:
+            type: integer
+
+      responses:
+        '200':
+          description: Single Size Retrieved Successfully!
+          content:
+           "application/json":
+              schema: 
+                type: object
+                properties:
+                  statusCode:
+                    type: integer
+                    format: int32
+                    examples: 
+                      - 200
+                  success:
+                    type: boolean
+                    format: boolean
+                    examples: 
+                      - true
+                      - false
+                  message:
+                    type: string
+                    examples: ["Single Size Retrieved Successfully!"]
+                  data:
+                    allOf:
+                      - $ref: "#/components/schemas/Sizes"
+                      - $ref: "#/components/schemas/Timestamp"
+                  links:
+                    type: object
+                    properties:
+                      self:
+                        type: string
+                        examples: ["/Sizes/507f191e810c19729de860ea"]
+
+        '400':
+          $ref: '#/components/responses/CastError'
+        '500':
+          $ref: '#/components/responses/500'
+
+    patch:
+      security:
+        - BearerAuth: []
+      summary: "Size Updated By Id"
+      tags: [Size]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Size Id of the Sub Categoy to update.
+          schema:
+            type: integer
+      requestBody:
+        content:
+          "application/json":
+            schema:
+              $ref: "#/components/schemas/Sizes"
+      responses:
+        '200':
+          description: Single Size Updated Successfully!
+          content:
+            "application/json":
+              schema: 
+                type: object
+                properties:
+                  statusCode:
+                    type: integer
+                    format: int32
+                    examples: 
+                      - 200
+                  success:
+                    type: boolean
+                    format: boolean
+                    examples: 
+                      - true
+                      - false
+                  message:
+                    type: string
+                    examples: ["Single Size Updated Successfully!"]
+                  data:
+                    allOf:
+                      - $ref: "#/components/schemas/Sizes"
+                      - $ref: "#/components/schemas/Timestamp"
+                  links:
+                    type: object
+                    properties:
+                      self:
+                        type: string
+                        examples: ["/sizes/507f191e810c19729de860ea"]
+
+        '400':
+          $ref: '#/components/responses/CastError'
+        '500':
+          $ref: '#/components/responses/500'
+
+    delete:
+      security:
+        - BearerAuth: []
+      summary: "Delete Size By Id"
+      tags: [Size]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Size Id of the Size to Delete.
+          schema:
+            type: integer
+
+      responses:
+        '200':
+          description: Single Size Removed Successfully!
+          content:
+           "application/json":
+             schema: 
+               type: object
+               properties:
+                statusCode:
+                  type: integer
+                  format: int32
+                  examples: 
+                    - 200
+                success:
+                  type: boolean
+                  format: boolean
+                  examples: 
+                    - true
+                    - false
+                message:
+                  type: string
+                  examples: ["Size Removed Successfully!"]
+                data:
+                  allOf:
+                    - $ref: "#/components/schemas/Sizes"
+                    - $ref: "#/components/schemas/Timestamp"
+                links:
+                  type: object
+                  properties:
+                    self:
+                      type: string
+                      examples: ["/sizes/507f191e810c19729de860ea"]
+
+        '400':
+          $ref: '#/components/responses/CastError'
+        '500':
+          $ref: '#/components/responses/500'
+  "/coupons":
+    post:
+      security:
+        - BearerAuth: []
+      summary: "Coupon Create"
+      tags: [Coupon]
+      requestBody:
+        content:
+          "application/json":
+            schema:
+              $ref: "#/components/schemas/Coupons"
+              required:
+                - name
+                - discount
+      responses:
+        '201':
+          description: Coupon Created successfully!
+          content:
+           "application/json":
+             schema: 
+               type: object
+               properties:
+                statusCode:
+                  type: integer
+                  format: int32
+                  examples: 
+                    - 201
+                success:
+                  type: boolean
+                  format: boolean
+                  examples: 
+                    - true
+                    - false
+                message:
+                  type: string
+                  examples: ["Coupon Created successfully!"]
+                data:
+                  allOf:
+                    - $ref: "#/components/schemas/Coupons"
+                    - $ref: "#/components/schemas/Timestamp"
+                links:
+                  type: object
+                  properties:
+                    self:
+                      type: string
+                      examples: ["/coupons/507f191e810c19729de860ea"]
+
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '500':
+          $ref: '#/components/responses/500'
+
+    get:
+      summary: "Get All Coupons"
+      tags: [Coupon]
+      parameters:
+        - $ref: "#/components/parameters/pageParam"
+        - $ref: "#/components/parameters/limitParam"
+        - $ref: "#/components/parameters/sortParam"
+        - $ref: "#/components/parameters/searchParam"
+        - $ref: "#/components/parameters/fieldsParam"
+
+      responses:
+        '200':
+          description: All Coupons Retrieved Successfully!
+          content:
+           "application/json":
+             schema: 
+               type: object
+               properties:
+                statusCode:
+                  type: integer
+                  format: int32
+                  examples: 
+                    - 200
+                success:
+                  type: boolean
+                  format: boolean
+                  examples: 
+                    - true
+                    - false
+                message:
+                  type: string
+                  examples: ["All Coupons Retrieved Successfully!"]
+                data:
+                  type: array
+                  items:
+                    allOf:
+                      - $ref: "#/components/schemas/Coupons"
+                      - $ref: "#/components/schemas/Timestamp"
+                mata:
+                  $ref: "#/components/schemas/Meta" 
+                links:
+                  type: object
+                  properties:
+                    self:
+                      type: string
+                      format: url
+                      examples: ["/coupons?page=1&limit=10"]
+                    next:
+                      type: string
+                      format: url
+                      examples: ["/coupons?page=2&limit=10"]
+                    prev:
+                      type: string
+                      format: url
+                      examples: ["/coupons?page=1&limit=10"]
+
+        '400':
+          $ref: '#/components/responses/CastError'
+        '500':
+          $ref: '#/components/responses/500'
+  
+  "/coupons/{id}":
+    get:
+      summary: "Get Single Coupon By Id"
+      tags: [Coupon]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Coupon Id of the Coupon to get.
+          schema:
+            type: integer
+
+      responses:
+        '200':
+          description: Single Coupon Retrieved Successfully!
+          content:
+           "application/json":
+              schema: 
+                type: object
+                properties:
+                  statusCode:
+                    type: integer
+                    format: int32
+                    examples: 
+                      - 200
+                  success:
+                    type: boolean
+                    format: boolean
+                    examples: 
+                      - true
+                      - false
+                  message:
+                    type: string
+                    examples: ["Single Coupon Retrieved Successfully!"]
+                  data:
+                    allOf:
+                      - $ref: "#/components/schemas/Coupons"
+                      - $ref: "#/components/schemas/Timestamp"
+                  links:
+                    type: object
+                    properties:
+                      self:
+                        type: string
+                        examples: ["/coupons/507f191e810c19729de860ea"]
+
+        '400':
+          $ref: '#/components/responses/CastError'
+        '500':
+          $ref: '#/components/responses/500'
+
+    patch:
+      security:
+        - BearerAuth: []
+      summary: "Coupon Updated By Id"
+      tags: [Coupon]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Coupon Id of the Sub Categoy to update.
+          schema:
+            type: integer
+      requestBody:
+        content:
+          "application/json":
+            schema:
+              $ref: "#/components/schemas/Coupons"
+      responses:
+        '200':
+          description: Single Coupon Updated Successfully!
+          content:
+            "application/json":
+              schema: 
+                type: object
+                properties:
+                  statusCode:
+                    type: integer
+                    format: int32
+                    examples: 
+                      - 200
+                  success:
+                    type: boolean
+                    format: boolean
+                    examples: 
+                      - true
+                      - false
+                  message:
+                    type: string
+                    examples: ["Single Coupon Updated Successfully!"]
+                  data:
+                    allOf:
+                      - $ref: "#/components/schemas/Coupons"
+                      - $ref: "#/components/schemas/Timestamp"
+                  links:
+                    type: object
+                    properties:
+                      self:
+                        type: string
+                        examples: ["/Coupons/507f191e810c19729de860ea"]
+
+        '400':
+          $ref: '#/components/responses/CastError'
+        '500':
+          $ref: '#/components/responses/500'
+
+    delete:
+      security:
+        - BearerAuth: []
+      summary: "Delete Coupon By Id"
+      tags: [Coupon]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Coupon Id of the Coupon to Delete.
+          schema:
+            type: integer
+
+      responses:
+        '200':
+          description: Single Coupon Removed Successfully!
+          content:
+           "application/json":
+             schema: 
+               type: object
+               properties:
+                statusCode:
+                  type: integer
+                  format: int32
+                  examples: 
+                    - 200
+                success:
+                  type: boolean
+                  format: boolean
+                  examples: 
+                    - true
+                    - false
+                message:
+                  type: string
+                  examples: ["Coupon Removed Successfully!"]
+                data:
+                  allOf:
+                    - $ref: "#/components/schemas/Coupons"
+                    - $ref: "#/components/schemas/Timestamp"
+                links:
+                  type: object
+                  properties:
+                    self:
+                      type: string
+                      examples: ["/coupons/507f191e810c19729de860ea"]
+
+        '400':
+          $ref: '#/components/responses/CastError'
+        '500':
+          $ref: '#/components/responses/500'
+             
+  "/products":
+    post:
+      security:
+        - BearerAuth: []
+      summary: "Product Create"
+      tags: [Product]
+      requestBody:
+        content:
+          "multipart/form-data":
+            schema:
+              $ref: "#/components/schemas/Products"
+              required:
+                - name
+                - description
+                - discount
+                - price
+                - quantity
+                - category
+                - subCategories
+                - size
+                - color
+                - brand
+      responses:
+        '201':
+          description: Product Created successfully!
+          content:
+           "application/json":
+             schema: 
+               type: object
+               properties:
+                statusCode:
+                  type: integer
+                  format: int32
+                  examples: 
+                    - 201
+                success:
+                  type: boolean
+                  format: boolean
+                  examples: 
+                    - true
+                    - false
+                message:
+                  type: string
+                  examples: ["Product Created successfully!"]
+                data:
+                  allOf:
+                    - $ref: "#/components/schemas/Products"
+                    - $ref: "#/components/schemas/Timestamp"
+                links:
+                  type: object
+                  properties:
+                    self:
+                      type: string
+                      examples: ["/products/507f191e810c19729de860ea"]
+
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '500':
+          $ref: '#/components/responses/500'
+
+    get:
+      summary: "Get All Products"
+      tags: [Product]
+      parameters:
+        - $ref: "#/components/parameters/pageParam"
+        - $ref: "#/components/parameters/limitParam"
+        - $ref: "#/components/parameters/sortParam"
+        - $ref: "#/components/parameters/searchParam"
+        - $ref: "#/components/parameters/fieldsParam"
+        - $ref: "#/components/parameters/populateParam"
+
+      responses:
+        '200':
+          description: All Products Retrieved Successfully!
+          content:
+           "application/json":
+             schema: 
+               type: object
+               properties:
+                statusCode:
+                  type: integer
+                  format: int32
+                  examples: 
+                    - 200
+                success:
+                  type: boolean
+                  format: boolean
+                  examples: 
+                    - true
+                    - false
+                message:
+                  type: string
+                  examples: ["All Products Retrieved Successfully!"]
+                data:
+                  type: array
+                  items:
+                    allOf:
+                      - $ref: "#/components/schemas/Products"
+                      - $ref: "#/components/schemas/Timestamp"
+                mata:
+                  $ref: "#/components/schemas/Meta" 
+                links:
+                  type: object
+                  properties:
+                    self:
+                      type: string
+                      format: url
+                      examples: ["/products?page=1&limit=10"]
+                    next:
+                      type: string
+                      format: url
+                      examples: ["/products?page=2&limit=10"]
+                    prev:
+                      type: string
+                      format: url
+                      examples: ["/products?page=1&limit=10"]
+
+        '400':
+          $ref: '#/components/responses/CastError'
+        '500':
+          $ref: '#/components/responses/500'
+  
+  "/products/{id}":
+    get:
+      summary: "Get Single Product By Id"
+      tags: [Product]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Product Id of the Product to get.
+          schema:
+            type: integer
+
+      responses:
+        '200':
+          description: Single Product Retrieved Successfully!
+          content:
+           "application/json":
+              schema: 
+                type: object
+                properties:
+                  statusCode:
+                    type: integer
+                    format: int32
+                    examples: 
+                      - 200
+                  success:
+                    type: boolean
+                    format: boolean
+                    examples: 
+                      - true
+                      - false
+                  message:
+                    type: string
+                    examples: ["Single Product Retrieved Successfully!"]
+                  data:
+                    allOf:
+                      - $ref: "#/components/schemas/Products"
+                      - $ref: "#/components/schemas/Timestamp"
+                  links:
+                    type: object
+                    properties:
+                      self:
+                        type: string
+                        examples: ["/products/507f191e810c19729de860ea"]
+
+        '400':
+          $ref: '#/components/responses/CastError'
+        '500':
+          $ref: '#/components/responses/500'
+
+    patch:
+      security:
+        - BearerAuth: []
+      summary: "Product Updated By Id"
+      tags: [Product]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Product Id of the Sub Categoy to update.
+          schema:
+            type: integer
+      requestBody:
+        content:
+          "application/json":
+            schema:
+              $ref: "#/components/schemas/Products"
+      responses:
+        '200':
+          description: Single Product Updated Successfully!
+          content:
+            "application/json":
+              schema: 
+                type: object
+                properties:
+                  statusCode:
+                    type: integer
+                    format: int32
+                    examples: 
+                      - 200
+                  success:
+                    type: boolean
+                    format: boolean
+                    examples: 
+                      - true
+                      - false
+                  message:
+                    type: string
+                    examples: ["Single Product Updated Successfully!"]
+                  data:
+                    allOf:
+                      - $ref: "#/components/schemas/Products"
+                      - $ref: "#/components/schemas/Timestamp"
+                  links:
+                    type: object
+                    properties:
+                      self:
+                        type: string
+                        examples: ["/products/507f191e810c19729de860ea"]
+
+        '400':
+          $ref: '#/components/responses/CastError'
+        '500':
+          $ref: '#/components/responses/500'
+
+    delete:
+      security:
+        - BearerAuth: []
+      summary: "Delete Product By Id"
+      tags: [Product]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Product Id of the Product to Delete.
+          schema:
+            type: integer
+
+      responses:
+        '200':
+          description: Single Product Removed Successfully!
+          content:
+           "application/json":
+             schema: 
+               type: object
+               properties:
+                statusCode:
+                  type: integer
+                  format: int32
+                  examples: 
+                    - 200
+                success:
+                  type: boolean
+                  format: boolean
+                  examples: 
+                    - true
+                    - false
+                message:
+                  type: string
+                  examples: ["Product Removed Successfully!"]
+                data:
+                  allOf:
+                    - $ref: "#/components/schemas/Products"
+                    - $ref: "#/components/schemas/Timestamp"
+                links:
+                  type: object
+                  properties:
+                    self:
+                      type: string
+                      examples: ["/products/507f191e810c19729de860ea"]
+
+        '400':
+          $ref: '#/components/responses/CastError'
+        '500':
+          $ref: '#/components/responses/500'
+  "/reviews":
+    post:
+      security:
+        - BearerAuth: []
+      summary: "Review Create"
+      tags: [Review]
+      requestBody:
+        content:
+          "application/json":
+            schema:
+              $ref: "#/components/schemas/Reviews"
+              required:
+                - name
+                - discount
+      responses:
+        '201':
+          description: Review Created successfully!
+          content:
+           "application/json":
+             schema: 
+               type: object
+               properties:
+                statusCode:
+                  type: integer
+                  format: int32
+                  examples: 
+                    - 201
+                success:
+                  type: boolean
+                  format: boolean
+                  examples: 
+                    - true
+                    - false
+                message:
+                  type: string
+                  examples: ["Review Created successfully!"]
+                data:
+                  allOf:
+                    - $ref: "#/components/schemas/Reviews"
+                    - $ref: "#/components/schemas/Timestamp"
+                links:
+                  type: object
+                  properties:
+                    self:
+                      type: string
+                      examples: ["/reviews/507f191e810c19729de860ea"]
+
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '500':
+          $ref: '#/components/responses/500'
+
+    get:
+      summary: "Get All Reviews"
+      tags: [Review]
+      parameters:
+        - $ref: "#/components/parameters/pageParam"
+        - $ref: "#/components/parameters/limitParam"
+        - $ref: "#/components/parameters/sortParam"
+        - $ref: "#/components/parameters/searchParam"
+        - $ref: "#/components/parameters/fieldsParam"
+        - $ref: "#/components/parameters/populateParam"
+
+      responses:
+        '200':
+          description: All Reviews Retrieved Successfully!
+          content:
+           "application/json":
+             schema: 
+               type: object
+               properties:
+                statusCode:
+                  type: integer
+                  format: int32
+                  examples: 
+                    - 200
+                success:
+                  type: boolean
+                  format: boolean
+                  examples: 
+                    - true
+                    - false
+                message:
+                  type: string
+                  examples: ["All Reviews Retrieved Successfully!"]
+                data:
+                  type: array
+                  items:
+                    allOf:
+                      - $ref: "#/components/schemas/Reviews"
+                      - $ref: "#/components/schemas/Timestamp"
+                mata:
+                  $ref: "#/components/schemas/Meta" 
+                links:
+                  type: object
+                  properties:
+                    self:
+                      type: string
+                      format: url
+                      examples: ["/reviews?page=1&limit=10"]
+                    next:
+                      type: string
+                      format: url
+                      examples: ["/reviews?page=2&limit=10"]
+                    prev:
+                      type: string
+                      format: url
+                      examples: ["/reviews?page=1&limit=10"]
+
+        '400':
+          $ref: '#/components/responses/CastError'
+        '500':
+          $ref: '#/components/responses/500'
+  
+  "/reviews/{id}":
+    get:
+      summary: "Get Single Review By Id"
+      tags: [Review]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Review Id of the Review to get.
+          schema:
+            type: integer
+
+      responses:
+        '200':
+          description: Single Review Retrieved Successfully!
+          content:
+           "application/json":
+              schema: 
+                type: object
+                properties:
+                  statusCode:
+                    type: integer
+                    format: int32
+                    examples: 
+                      - 200
+                  success:
+                    type: boolean
+                    format: boolean
+                    examples: 
+                      - true
+                      - false
+                  message:
+                    type: string
+                    examples: ["Single Review Retrieved Successfully!"]
+                  data:
+                    allOf:
+                      - $ref: "#/components/schemas/Reviews"
+                      - $ref: "#/components/schemas/Timestamp"
+                  links:
+                    type: object
+                    properties:
+                      self:
+                        type: string
+                        examples: ["/reviews/507f191e810c19729de860ea"]
+
+        '400':
+          $ref: '#/components/responses/CastError'
+        '500':
+          $ref: '#/components/responses/500'
+
+    patch:
+      security:
+        - BearerAuth: []
+      summary: "Review Updated By Id"
+      tags: [Review]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Review Id of the Sub Categoy to update.
+          schema:
+            type: integer
+      requestBody:
+        content:
+          "application/json":
+            schema:
+              $ref: "#/components/schemas/Reviews"
+      responses:
+        '200':
+          description: Single Review Updated Successfully!
+          content:
+            "application/json":
+              schema: 
+                type: object
+                properties:
+                  statusCode:
+                    type: integer
+                    format: int32
+                    examples: 
+                      - 200
+                  success:
+                    type: boolean
+                    format: boolean
+                    examples: 
+                      - true
+                      - false
+                  message:
+                    type: string
+                    examples: ["Single Review Updated Successfully!"]
+                  data:
+                    allOf:
+                      - $ref: "#/components/schemas/Reviews"
+                      - $ref: "#/components/schemas/Timestamp"
+                  links:
+                    type: object
+                    properties:
+                      self:
+                        type: string
+                        examples: ["/reviews/507f191e810c19729de860ea"]
+
+        '400':
+          $ref: '#/components/responses/CastError'
+        '500':
+          $ref: '#/components/responses/500'
+
+    delete:
+      security:
+        - BearerAuth: []
+      summary: "Delete Review By Id"
+      tags: [Review]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Review Id of the Review to Delete.
+          schema:
+            type: integer
+
+      responses:
+        '200':
+          description: Single Review Removed Successfully!
+          content:
+           "application/json":
+             schema: 
+               type: object
+               properties:
+                statusCode:
+                  type: integer
+                  format: int32
+                  examples: 
+                    - 200
+                success:
+                  type: boolean
+                  format: boolean
+                  examples: 
+                    - true
+                    - false
+                message:
+                  type: string
+                  examples: ["Review Removed Successfully!"]
+                data:
+                  allOf:
+                    - $ref: "#/components/schemas/Reviews"
+                    - $ref: "#/components/schemas/Timestamp"
+                links:
+                  type: object
+                  properties:
+                    self:
+                      type: string
+                      examples: ["/reviews/507f191e810c19729de860ea"]
+
+        '400':
+          $ref: '#/components/responses/CastError'
+        '500':
+          $ref: '#/components/responses/500'
+             
+                
+
+
+   
+         
+        
+
+         
+
+
+
+
+
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  schemas:
+    AdvertiseBanner:
+      type: object
+      properties: 
+        name:
+          type: string
+          examples: ["25% Offer"]
+        startDate:
+          type: string
+          format: date-time
+          examples: ["2024-03-21T17:32:28Z"]
+        endDate:
+          type: string
+          format: date-time
+          examples: ["2024-07-21T17:32:28Z"]
+        duration:
+          type: string
+          format: date-time
+          examples: ["2024-07-21T17:32:28Z"]
+        position:
+          type: integer
+          examples: [1]
+        shareURL:
+          type: string
+          examples: ["https://s3.amazonaws.com/bucketname/foldername/imagename.jpg"]
+        advertiseBannerImage:
+          type: string
+          format: binary
+        imageURL:
+          type: string
+          readOnly: true
+          examples: ["https://s3.amazonaws.com/bucketname/foldername/imagename.jpg"]
+    Brand:
+      type: object
+      properties: 
+        name:
+          type: string
+          examples: ["Brand"]
+        email:
+          type: string
+          format: email
+          examples: ["brand@gmail.com"]
+        location:
+          type: string
+          examples: ["Sylhet"]
+        description:
+          type: string
+          examples: ["Brand is good"]
+        website:
+          type: string
+          examples: ["brand.com"]
+        status:
+          type: string
+          enum:
+            - active
+            - inActive
+          examples: ["inActive"]
+        brandImage:
+          type: string
+          format: binary
+        imageURL:
+          type: string
+          readOnly: true
+          examples: ["https://s3.amazonaws.com/bucketname/foldername/imagename.jpg"]
+    Category:
+      type: object
+      properties: 
+        name:
+          type: string
+          examples: ["waltion"]
+        clickedCount:
+          type: integer
+          readOnly: true
+          examples: [0]
+        categoryImage:
+          type: string
+          format: base64
+        imageURL:
+          type: string
+          readOnly: true
+          examples: ["https://s3.amazonaws.com/bucketname/foldername/imagename.jpg"]
+
+    SubCategory:
+      type: object
+      properties: 
+        name:
+          type: string
+          examples: ["waltion laptop"]
+        subCategoryImage:
+          type: string
+          format: binary
+        imageURL:
+          type: string
+          readOnly: true
+          examples: ["https://s3.amazonaws.com/bucketname/foldername/imagename.jpg"]
+        categoryId:
+          type: string
+          examples: ["507f191e810c19729de860ea"]
+    Colors:
+      type: object
+      properties: 
+        name:
+          type: string
+          examples: ["white"]
+          
+    Sizes:
+      type: object
+      properties: 
+        name:
+          type: string
+          examples: ["xxl"]
+    Coupons:
+      type: object
+      properties: 
+        name:
+          type: string
+          examples: ["good"]
+        discount:
+          type: integer
+          examples: [10]
+        expiry:
+          type: string
+          format: date-time
+          readOnly: true
+          examples: ["2024-03-21T17:32:28Z"]
+
+    Reviews:
+      type: object
+      properties: 
+        productId:
+          type: string
+          examples: ["507f191e810c19729de860ea"]
+        rating:
+          type: integer
+          examples: [4]
+        comment:
+          type: string
+          examples: ["it's good"]
+        userId:
+          type: string
+          examples: ["507f191e810c19729de860ea"]
+
+    Products:
+      type: object
+      properties: 
+        name:
+          type: string
+          examples: ["Walton Laptop"]
+        metaTitle: 
+          type: string
+          examples: ["Walton Laptop is awesome"]
+        description: 
+          type: string
+          examples: ["Walton Laptop is awesome.please buy it"]
+        price:
+          type: integer
+          examples: [400]
+        discount: 
+          type: integer
+          examples: [20]
+        clickedProductCount:
+          type: integer
+          readOnly: true
+          examples: [0]
+        quantity:
+          type: integer
+          readOnly: true
+          examples: [380]
+        sold: 
+          type: integer
+          readOnly: true
+          examples: [0]
+        productImage:
+          type: array
+          items:
+            type: string
+            format: binary
+        imageURL: 
+          type: array
+          readOnly: true
+          items:
+            type: string
+            examples: ["https://s3.amazonaws.com/bucketname/foldername/imagename.jpg"]
+        isFeatured:
+          type: boolean
+          examples: [false]
+        status: 
+          type: string
+          enum:
+            - available
+            - discontinue
+            - upcoming
+          examples: ["available"]
+        category: 
+          type: object
+          properties:
+            categoryId:
+              type: integer
+              examples: ["507f191e810c19729de860ea"]
+            name:
+              type: string
+              examples: ["Walton"]
+        keyFeatures: 
+          type: string
+          examples: ["Walton"]
+        subCategories: 
+          type: array
+          items:
+            type: object
+            properties:
+              subCategoryId:
+                type: integer
+                examples: ["507f191e810c19729de860ea"]
+              name:
+                type: string
+                examples: ["laptop"]
+
+        brand: 
+          type: object
+          properties:
+            brandId:
+              type: integer
+              examples: ["507f191e810c19729de860ea"]
+            name:
+              type: string
+              examples: ["walton"]
+        color: 
+          type: object
+          properties:
+            colorId:
+              type: integer
+              examples: ["507f191e810c19729de860ea"]
+            name:
+              type: string
+              examples: ["white"]
+        size: 
+          type: object
+          properties:
+            sizeId:
+              type: integer
+              examples: ["507f191e810c19729de860ea"]
+            name:
+              type: string
+              examples: ["xxl"]
+
+
+    Timestamp:
+      type: object
+      properties:
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+      required:
+        - createdAt
+        - updatedAt
+    
+    Meta:
+      type: object
+      properties:
+        page:
+          type: integer
+          examples: [1]
+        limit:
+          type: integer
+          examples: [10]
+        next:
+          type: integer
+          examples: [2]
+        prev:
+          type: integer
+          examples: [1]
+        totalPage:
+          type: integer
+          examples: [10]
+        totalItems:
+          type: integer
+          examples: [100]
+
+         
+  responses:
+    '500':
+        description: Internal Server Error!
+        content:
+          "application/json":
+            schema: 
+              type: object
+              properties:
+                statusCode:
+                  type: integer
+                  format: int32
+                  examples: 
+                    - 500
+                success:
+                  type: boolean
+                  format: boolean
+                  examples: 
+                    - false
+                message:
+                  type: string
+                  examples: ["Internal Server Error!"]
+                data:
+                  type: array
+                  items: 
+                    type: object
+                    properties:
+                      path:
+                        type: string
+                        examples: [""]
+                      message:
+                        type: string
+                        examples: ["Internal Server Error!"]
+
+    'ValidationError':
+          description: Bad Request!
+          content:
+           "application/json":
+             schema: 
+               type: object
+               properties:
+                statusCode:
+                  type: integer
+                  format: int32
+                  examples: 
+                    - 400
+                success:
+                  type: boolean
+                  format: boolean
+                  examples: 
+                    - false
+                message:
+                  type: string
+                  examples: ["Validation Error!"]
+                data:
+                  type: array
+                  items: 
+                    type: object
+                    properties:
+                      field:
+                        type: string
+                        examples: ["Field is required!"]
+    'CastError':
+          description: Cast Error
+          content:
+           "application/json":
+             schema: 
+               type: object
+               properties:
+                statusCode:
+                  type: integer
+                  format: int32
+                  examples: 
+                    - 400
+                success:
+                  type: boolean
+                  format: boolean
+                  examples: 
+                    - false
+                message:
+                  type: string
+                  examples: ["Cast Error"]
+                data:
+                  type: array
+                  items: 
+                    type: object
+                    properties:
+                      path:
+                        type: string
+                        examples: ["/{{router-name}}/4edd40c86762e0fb12000003"]
+                      message:
+                        type: string
+                        examples: ["Invalid Id!"]
+
+  parameters:
+    pageParam:
+      in: query
+      name: page
+      schema:
+        type: integer
+      description: we can provide current page number
+    limitParam:
+      in: query
+      name: limit
+      schema:
+        type: integer
+      description: maximum amount of returned items
+    sortParam:
+      in: query
+      name: sort
+      schema:
+        type: string
+      description: sort items
+    searchParam:
+      in: query
+      name: searchTerm
+      schema:
+        type: string
+      description: get items by search query
+    fieldsParam:
+      in: query
+      name: fields
+      schema:
+        type: string
+      description: get items by fields for getting specific items properties
+    populateParam:
+      in: query
+      name: populates
+      schema:
+        type: string
+      description: get items with populate field of value

@@ -1,9 +1,11 @@
 import { Router } from 'express';
 
 import validateRequest from '../../middlewares/validateRequest';
+import auth from '../../middlewares/auth';
 
 import { SizeValidation } from './size.validation';
 import { SizeController } from './size.controller';
+import { ENUM_USER_ROLE } from '../../enum/user';
 
 class SizeRouterClass {
   readonly routers: Router;
@@ -17,6 +19,7 @@ class SizeRouterClass {
     this.routers
       .route('/')
       .post(
+        auth(ENUM_USER_ROLE.ADMIN, ENUM_USER_ROLE.SELLER),
         validateRequest(SizeValidation.sizeCreateZodSchema),
         SizeController.createSize
       )
@@ -26,11 +29,15 @@ class SizeRouterClass {
     this.routers
       .route('/:id')
       .patch(
+        auth(ENUM_USER_ROLE.ADMIN, ENUM_USER_ROLE.SELLER),
         validateRequest(SizeValidation.sizeUpdateZodSchema),
         SizeController.updateSize
       )
       .get(SizeController.getSingleSize)
-      .delete(SizeController.deleteSize);
+      .delete(
+        auth(ENUM_USER_ROLE.ADMIN, ENUM_USER_ROLE.SELLER),
+        SizeController.deleteSize
+      );
   }
 }
 

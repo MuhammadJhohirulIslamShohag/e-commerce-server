@@ -1,28 +1,22 @@
-name: NodeJS with Grunt
+name: Publish Docker Image
 
 on:
   push:
-    branches: [ "main" ]
-  pull_request:
-    branches: [ "main" ]
+    branches: ['main']
 
 jobs:
   build:
     runs-on: ubuntu-latest
 
-    strategy:
-      matrix:
-        node-version: [14.x, 16.x, 18.x]
-
     steps:
-    - uses: actions/checkout@v4
+      - name: Checkout Code
+        uses: actions/checkout@v3
 
-    - name: Use Node.js ${{ matrix.node-version }}
-      uses: actions/setup-node@v3
-      with:
-        node-version: ${{ matrix.node-version }}
+      - name: Login to docker hub
+        run: echo "${{secrets.DOCKERHUB_TOKEN}}" | docker login -u "${{secrets.DOCKERHUB_USERNAME}}" --password-stdin
 
-    - name: Build
-      run: |
-        npm install
-        grunt
+      - name: Build Docker Image
+        run: docker build . --file Dockerfile --tag ${{secrets.DOCKERHUB_USERNAME}}/modular-monolith-server:latest
+
+      - name: Push Docker Image
+        run: docker push ${{secrets.DOCKERHUB_USERNAME}}/modular-monolith-server:latest

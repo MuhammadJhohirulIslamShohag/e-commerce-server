@@ -1,16 +1,19 @@
 import Product from '../product/product.model';
 import Order from '../order/order.model';
 import User from '../user/user.model';
+import Admin from '../admin/admin.model';
 
 class DashboardServiceClass {
   #ProductModel;
   #OrderModel;
   #UserModel;
+  #AdminModel;
 
   constructor() {
     this.#ProductModel = Product;
     this.#OrderModel = Order;
     this.#UserModel = User;
+    this.#AdminModel = Admin;
   }
 
   // get dash widget info service

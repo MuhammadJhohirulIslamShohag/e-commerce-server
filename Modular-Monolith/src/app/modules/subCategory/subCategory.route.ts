@@ -1,7 +1,9 @@
 import { Router } from 'express';
 import multer from 'multer';
+import auth from '../../middlewares/auth';
 
 import { SubCategoryController } from './subCategory.controller';
+import { ENUM_USER_ROLE } from '../../enum/user';
 
 const storage = multer.memoryStorage();
 const upload = multer({ storage: storage });
@@ -19,25 +21,25 @@ class CategoryRoutesClass {
     this.routers
       .route('/')
       .post(
+        auth(ENUM_USER_ROLE.ADMIN, ENUM_USER_ROLE.SELLER),
         upload.fields([{ name: 'subCategoryImage', maxCount: 1 }]),
         SubCategoryController.createSubCategory
       )
       .get(SubCategoryController.allSubCategories);
 
-    // get categories from subcategory routes
-    this.routers
-      .route('/all-sub-categories-under-category')
-      .get(SubCategoryController.allSubCategoriesUnderCategories);
-
     // update and get single Sub Category, delete routes
     this.routers
       .route('/:id')
       .patch(
+        auth(ENUM_USER_ROLE.ADMIN, ENUM_USER_ROLE.SELLER),
         upload.fields([{ name: 'subCategoryImage', maxCount: 1 }]),
         SubCategoryController.updateSubCategory
       )
       .get(SubCategoryController.getSingleSubCategory)
-      .delete(SubCategoryController.deleteSubCategory);
+      .delete(
+        auth(ENUM_USER_ROLE.ADMIN, ENUM_USER_ROLE.SELLER),
+        SubCategoryController.deleteSubCategory
+      );
   }
 }
 

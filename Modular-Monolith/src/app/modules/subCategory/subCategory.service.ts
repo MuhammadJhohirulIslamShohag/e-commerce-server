@@ -192,53 +192,6 @@ class SubCategoryServiceClass {
     }
     return result;
   };
-
-  // get sub categories under categories from category method
-  readonly allSubCategoriesUnderCategories = async () => {
-    const result = await this.#SubCategoryModel.aggregate([
-      {
-        $unwind: {
-          path: '$categories',
-        },
-      },
-      {
-        $lookup: {
-          from: 'categories',
-          localField: 'categoryId',
-          foreignField: '_id',
-          as: 'category',
-        },
-      },
-      {
-        $group: {
-          _id: '$categoryId',
-          subCategories: {
-            $push: {
-              id: '$_id',
-              name: '$name',
-            },
-          },
-          name: {
-            $first: {
-              $arrayElemAt: ['$category.name', 0],
-            },
-          },
-        },
-      },
-      {
-        $project: {
-          id: '$_id',
-          subCategories: 1,
-          name: 1,
-        },
-      },
-      {
-        $unset: '_id',
-      },
-    ]);
-
-    return result;
-  };
 }
 
 export const SubCategoryService = new SubCategoryServiceClass();

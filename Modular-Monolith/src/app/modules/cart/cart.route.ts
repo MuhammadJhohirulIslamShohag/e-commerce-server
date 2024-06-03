@@ -6,6 +6,7 @@ import { ENUM_USER_ROLE } from '../../enum/user';
 
 class CartRouterClass {
   readonly routers: Router;
+  
   constructor() {
     this.routers = Router();
     this.#RouterAction();
@@ -16,16 +17,19 @@ class CartRouterClass {
     this.routers
       .route('/')
       .post(
-        auth(ENUM_USER_ROLE.ADMIN, ENUM_USER_ROLE.USER),
+        auth(ENUM_USER_ROLE.ADMIN, ENUM_USER_ROLE.USER, ENUM_USER_ROLE.SELLER),
         CartController.createCart
       );
 
     // update and get single cart, delete routes
     this.routers
       .route('/:id')
-      .get(CartController.userCarts)
+      .get(
+        auth(ENUM_USER_ROLE.ADMIN, ENUM_USER_ROLE.USER, ENUM_USER_ROLE.SELLER),
+        CartController.userCarts
+      )
       .delete(
-        auth(ENUM_USER_ROLE.ADMIN, ENUM_USER_ROLE.USER),
+        auth(ENUM_USER_ROLE.ADMIN, ENUM_USER_ROLE.USER, ENUM_USER_ROLE.SELLER),
         CartController.deleteCart
       );
   }

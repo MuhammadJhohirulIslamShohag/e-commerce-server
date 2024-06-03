@@ -1,7 +1,9 @@
 import { Router } from 'express';
-import { AdvertiseBannerController } from './advertiseBanner.controller';
-
 import multer from 'multer';
+import auth from '../../middlewares/auth';
+
+import { AdvertiseBannerController } from './advertiseBanner.controller';
+import { ENUM_USER_ROLE } from '../../enum/user';
 
 const storage = multer.memoryStorage();
 const upload = multer({ storage: storage });
@@ -18,6 +20,7 @@ class AdvertiseBannerRouterClass {
     this.routers
       .route('/')
       .post(
+        auth(ENUM_USER_ROLE.ADMIN, ENUM_USER_ROLE.SELLER),
         upload.fields([{ name: 'advertiseBannerImage', maxCount: 1 }]),
         AdvertiseBannerController.createAdvertiseBanner
       )
@@ -27,11 +30,15 @@ class AdvertiseBannerRouterClass {
     this.routers
       .route('/:id')
       .patch(
+        auth(ENUM_USER_ROLE.ADMIN, ENUM_USER_ROLE.SELLER),
         upload.fields([{ name: 'advertiseBannerImage', maxCount: 1 }]),
         AdvertiseBannerController.updateAdvertiseBanner
       )
       .get(AdvertiseBannerController.getSingleAdvertiseBanner)
-      .delete(AdvertiseBannerController.deleteAdvertiseBanner);
+      .delete(
+        auth(ENUM_USER_ROLE.ADMIN, ENUM_USER_ROLE.SELLER),
+        AdvertiseBannerController.deleteAdvertiseBanner
+      );
   }
 }
 

@@ -133,21 +133,6 @@ class SubCategoryControllerClass {
       });
     }
   );
-
-  // get sub categories under categories from category method
-  readonly allSubCategoriesUnderCategories = catchAsync(
-    async (_req: Request, res: Response) => {
-      const result =
-        await this.#SubCategoryService.allSubCategoriesUnderCategories();
-
-      responseReturn(res, {
-        statusCode: httpStatus.OK,
-        success: true,
-        message: 'All Sub Categories Under Categories Retrieved Successfully!',
-        data: result,
-      });
-    }
-  );
 }
 
 export const SubCategoryController = new SubCategoryControllerClass(

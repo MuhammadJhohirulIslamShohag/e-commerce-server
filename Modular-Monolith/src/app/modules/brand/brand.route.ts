@@ -1,7 +1,9 @@
 import { Router } from 'express';
 import multer from 'multer';
+import auth from '../../middlewares/auth';
 
 import { BrandController } from './brand.controller';
+import { ENUM_USER_ROLE } from '../../enum/user';
 
 const storage = multer.memoryStorage();
 const upload = multer({ storage: storage });
@@ -18,6 +20,7 @@ class BrandRouterClass {
     this.routers
       .route('/')
       .post(
+        auth(ENUM_USER_ROLE.ADMIN, ENUM_USER_ROLE.SELLER),
         upload.fields([{ name: 'brandImage', maxCount: 1 }]),
         BrandController.createBrand
       )
@@ -27,11 +30,15 @@ class BrandRouterClass {
     this.routers
       .route('/:id')
       .patch(
+        auth(ENUM_USER_ROLE.ADMIN, ENUM_USER_ROLE.SELLER),
         upload.fields([{ name: 'brandImage', maxCount: 1 }]),
         BrandController.updateBrand
       )
       .get(BrandController.getSingleBrand)
-      .delete(BrandController.deleteBrand);
+      .delete(
+        auth(ENUM_USER_ROLE.ADMIN, ENUM_USER_ROLE.SELLER),
+        BrandController.deleteBrand
+      );
   }
 }
 
