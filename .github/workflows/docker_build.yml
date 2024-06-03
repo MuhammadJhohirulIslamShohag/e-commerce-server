@@ -16,7 +16,7 @@ jobs:
         run: echo "${{secrets.DOCKERHUB_TOKEN}}" | docker login -u "${{secrets.DOCKERHUB_USERNAME}}" --password-stdin
 
       - name: Build Docker Image
-        run: docker build . --file ./Modular-Monolith/Dockerfile --tag ${{secrets.DOCKERHUB_USERNAME}}/modular-monolith-server:latest ./Modular-Monolith
+        run: docker build --file ./Modular-Monolith/Dockerfile --tag ${{secrets.DOCKERHUB_USERNAME}}/modular-monolith-server:latest ./Modular-Monolith
 
       - name: Push Docker Image
         run: docker push ${{secrets.DOCKERHUB_USERNAME}}/modular-monolith-server:latest
