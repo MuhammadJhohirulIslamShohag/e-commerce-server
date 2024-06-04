@@ -16,6 +16,6 @@ export type IGenericErrorResponse = {
   errorMessages: IGenericErrorMessage[];
 };
 
-export type TFileRequestBody = { [key: string]: IFile[] };
+export type TFileRequestBody = { [key: string]: IFile[] } ;
 
 

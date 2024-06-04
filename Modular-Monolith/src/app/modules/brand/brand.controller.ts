@@ -7,7 +7,7 @@ import responseReturn from '../../shared/responseReturn';
 import { BrandService } from './brand.service';
 import { validateRequireFields } from '../../shared/validateRequireFields';
 import { ImageUploadHelpers } from '../../helpers/image-upload.helper';
-import { TFileRequestBody } from '../../interfaces/common';
+import { IFile } from '../../interfaces';
 
 class BrandControllerClass {
   #BrandService: typeof BrandService;
@@ -23,9 +23,10 @@ class BrandControllerClass {
     // validate body data
     await validateRequireFields({ name, email, description });
 
+
     // brand image file
     const brandImageFile = await ImageUploadHelpers.imageFileValidate(
-      req.files as unknown as TFileRequestBody,
+      req.file as unknown as IFile,
       'brandImage',
       'brand'
     );
@@ -86,10 +87,10 @@ class BrandControllerClass {
 
     // advertise banner image file
     const brandImageFile = await ImageUploadHelpers.imageFileValidateForUpdate(
-      req.files as unknown as TFileRequestBody,
+      req.file as unknown as IFile,
       'brandImage',
       'brand'
-    );
+    ) as IFile;
 
     const result = await this.#BrandService.updateBrand(
       brandId,

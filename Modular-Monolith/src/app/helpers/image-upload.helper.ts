@@ -116,46 +116,27 @@ const imageUploadsToS3BucketForUpdate__V2 = async (
 
 // image file validate for creating
 const imageFileValidate = async (
-  files: { [key: string]: IFile[] },
+  file: IFile,
   imageFileName: string,
   prefix: string
 ) => {
   // check file of the image
-  if (!Array.isArray(files)) {
+  if (!Object.keys(file).length) {
     throw new ApiError(
       httpStatus.BAD_REQUEST,
       `Please upload ${prefix} image file!`
     );
   }
 
-  files.forEach(imageFile => {
-    if (imageFile?.fieldname !== imageFileName) {
-      throw new ApiError(
-        httpStatus.BAD_REQUEST,
-        `Please upload ${prefix} image file!`
-      );
-    }
-  });
-
-  const imageFile = files?.[0];
-
-  // image file validation
-  if (!Object.keys(imageFile).length) {
+  // check if the expected image file exists
+  if (!file[imageFileName as keyof IFile]) {
     throw new ApiError(
       httpStatus.BAD_REQUEST,
       `Please upload ${prefix} image file!`
     );
   }
 
-  // image file validation
-  if (!imageFile) {
-    throw new ApiError(
-      httpStatus.BAD_REQUEST,
-      `Please upload ${prefix} image file!`
-    );
-  }
-
-  return imageFile;
+  return file;
 };
 
 // image files validate for creating
@@ -186,33 +167,21 @@ const imageFilesValidate = async (
 
 // image file validate for updating
 const imageFileValidateForUpdate = async (
-  files: { [key: string]: IFile[] },
+  file: IFile ,
   imageFileName: string,
   prefix: string
-) => {
+): Promise<IFile | null> => {
   let imageFile = null;
 
-  if (Array.isArray(files)) {
-    files.forEach(imageFile => {
-      if (imageFile?.fieldname !== imageFileName) {
-        throw new ApiError(
-          httpStatus.BAD_REQUEST,
-          `Please upload ${prefix} image file!`
-        );
-      }
-    });
-
-    const imageFileData = files?.[0];
-
-    // image file validation
-    if (!Object.keys(imageFileData).length) {
+  if (Object.keys(file).length) {
+    // check if the expected image file exists
+    if (!file[imageFileName as keyof IFile]) {
       throw new ApiError(
         httpStatus.BAD_REQUEST,
         `Please upload ${prefix} image file!`
       );
     }
-
-    imageFile = imageFileData;
+    imageFile = file as IFile;
   }
 
   return imageFile;

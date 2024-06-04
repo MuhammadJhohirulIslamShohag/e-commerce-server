@@ -9,7 +9,7 @@ import responseReturn from '../../../shared/responseReturn';
 import { BlogService } from './blog.service';
 import { validateRequireFields } from '../../../shared/validateRequireFields';
 import { ImageUploadHelpers } from '../../../helpers/image-upload.helper';
-import { TFileRequestBody } from '../../../interfaces/common';
+import { IFile } from '../../../interfaces';
 
 class BlogControllerClass {
   #BlogService: typeof BlogService;
@@ -45,7 +45,7 @@ class BlogControllerClass {
 
     // blog image file validation
     const blogImageFile = await ImageUploadHelpers.imageFileValidate(
-      req.files as unknown as TFileRequestBody,
+      req.files as unknown as IFile,
       'blogImage',
       'blog'
     );
@@ -112,7 +112,7 @@ class BlogControllerClass {
 
     // blog image file
     const blogImageFile = await ImageUploadHelpers.imageFileValidateForUpdate(
-      req.files as unknown as TFileRequestBody,
+      req.files as unknown as IFile,
       'blogImage',
       'blog'
     );

@@ -7,7 +7,7 @@ import responseReturn from '../../shared/responseReturn';
 
 import { UserService } from './user.service';
 import { ImageUploadHelpers } from '../../helpers/image-upload.helper';
-import { TFileRequestBody } from '../../interfaces/common';
+import { IFile } from '../../interfaces';
 
 class UserControllerClass {
   #UserService: typeof UserService;
@@ -135,7 +135,7 @@ class UserControllerClass {
 
       // profile image file
       const profileImageFile = await ImageUploadHelpers.imageFileValidate(
-        req.files as unknown as TFileRequestBody,
+        req.file as unknown as IFile,
         'profileImage',
         'profile'
       );

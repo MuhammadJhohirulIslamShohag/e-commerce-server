@@ -1,13 +1,13 @@
 import { Request, Response } from 'express';
 import httpStatus from 'http-status';
 
-import { SubCategoryService } from './subCategory.service';
-
 import catchAsync from '../../shared/catchAsync';
 import responseReturn from '../../shared/responseReturn';
+
+import { SubCategoryService } from './subCategory.service';
 import { validateRequireFields } from '../../shared/validateRequireFields';
 import { ImageUploadHelpers } from '../../helpers/image-upload.helper';
-import { TFileRequestBody } from '../../interfaces/common';
+import { IFile } from '../../interfaces';
 
 class SubCategoryControllerClass {
   #SubCategoryService: typeof SubCategoryService;
@@ -26,7 +26,7 @@ class SubCategoryControllerClass {
 
       // sub category image file
       const subCategoryImageFile = await ImageUploadHelpers.imageFileValidate(
-        req.files as unknown as TFileRequestBody,
+        req.file as unknown as IFile,
         'subCategoryImage',
         'subCategory'
       );
@@ -96,7 +96,7 @@ class SubCategoryControllerClass {
       // sub category image file
       const subCategoryImageFile =
         await ImageUploadHelpers.imageFileValidateForUpdate(
-          req.files as unknown as TFileRequestBody,
+          req.file as unknown as IFile,
           'subCategoryImage',
           'subCategory'
         );
