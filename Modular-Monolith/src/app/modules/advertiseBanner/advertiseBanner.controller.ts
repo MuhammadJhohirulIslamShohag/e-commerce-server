@@ -7,7 +7,7 @@ import responseReturn from '../../shared/responseReturn';
 import { AdvertiseBannerService } from './advertiseBanner.service';
 import { validateRequireFields } from '../../shared/validateRequireFields';
 import { ImageUploadHelpers } from '../../helpers/image-upload.helper';
-import { TFileRequestBody } from '../../interfaces/common';
+import { IFile } from '../../interfaces';
 
 class AdvertiseBannerControllerClass {
   #AdvertiseBannerService: typeof AdvertiseBannerService;
@@ -27,7 +27,7 @@ class AdvertiseBannerControllerClass {
       // advertise banner image file
       const advertiseBannerImageFile =
         await ImageUploadHelpers.imageFileValidate(
-          req.files as unknown as TFileRequestBody,
+          req.files as unknown as IFile,
           'advertiseBannerImage',
           'advertiseBanner'
         );
@@ -102,7 +102,7 @@ class AdvertiseBannerControllerClass {
       // advertise banner image file
       const advertiseBannerImageFile =
         await ImageUploadHelpers.imageFileValidateForUpdate(
-          req.files as unknown as TFileRequestBody,
+          req.files as unknown as IFile,
           'advertiseBannerImage',
           'advertise banner'
         );
