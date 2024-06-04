@@ -129,7 +129,7 @@ const imageFileValidate = async (
   }
 
   // check if the expected image file exists
-  if (!file[imageFileName as keyof IFile]) {
+  if (file['fieldname'] !== imageFileName) {
     throw new ApiError(
       httpStatus.BAD_REQUEST,
       `Please upload ${prefix} image file!`
@@ -167,7 +167,7 @@ const imageFilesValidate = async (
 
 // image file validate for updating
 const imageFileValidateForUpdate = async (
-  file: IFile ,
+  file: IFile,
   imageFileName: string,
   prefix: string
 ): Promise<IFile | null> => {
@@ -175,7 +175,7 @@ const imageFileValidateForUpdate = async (
 
   if (Object.keys(file).length) {
     // check if the expected image file exists
-    if (!file[imageFileName as keyof IFile]) {
+    if (file['fieldname'] !== imageFileName) {
       throw new ApiError(
         httpStatus.BAD_REQUEST,
         `Please upload ${prefix} image file!`
