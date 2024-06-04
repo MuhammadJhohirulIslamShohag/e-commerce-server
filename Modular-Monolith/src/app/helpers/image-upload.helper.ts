@@ -121,15 +121,31 @@ const imageFileValidate = async (
   prefix: string
 ) => {
   // check file of the image
-  if (!files || !(imageFileName in files)) {
+  if (!Array.isArray(files)) {
     throw new ApiError(
       httpStatus.BAD_REQUEST,
       `Please upload ${prefix} image file!`
     );
   }
 
-  const filesData: { [key: string]: IFile[] } = files;
-  const imageFile = filesData[imageFileName]?.[0];
+  files.forEach(imageFile => {
+    if (imageFile?.fieldname !== imageFileName) {
+      throw new ApiError(
+        httpStatus.BAD_REQUEST,
+        `Please upload ${prefix} image file!`
+      );
+    }
+  });
+
+  const imageFile = files?.[0];
+
+  // image file validation
+  if (!Object.keys(imageFile).length) {
+    throw new ApiError(
+      httpStatus.BAD_REQUEST,
+      `Please upload ${prefix} image file!`
+    );
+  }
 
   // image file validation
   if (!imageFile) {
@@ -176,20 +192,20 @@ const imageFileValidateForUpdate = async (
 ) => {
   let imageFile = null;
 
-  if (files && imageFileName in files) {
-    // check file of the image
-    if (!files || !(imageFileName in files)) {
-      throw new ApiError(
-        httpStatus.BAD_REQUEST,
-        `Please upload ${prefix} image file!`
-      );
-    }
+  if (Array.isArray(files)) {
+    files.forEach(imageFile => {
+      if (imageFile?.fieldname !== imageFileName) {
+        throw new ApiError(
+          httpStatus.BAD_REQUEST,
+          `Please upload ${prefix} image file!`
+        );
+      }
+    });
 
-    const filesData: { [key: string]: IFile[] } = files;
-    const imageFileData = filesData[imageFileName]?.[0];
+    const imageFileData = files?.[0];
 
     // image file validation
-    if (!imageFileData) {
+    if (!Object.keys(imageFileData).length) {
       throw new ApiError(
         httpStatus.BAD_REQUEST,
         `Please upload ${prefix} image file!`
