@@ -6,7 +6,7 @@ import { CategoryController } from './category.controller';
 import { ENUM_USER_ROLE } from '../../enum/user';
 
 const storage = multer.memoryStorage();
-const upload = multer({ storage: storage });
+const upload = multer({ storage: storage, limits: { fileSize: 1073741824 } });
 
 class CategoryRoutesClass {
   readonly routers: Router;

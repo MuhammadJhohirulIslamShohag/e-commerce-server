@@ -3,7 +3,7 @@ import multer, { memoryStorage } from 'multer';
 import { BlogController } from './blog.controller';
 
 const storage = memoryStorage();
-const upload = multer({ storage });
+const upload = multer({ storage: storage, limits: { fileSize: 1073741824 } });
 
 class BrandRouterClass {
   readonly routers: Router;
