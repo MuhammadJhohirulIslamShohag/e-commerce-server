@@ -12,6 +12,8 @@ import notFound from './app/middlewares/notFound';
 const swaggerDoc = YAML.load(path.resolve(__dirname, 'swagger.yaml'));
 const app: Application = express();
 
+app.set('serverTimeout', 1000000);
+
 // middleware's
 app.use(
   cors({
