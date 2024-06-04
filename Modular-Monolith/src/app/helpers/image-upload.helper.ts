@@ -210,27 +210,17 @@ const imageFilesValidateForUpdate = async (
 ) => {
   let imageFiles = null;
 
-  if (files && imageFileName in files) {
-    // check file of the image
-    if (!files || !(imageFileName in files)) {
-      throw new ApiError(
-        httpStatus.BAD_REQUEST,
-        `Please upload ${prefix} image file!`
-      );
-    }
+  if (Array.isArray(files)) {
+    files.forEach(imageFile => {
+      if (imageFile?.fieldname !== imageFileName) {
+        throw new ApiError(
+          httpStatus.BAD_REQUEST,
+          `Please upload ${prefix} image file!`
+        );
+      }
+    });
 
-    const filesData: { [key: string]: IFile[] } = files;
-    const imageFilesData = filesData[imageFileName];
-
-    // image file validation
-    if (!imageFilesData.length) {
-      throw new ApiError(
-        httpStatus.BAD_REQUEST,
-        `Please upload ${prefix} image file!`
-      );
-    }
-
-    imageFiles = imageFilesData;
+    imageFiles = files;
   }
 
   return imageFiles;

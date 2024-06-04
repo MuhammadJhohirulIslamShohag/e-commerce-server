@@ -5,7 +5,7 @@ import Product from './product.model';
 import Category from '../category/category.model';
 import Review from '../review/review.model';
 import ApiError from '../../errors/ApiError';
-import User from '../user/user.model';
+import Admin from '../admin/admin.model';
 import QueryBuilder from '../../builder/query.builder';
 
 import { ICreateProduct, IProduct, ProductFilters } from './product.interface';
@@ -20,14 +20,14 @@ import { getProductsByFilter } from './product.filter';
 class ProductServiceClass {
   #ProductModel;
   #ReviewModel;
-  #UserModel;
+  #AdminModel;
   #ProductsByFilter;
   #QueryBuilder: typeof QueryBuilder;
 
   constructor() {
     this.#ProductModel = Product;
     this.#ReviewModel = Review;
-    this.#UserModel = User
+    this.#AdminModel = Admin
     this.#QueryBuilder = QueryBuilder;
     this.#ProductsByFilter = getProductsByFilter;
   }
@@ -42,7 +42,7 @@ class ProductServiceClass {
       await session.startTransaction();
 
       // check user is exit, if not exit return error
-      const isExit = await this.#UserModel.findOne({ _id: payload?.userId });
+      const isExit = await this.#AdminModel.findOne({ _id: payload?.userId });
       if (!isExit) {
         throw new ApiError(httpStatus.NOT_FOUND, 'User not found!');
       }
