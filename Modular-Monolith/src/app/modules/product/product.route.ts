@@ -36,7 +36,7 @@ class ProductRouterClass {
       .route('/')
       .post(
         auth(ENUM_USER_ROLE.ADMIN, ENUM_USER_ROLE.SELLER),
-        upload.fields([{ name: 'productImage', maxCount: 10 }]),
+        upload.array("productImage"),
         ProductController.createProduct
       )
       .get(ProductController.allProducts);
@@ -46,7 +46,7 @@ class ProductRouterClass {
       .route('/:id')
       .patch(
         auth(ENUM_USER_ROLE.ADMIN, ENUM_USER_ROLE.SELLER),
-        upload.fields([{ name: 'productImage', maxCount: 10 }]),
+        upload.array("productImage"),
         ProductController.updateProduct
       )
       .get(ProductController.getSingleProduct)

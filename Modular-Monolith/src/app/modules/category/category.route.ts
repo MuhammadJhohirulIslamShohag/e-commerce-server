@@ -27,7 +27,7 @@ class CategoryRoutesClass {
       .route('/')
       .post(
         auth(ENUM_USER_ROLE.ADMIN, ENUM_USER_ROLE.SELLER),
-        upload.fields([{ name: 'categoryImage', maxCount: 4 }]),
+        upload.array("categoryImage"),
         CategoryController.createCategory
       )
       .get(CategoryController.allCategories);

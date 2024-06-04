@@ -23,6 +23,8 @@ class CategoryControllerClass {
     // validate body data
     await validateRequireFields({ name });
 
+    // console.log(req.files, "req.files");
+
     // category image file
     const categoryImageFiles = await ImageUploadHelpers.imageFilesValidate(
       req.files as unknown as TFileRequestBody,

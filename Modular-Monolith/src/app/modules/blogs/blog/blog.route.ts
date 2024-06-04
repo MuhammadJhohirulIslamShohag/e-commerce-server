@@ -17,7 +17,7 @@ class BrandRouterClass {
     this.routers
       .route('/')
       .post(
-        upload.fields([{ name: 'blogImage', maxCount: 1 }]),
+        upload.single("blogImage"),
         BlogController.createBlog
       )
       .get(BlogController.allBlogs);
@@ -26,7 +26,7 @@ class BrandRouterClass {
     this.routers
       .route('/:id')
       .patch(
-        upload.fields([{ name: 'blogImage', maxCount: 1 }]),
+        upload.single("blogImage"),
         BlogController.updateBlog
       )
       .get(BlogController.getSingleBlog)

@@ -20,7 +20,7 @@ const imageUploadToS3Bucket = async (
     `${imageName}-image-${uniqueId}.jpg`,
     file
   )) as { Location: string };
-  
+
   // check image is upload or not
   if (!uploadedImageURL) {
     throw new ApiError(
@@ -45,10 +45,10 @@ const imageUploadToS3BucketForUpdate = async (
   const uniqueId = getUniqueKey(prefix);
 
   // upload image to aws s3 bucket
-  const uploadedImageURL = await imageUploadToAwsS3(
+  const uploadedImageURL = (await imageUploadToAwsS3(
     `${imageName}-image-${uniqueId}.jpg`,
     file
-  ) as { Location: string };
+  )) as { Location: string };
 
   // check image is upload or not
   if (!uploadedImageURL) {
@@ -149,25 +149,23 @@ const imageFilesValidate = async (
   prefix: string
 ) => {
   // check file of the image
-  if (!files || !(imageFileName in files)) {
+  if (!Array.isArray(files)) {
     throw new ApiError(
       httpStatus.BAD_REQUEST,
       `Please upload ${prefix} image file!`
     );
   }
 
-  const filesData: { [key: string]: IFile[] } = files;
-  const imageFiles = filesData[imageFileName];
+  files.forEach(imageFile => {
+    if (imageFile?.fieldname !== imageFileName) {
+      throw new ApiError(
+        httpStatus.BAD_REQUEST,
+        `Please upload ${prefix} image file!`
+      );
+    }
+  });
 
-  // image file validation
-  if (!imageFiles.length) {
-    throw new ApiError(
-      httpStatus.BAD_REQUEST,
-      `Please upload ${prefix} image file!`
-    );
-  }
-
-  return imageFiles;
+  return files;
 };
 
 // image file validate for updating

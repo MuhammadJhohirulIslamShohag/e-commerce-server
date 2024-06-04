@@ -22,7 +22,7 @@ class CategoryRoutesClass {
       .route('/')
       .post(
         auth(ENUM_USER_ROLE.ADMIN, ENUM_USER_ROLE.SELLER),
-        upload.fields([{ name: 'subCategoryImage', maxCount: 1 }]),
+        upload.single('subCategoryImage'),
         SubCategoryController.createSubCategory
       )
       .get(SubCategoryController.allSubCategories);
@@ -32,7 +32,7 @@ class CategoryRoutesClass {
       .route('/:id')
       .patch(
         auth(ENUM_USER_ROLE.ADMIN, ENUM_USER_ROLE.SELLER),
-        upload.fields([{ name: 'subCategoryImage', maxCount: 1 }]),
+        upload.single('subCategoryImage'),
         SubCategoryController.updateSubCategory
       )
       .get(SubCategoryController.getSingleSubCategory)
