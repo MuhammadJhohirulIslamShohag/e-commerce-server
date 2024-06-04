@@ -6,7 +6,7 @@ import { BrandController } from './brand.controller';
 import { ENUM_USER_ROLE } from '../../enum/user';
 
 const storage = multer.memoryStorage();
-const upload = multer({ storage: storage, limits: { fileSize: 1073741824 } });
+const upload = multer({ storage: storage, limits: { fileSize: 31457280 } });
 
 class BrandRouterClass {
   readonly routers: Router;

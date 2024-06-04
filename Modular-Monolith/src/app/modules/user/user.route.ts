@@ -1,15 +1,15 @@
 import { Router } from 'express';
 import multer from 'multer';
 
-import validateRequest from '../../middlewares/validateRequest';
 import auth from '../../middlewares/auth';
+import validateRequest from '../../middlewares/validateRequest';
 
-import { UserValidation } from './user.validation';
-import { UserController } from './user.controller';
 import { ENUM_USER_ROLE } from '../../enum/user';
+import { UserController } from './user.controller';
+import { UserValidation } from './user.validation';
 
 const storage = multer.memoryStorage();
-const upload = multer({ storage: storage });
+const upload = multer({ storage: storage, limits: { fileSize: 31457280 } });
 
 class UserRoutesClass {
   readonly routers: Router;
@@ -39,7 +39,7 @@ class UserRoutesClass {
     this.routers.patch(
       '/upload-profile-image',
       auth(ENUM_USER_ROLE.USER, ENUM_USER_ROLE.ADMIN, ENUM_USER_ROLE.SELLER),
-      upload.fields([{ name: 'profileImage', maxCount: 1 }]),
+      upload.single('profileImage'),
       UserController.uploadProfileImage
     );
 
