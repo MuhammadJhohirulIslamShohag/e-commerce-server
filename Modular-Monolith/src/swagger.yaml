@@ -5,12 +5,14 @@ info:
   description: 'The Aladin E-Commerce Project is an ambitious initiative aimed at creating a comprehensive online platform to facilitate buying and selling of products and services. The goal is to develop a user-friendly, scalable, and secure e-commerce website that caters to a wide range of customers, providing them with a seamless online shopping experience.'
   contact:
     name: "Muhammad Jhohirul Islam Shohag"
-    url: "https://shohag.com"
-    email: "muhammadshohagislam83@gmail.com"
+    url: "https://github.com/MuhammadShohagIslam"
+    email: "muhammad.islam19982023@gmail.com"
 
 servers: 
-  - description: Production
+  - description: Production AWS
     url: "http://54.204.167.67/api/v1"
+  - description: Production Vercel
+    url: "https://aladin-e-commerce-server-monolith.vercel.app/"
   - description: Development
     url: "http://localhost:9000/api/v1"
 
