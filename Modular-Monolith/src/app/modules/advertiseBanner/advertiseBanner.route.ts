@@ -6,7 +6,7 @@ import { AdvertiseBannerController } from './advertiseBanner.controller';
 import { ENUM_USER_ROLE } from '../../enum/user';
 
 const storage = multer.memoryStorage();
-const upload = multer({ storage: storage });
+const upload = multer({ storage: storage, limits: { fileSize: 31457280 } });
 
 class AdvertiseBannerRouterClass {
   readonly routers: Router;
@@ -21,7 +21,7 @@ class AdvertiseBannerRouterClass {
       .route('/')
       .post(
         auth(ENUM_USER_ROLE.ADMIN, ENUM_USER_ROLE.SELLER),
-        upload.fields([{ name: 'advertiseBannerImage', maxCount: 1 }]),
+        upload.single('advertiseBannerImage'),
         AdvertiseBannerController.createAdvertiseBanner
       )
       .get(AdvertiseBannerController.allAdvertiseBanners);
@@ -31,7 +31,7 @@ class AdvertiseBannerRouterClass {
       .route('/:id')
       .patch(
         auth(ENUM_USER_ROLE.ADMIN, ENUM_USER_ROLE.SELLER),
-        upload.fields([{ name: 'advertiseBannerImage', maxCount: 1 }]),
+        upload.single('advertiseBannerImage'),
         AdvertiseBannerController.updateAdvertiseBanner
       )
       .get(AdvertiseBannerController.getSingleAdvertiseBanner)

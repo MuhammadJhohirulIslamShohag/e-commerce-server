@@ -37,7 +37,7 @@ class CategoryRoutesClass {
       .route('/:id')
       .patch(
         auth(ENUM_USER_ROLE.ADMIN, ENUM_USER_ROLE.SELLER),
-        upload.fields([{ name: 'categoryImage', maxCount: 1 }]),
+        upload.array("categoryImage"),
         CategoryController.updateCategory
       )
       .get(CategoryController.getSingleCategory)

@@ -27,7 +27,7 @@ class AdvertiseBannerControllerClass {
       // advertise banner image file
       const advertiseBannerImageFile =
         await ImageUploadHelpers.imageFileValidate(
-          req.files as unknown as IFile,
+          req.file as unknown as IFile,
           'advertiseBannerImage',
           'advertiseBanner'
         );
@@ -102,7 +102,7 @@ class AdvertiseBannerControllerClass {
       // advertise banner image file
       const advertiseBannerImageFile =
         await ImageUploadHelpers.imageFileValidateForUpdate(
-          req.files as unknown as IFile,
+          req.file as unknown as IFile,
           'advertiseBannerImage',
           'advertise banner'
         );
