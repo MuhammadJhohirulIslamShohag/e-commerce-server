@@ -73,22 +73,61 @@ class SizeServiceClass {
 
   // update size service
   readonly updateSize = async (id: string, payload: Partial<ISize>) => {
-    // check already size exit, if not throw error
-    const isExitSize = await this.#SizeModel.findById({ _id: id });
-    if (!isExitSize) {
-      throw new ApiError(httpStatus.NOT_FOUND, 'Size Not Found!');
-    }
+    // start transaction
+    let result = null;
+    let session;
+    try {
+      session = await mongoose.startSession();
+      // start a session for the transaction
+      session.startTransaction();
 
-    const updatedSizeData: Partial<ISize> = { ...payload };
-
-    // update the size
-    const result = await this.#SizeModel.findOneAndUpdate(
-      { _id: id },
-      updatedSizeData,
-      {
-        new: true,
+      // check already size exit, if not throw error
+      const isExitSize = await this.#SizeModel.findById({ _id: id });
+      if (!isExitSize) {
+        throw new ApiError(httpStatus.NOT_FOUND, 'Size Not Found!');
       }
-    );
+
+      const updatedSizeData: Partial<ISize> = { ...payload };
+
+      // update the size
+      result = await this.#SizeModel
+        .findOneAndUpdate({ _id: id }, updatedSizeData, {
+          new: true,
+        })
+        .session(session);
+
+      if (payload?.name) {
+        await this.#ProductModel
+          .updateMany(
+            { 'sizes.sizeId': isExitSize._id },
+            {
+              $set: {
+                'sizes.$.name': payload?.name,
+              },
+            },
+            { multi: true }
+          )
+          .session(session);
+      }
+
+      // commit the transaction
+      await session.commitTransaction();
+      await session.endSession();
+    } catch (error) {
+      if (session) {
+        await session.abortTransaction();
+        await session.endSession();
+      }
+
+      if (error instanceof ApiError) {
+        throw new ApiError(httpStatus.BAD_REQUEST, error?.message);
+      } else {
+        throw new ApiError(
+          httpStatus.INTERNAL_SERVER_ERROR,
+          'Internal Server Error'
+        );
+      }
+    }
 
     return result;
   };

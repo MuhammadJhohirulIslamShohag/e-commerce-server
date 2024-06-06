@@ -96,39 +96,80 @@ class SubCategoryServiceClass {
     payload: Partial<ISubCategory>,
     subCategoryImageFile: IFile | null
   ) => {
-    // check already sub category exit, if not throw error
-    const isExitSubCategory = await this.#SubCategoryModel.findById({
-      _id: id,
-    });
-    if (!isExitSubCategory) {
-      throw new ApiError(httpStatus.NOT_FOUND, 'Sub Category Not Found!');
-    }
+    // start transaction
+    let result = null;
+    let session;
+    try {
+      session = await mongoose.startSession();
+      // start a session for the transaction
+      session.startTransaction();
 
-    const { ...updatedSubCategoryData }: Partial<ISubCategory> = payload;
-
-    // upload image if image file has
-    if (subCategoryImageFile) {
-      const subCategoryImage =
-        (await ImageUploadHelpers.imageUploadToS3BucketForUpdate(
-          'SCA',
-          'subCategoryImage',
-          subCategoryImageFile.buffer,
-          isExitSubCategory?.imageURL.split('/')
-        )) as string;
-
-      updatedSubCategoryData['imageURL'] = subCategoryImage;
-    } else {
-      updatedSubCategoryData['imageURL'] = isExitSubCategory?.imageURL;
-    }
-
-    // update the sub category
-    const result = await this.#SubCategoryModel.findOneAndUpdate(
-      { _id: id },
-      { ...updatedSubCategoryData },
-      {
-        new: true,
+      // check already sub category exit, if not throw error
+      const isExitSubCategory = await this.#SubCategoryModel.findById({
+        _id: id,
+      });
+      if (!isExitSubCategory) {
+        throw new ApiError(httpStatus.NOT_FOUND, 'Sub Category Not Found!');
       }
-    );
+
+      const { ...updatedSubCategoryData }: Partial<ISubCategory> = payload;
+
+      // upload image if image file has
+      if (subCategoryImageFile) {
+        const subCategoryImage =
+          (await ImageUploadHelpers.imageUploadToS3BucketForUpdate(
+            'SCA',
+            'subCategoryImage',
+            subCategoryImageFile.buffer,
+            isExitSubCategory?.imageURL.split('/')
+          )) as string;
+
+        updatedSubCategoryData['imageURL'] = subCategoryImage;
+      } else {
+        updatedSubCategoryData['imageURL'] = isExitSubCategory?.imageURL;
+      }
+
+      // update the sub category
+      result = await this.#SubCategoryModel.findOneAndUpdate(
+        { _id: id },
+        { ...updatedSubCategoryData },
+        {
+          new: true,
+        }
+      ).session(session);
+
+      if (payload?.name) {
+        await this.#ProductModel
+          .updateMany(
+            { 'subCategories.subCategoryId': isExitSubCategory._id },
+            {
+              $set: {
+                'subCategories.$.name': payload?.name,
+              },
+            },
+            { multi: true }
+          )
+          .session(session);
+      }
+
+      // commit the transaction
+      await session.commitTransaction();
+      await session.endSession();
+    } catch (error) {
+      if (session) {
+        await session.abortTransaction();
+        await session.endSession();
+      }
+
+      if (error instanceof ApiError) {
+        throw new ApiError(httpStatus.BAD_REQUEST, error?.message);
+      } else {
+        throw new ApiError(
+          httpStatus.INTERNAL_SERVER_ERROR,
+          'Internal Server Error'
+        );
+      }
+    }
 
     return result;
   };

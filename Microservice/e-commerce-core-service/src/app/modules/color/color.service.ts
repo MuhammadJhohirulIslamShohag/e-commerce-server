@@ -65,22 +65,61 @@ class ColorServiceClass {
 
   // update color service
   readonly updateColor = async (id: string, payload: Partial<IColor>) => {
-    // check already color exit, if not throw error
-    const isExitColor = await this.#ColorModel.findById({ _id: id });
-    if (!isExitColor) {
-      throw new ApiError(httpStatus.NOT_FOUND, 'Color Not Found!');
-    }
+    // start transaction
+    let result = null;
+    let session;
+    try {
+      session = await mongoose.startSession();
+      // start a session for the transaction
+      session.startTransaction();
 
-    const updatedColorData: Partial<IColor> = { ...payload };
-
-    // update the color
-    const result = await this.#ColorModel.findOneAndUpdate(
-      { _id: id },
-      updatedColorData,
-      {
-        new: true,
+      // check already color exit, if not throw error
+      const isExitColor = await this.#ColorModel.findById({ _id: id });
+      if (!isExitColor) {
+        throw new ApiError(httpStatus.NOT_FOUND, 'Color Not Found!');
       }
-    );
+
+      const updatedColorData: Partial<IColor> = { ...payload };
+
+      // update the color
+      result = await this.#ColorModel
+        .findOneAndUpdate({ _id: id }, updatedColorData, {
+          new: true,
+        })
+        .session(session);
+
+      if (payload?.name) {
+        await this.#ProductModel
+          .updateMany(
+            { 'colors.colorId': isExitColor._id },
+            {
+              $set: {
+                'colors.$.name': payload?.name,
+              },
+            },
+            { multi: true }
+          )
+          .session(session);
+      }
+
+      // commit the transaction
+      await session.commitTransaction();
+      await session.endSession();
+    } catch (error) {
+      if (session) {
+        await session.abortTransaction();
+        await session.endSession();
+      }
+
+      if (error instanceof ApiError) {
+        throw new ApiError(httpStatus.BAD_REQUEST, error?.message);
+      } else {
+        throw new ApiError(
+          httpStatus.INTERNAL_SERVER_ERROR,
+          'Internal Server Error'
+        );
+      }
+    }
 
     return result;
   };

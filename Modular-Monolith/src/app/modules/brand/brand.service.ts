@@ -85,38 +85,79 @@ class BrandServiceClass {
     payload: Partial<IBrand>,
     brandImageFile: IFile | null
   ) => {
-    // check already brand exit, if not throw error
-    const isExitBrand = await this.#BrandModel.findById({ _id: id });
-    if (!isExitBrand) {
-      throw new ApiError(httpStatus.NOT_FOUND, 'Brand Not Found!');
-    }
-
-    const { ...updatedBrandData }: Partial<IBrand> = payload;
-
-    // upload image if image file has
-    if (brandImageFile) {
-      const brandImage =
-        (await ImageUploadHelpers.imageUploadToS3BucketForUpdate(
-          'BND',
-          'bandImage',
-          brandImageFile.buffer,
-          isExitBrand?.imageURL.split('/')
-        )) as string;
-
-      updatedBrandData['imageURL'] = brandImage;
-    }
-
-    // update the brand
+    // start transaction
     let result = null;
+    let session;
+    try {
+      session = await mongoose.startSession();
+      // start a session for the transaction
+      session.startTransaction();
 
-    if (Object.keys(updatedBrandData).length) {
-      result = await this.#BrandModel.findOneAndUpdate(
-        { _id: id },
-        { ...updatedBrandData },
-        {
-          new: true,
-        }
-      );
+      // check already brand exit, if not throw error
+      const isExitBrand = await this.#BrandModel.findById({ _id: id });
+      if (!isExitBrand) {
+        throw new ApiError(httpStatus.NOT_FOUND, 'Brand Not Found!');
+      }
+
+      const { ...updatedBrandData }: Partial<IBrand> = payload;
+
+      // upload image if image file has
+      if (brandImageFile) {
+        const brandImage =
+          (await ImageUploadHelpers.imageUploadToS3BucketForUpdate(
+            'BND',
+            'bandImage',
+            brandImageFile.buffer,
+            isExitBrand?.imageURL.split('/')
+          )) as string;
+
+        updatedBrandData['imageURL'] = brandImage;
+      }
+
+      // update the brand
+      if (Object.keys(updatedBrandData).length) {
+        result = await this.#BrandModel
+          .findOneAndUpdate(
+            { _id: id },
+            { ...updatedBrandData },
+            {
+              new: true,
+            }
+          )
+          .session(session);
+      }
+
+      if (payload.name) {
+        await this.#ProductModel
+          .updateMany(
+            { 'brand.brandId': isExitBrand._id },
+            {
+              $set: {
+                'brand.name': payload?.name,
+              },
+            },
+            { multi: true }
+          )
+          .session(session);
+      }
+
+      // commit the transaction
+      await session.commitTransaction();
+      await session.endSession();
+    } catch (error) {
+      if (session) {
+        await session.abortTransaction();
+        await session.endSession();
+      }
+
+      if (error instanceof ApiError) {
+        throw new ApiError(httpStatus.BAD_REQUEST, error?.message);
+      } else {
+        throw new ApiError(
+          httpStatus.INTERNAL_SERVER_ERROR,
+          'Internal Server Error'
+        );
+      }
     }
 
     return result;

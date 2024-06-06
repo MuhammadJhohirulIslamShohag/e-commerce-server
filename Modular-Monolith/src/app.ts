@@ -31,7 +31,7 @@ app.use('/api/v1', AllRouters);
 
 // root router or health router
 app.get('/', (_req: Request, res: Response) => {
-  res.json('E-Commerce Server is running');
+  res.json('Aladin-E-Commerce Server is running');
 });
 
 // global error handler

@@ -93,41 +93,82 @@ class CategoryServiceClass {
     payload: Partial<ICategory>,
     categoryImageFile: IFile[] | null
   ) => {
-    // check already Category exit, if not throw error
-    const isExitCategory = await this.#CategoryModel.findById({ _id: id });
-    if (!isExitCategory) {
-      throw new ApiError(httpStatus.NOT_FOUND, 'Category Not Found!');
-    }
-
-    const { ...updatedCategoryData }: Partial<ICategory> = payload;
-
-    // image update
-    const updatedImages = updatedCategoryData?.imageURLs as string[];
-    const oldImages = isExitCategory.imageURLs;
-
-    const newImageUrls =
-      await ImageUploadHelpers.imageUploadsToS3BucketForUpdate__V2(
-        updatedImages,
-        oldImages,
-        categoryImageFile,
-        'category',
-        'CAT'
-      );
-
-    updatedCategoryData['imageURLs'] = newImageUrls;
-
-    // update the category
+    // start transaction
     let result = null;
+    let session;
+    try {
+      session = await mongoose.startSession();
+      // start a session for the transaction
+      session.startTransaction();
+      // check already Category exit, if not throw error
+      const isExitCategory = await this.#CategoryModel.findById({ _id: id });
+      if (!isExitCategory) {
+        throw new ApiError(httpStatus.NOT_FOUND, 'Category Not Found!');
+      }
 
-    if (Object.keys(updatedCategoryData).length) {
-      result = await this.#CategoryModel.findOneAndUpdate(
-        { _id: id },
-        { ...updatedCategoryData },
-        {
-          new: true,
-        }
-      );
+      const { ...updatedCategoryData }: Partial<ICategory> = payload;
+
+      // image update
+      const updatedImages = updatedCategoryData?.imageURLs as string[];
+      const oldImages = isExitCategory.imageURLs;
+
+      const newImageUrls =
+        await ImageUploadHelpers.imageUploadsToS3BucketForUpdate__V2(
+          updatedImages,
+          oldImages,
+          categoryImageFile,
+          'category',
+          'CAT'
+        );
+
+      updatedCategoryData['imageURLs'] = newImageUrls;
+
+      // update the category
+      if (Object.keys(updatedCategoryData).length) {
+        result = await this.#CategoryModel
+          .findOneAndUpdate(
+            { _id: id },
+            { ...updatedCategoryData },
+            {
+              new: true,
+            }
+          )
+          .session(session);
+      }
+
+      if (payload?.name) {
+        await this.#ProductModel
+          .updateMany(
+            { 'category.categoryId': isExitCategory._id },
+            {
+              $set: {
+                'category.name': payload?.name,
+              },
+            },
+            { multi: true }
+          )
+          .session(session);
+      }
+
+      // commit the transaction
+      await session.commitTransaction();
+      await session.endSession();
+    } catch (error) {
+      if (session) {
+        await session.abortTransaction();
+        await session.endSession();
+      }
+
+      if (error instanceof ApiError) {
+        throw new ApiError(httpStatus.BAD_REQUEST, error?.message);
+      } else {
+        throw new ApiError(
+          httpStatus.INTERNAL_SERVER_ERROR,
+          'Internal Server Error'
+        );
+      }
     }
+
     return result;
   };
 
