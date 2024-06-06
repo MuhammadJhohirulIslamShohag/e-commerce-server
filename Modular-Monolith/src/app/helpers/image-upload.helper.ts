@@ -173,7 +173,7 @@ const imageFileValidateForUpdate = async (
 ): Promise<IFile | null> => {
   let imageFile = null;
 
-  if (Object.keys(file).length) {
+  if (file && Object.keys(file).length) {
     // check if the expected image file exists
     if (file['fieldname'] !== imageFileName) {
       throw new ApiError(
@@ -195,7 +195,7 @@ const imageFilesValidateForUpdate = async (
 ) => {
   let imageFiles = null;
 
-  if (Array.isArray(files)) {
+  if (files && Array.isArray(files)) {
     files.forEach(imageFile => {
       if (imageFile?.fieldname !== imageFileName) {
         throw new ApiError(

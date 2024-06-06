@@ -108,20 +108,23 @@ class CategoryServiceClass {
 
       const { ...updatedCategoryData }: Partial<ICategory> = payload;
 
-      // image update
-      const updatedImages = updatedCategoryData?.imageURLs as string[];
-      const oldImages = isExitCategory.imageURLs;
+      // upload image if image file has
+      if (categoryImageFile) {
+        // image update
+        const updatedImages = updatedCategoryData?.imageURLs as string[];
+        const oldImages = isExitCategory.imageURLs;
 
-      const newImageUrls =
-        await ImageUploadHelpers.imageUploadsToS3BucketForUpdate__V2(
-          updatedImages,
-          oldImages,
-          categoryImageFile,
-          'category',
-          'CAT'
-        );
+        const newImageUrls =
+          await ImageUploadHelpers.imageUploadsToS3BucketForUpdate__V2(
+            updatedImages,
+            oldImages,
+            categoryImageFile,
+            'category',
+            'CAT'
+          );
 
-      updatedCategoryData['imageURLs'] = newImageUrls;
+        updatedCategoryData['imageURLs'] = newImageUrls;
+      }
 
       // update the category
       if (Object.keys(updatedCategoryData).length) {
