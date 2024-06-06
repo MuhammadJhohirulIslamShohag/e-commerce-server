@@ -6,7 +6,11 @@ import Category from './category.model';
 import QueryBuilder from '../../builder/query.builder';
 import ApiError from '../../errors/ApiError';
 
-import { ICreateCategory, ICategory, IUpdateCategory } from './category.interface';
+import {
+  ICreateCategory,
+  ICategory,
+  IUpdateCategory,
+} from './category.interface';
 import { categorySearchableFields } from './category.constant';
 import { ImageUploadHelpers } from '../../helpers/image-upload.helper';
 import { IFile } from '../../interfaces';
@@ -106,7 +110,7 @@ class CategoryServiceClass {
         throw new ApiError(httpStatus.NOT_FOUND, 'Category Not Found!');
       }
 
-      const { ...updatedCategoryData}: Partial<ICategory> = payload;
+      const { ...updatedCategoryData }: Partial<ICategory> = payload;
 
       // upload image if image file has
       if (categoryImageFile && payload?.imageURLs) {
@@ -124,6 +128,8 @@ class CategoryServiceClass {
           );
 
         updatedCategoryData['imageURLs'] = newImageUrls;
+      } else {
+        updatedCategoryData['imageURLs'] = isExitCategory.imageURLs;
       }
 
       // update the category
