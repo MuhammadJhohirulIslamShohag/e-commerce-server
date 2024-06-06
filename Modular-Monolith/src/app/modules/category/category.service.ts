@@ -113,9 +113,11 @@ class CategoryServiceClass {
       const { ...updatedCategoryData }: Partial<ICategory> = payload;
 
       // upload image if image file has
-      if (categoryImageFile && payload?.imageURLs) {
+      if (categoryImageFile || payload?.imageURLs) {
         // image update
-        const updatedImages = JSON.parse(payload?.imageURLs) as string[];
+        const updatedImages = payload?.imageURLs
+          ? (JSON.parse(payload?.imageURLs) as string[])
+          : [];
         const oldImages = isExitCategory.imageURLs as string[];
 
         const newImageUrls =
