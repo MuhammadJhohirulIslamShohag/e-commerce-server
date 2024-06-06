@@ -2,7 +2,7 @@ openapi: 3.1.0
 info:
   version: '1'
   title: 'Micro-Service-E-Commerce'
-  description: 'Micro-Service-E-Commerce is the online shipping project, through this we can buy and sell product'
+  description: 'The Aladin E-Commerce Project is an ambitious initiative aimed at creating a comprehensive online platform to facilitate buying and selling of products and services. The goal is to develop a user-friendly, scalable, and secure e-commerce website that caters to a wide range of customers, providing them with a seamless online shopping experience.'
   contact:
     name: "Muhammad Jhohirul Islam Shohag"
     url: "https://shohag.com"
@@ -10,7 +10,7 @@ info:
 
 servers: 
   - description: Production
-    url: "https://e-commerce-modular-monolith.vercel.app/api/v1"
+    url: "http://54.204.167.67/api/v1"
   - description: Development
     url: "http://localhost:9000/api/v1"
 
