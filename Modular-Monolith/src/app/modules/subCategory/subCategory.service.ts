@@ -5,6 +5,7 @@ import SubCategory from './subCategory.model';
 import QueryBuilder from '../../builder/query.builder';
 import ApiError from '../../errors/ApiError';
 import Product from '../product/product.model';
+import Category from '../category/category.model';
 
 import { subCategorySearchableFields } from './subCategory.constant';
 import { ISubCategory, ICreateSubCategory } from './subCategory.interface';
@@ -13,11 +14,13 @@ import { IFile } from '../../interfaces';
 
 class SubCategoryServiceClass {
   #SubCategoryModel;
+  #CategoryModel;
   #ProductModel;
   #QueryBuilder: typeof QueryBuilder;
 
   constructor() {
     this.#SubCategoryModel = SubCategory;
+    this.#CategoryModel = Category;
     this.#ProductModel = Product;
     this.#QueryBuilder = QueryBuilder;
   }
@@ -84,7 +87,7 @@ class SubCategoryServiceClass {
   // get single sub category method
   readonly getSingleSubCategory = async (payload: string) => {
     const result = await this.#SubCategoryModel
-      .findOne({ name: payload })
+      .findOne({ _id: payload })
       .populate('categoryId')
       .exec();
     return result;
@@ -129,14 +132,25 @@ class SubCategoryServiceClass {
         updatedSubCategoryData['imageURL'] = isExitSubCategory?.imageURL;
       }
 
-      // update the sub category
-      result = await this.#SubCategoryModel.findOneAndUpdate(
-        { _id: id },
-        { ...updatedSubCategoryData },
-        {
-          new: true,
+      if (payload?.categoryId) {
+        const isExitCategory = await this.#CategoryModel.findOne({
+          _id: payload?.categoryId,
+        });
+        if (!isExitCategory) {
+          throw new ApiError(httpStatus.NOT_FOUND, 'Category Not Found!');
         }
-      ).session(session);
+      }
+
+      // update the sub category
+      result = await this.#SubCategoryModel
+        .findOneAndUpdate(
+          { _id: id },
+          { ...updatedSubCategoryData },
+          {
+            new: true,
+          }
+        )
+        .session(session);
 
       if (payload?.name) {
         await this.#ProductModel

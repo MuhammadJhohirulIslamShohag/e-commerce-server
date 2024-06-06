@@ -82,10 +82,10 @@ class CategoryControllerClass {
   // update category method
   readonly updateCategory = catchAsync(async (req: Request, res: Response) => {
     const categoryId = req.params.id;
-    const { name, imageURLs } = req.body;
+    const { ...updateCategoryData } = req.body;
 
     // check validity request payload body
-    await validateRequireFields({ name, imageURLs });
+    await validateRequireFields(updateCategoryData);
 
     // category image file
     const categoryImageFile =
@@ -97,7 +97,7 @@ class CategoryControllerClass {
 
     const result = await this.#CategoryService.updateCategory(
       categoryId,
-      { name, imageURLs: JSON.parse(imageURLs) },
+      updateCategoryData,
       categoryImageFile
     );
 

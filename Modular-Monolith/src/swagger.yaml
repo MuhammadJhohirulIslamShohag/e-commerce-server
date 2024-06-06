@@ -17,8 +17,10 @@ servers:
     url: "http://localhost:9000/api/v1"
 
 tags: 
-  - name: Auth
-    description: "Authentication Endpoints (Public)"
+  - name: User Authentication
+    description: "User Authentication Endpoints (Public)"
+  - name: Seller Authentication
+    description: "Seller Authentication Endpoints (Public)"
   - name: Advertise Banner
     description: "Advertise Banner Endpoints (Public + Private)"
   - name: Brand
@@ -41,8 +43,8 @@ tags:
 paths:
   "/auth/register":
     post:
-      summary: "Register new user"
-      tags: [Auth]
+      summary: "Register New User"
+      tags: [User Authentication]
       requestBody:
         content:
           "application/json":
@@ -67,7 +69,7 @@ paths:
                 - 
       responses:
         '201':
-          description: User registered successfully!
+          description: User Registered Successfully!
           content:
            "application/json":
              schema: 
@@ -86,7 +88,7 @@ paths:
                     - false
                 message:
                   type: string
-                  examples: ["User registered successfully!"]
+                  examples: ["User Registered Successfully!"]
                 data:
                   type: object
                   properties:
@@ -119,8 +121,8 @@ paths:
           $ref: '#/components/responses/500'
   "/auth/login":
     post:
-      summary: "Login new user"
-      tags: [Auth]
+      summary: "Login New User"
+      tags: [User Authentication]
       requestBody:
         content:
           "application/json":
@@ -141,7 +143,7 @@ paths:
                 - 
       responses:
         '201':
-          description: User LogIn successfully!
+          description: User LogIn Successfully!
           content:
            "application/json":
              schema: 
@@ -160,7 +162,7 @@ paths:
                     - false
                 message:
                   type: string
-                  examples: ["User Loggin successfully!"]
+                  examples: ["User LogIn Successfully!"]
                 data:
                   type: object
                   properties:
@@ -186,6 +188,156 @@ paths:
                     register:
                       type: string
                       examples: ["/auth/register"]
+                 
+  "/admins/register":
+    post:
+      summary: "Register New seller"
+      tags: [Seller Authentication]
+      requestBody:
+        content:
+          "application/json":
+            schema:
+              type: object
+              properties: 
+                name:
+                  type: string
+                  examples: ["username"]
+                email:
+                  type: string
+                  format: email
+                  examples: ["username@gmail.com"]
+                password:
+                  type: string
+                  format: password
+                  examples: ["username12345"]
+              required: 
+                - name
+                - email
+                - password
+                - 
+      responses:
+        '201':
+          description: Seller Registered successfully!
+          content:
+           "application/json":
+             schema: 
+               type: object
+               properties:
+                statusCode:
+                  type: integer
+                  format: int32
+                  examples: 
+                    - 201
+                success:
+                  type: boolean
+                  format: boolean
+                  examples: 
+                    - true
+                    - false
+                message:
+                  type: string
+                  examples: ["Seller Registered successfully!"]
+                data:
+                  type: object
+                  properties:
+                    accessToken:
+                      type: string
+                      examples: ["eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c"]
+                    _id:
+                      type: string
+                      examples: ["56cb91bdc3464f14678934ca"]
+                    username:
+                      type: string
+                      examples: ["username"]
+                    email:
+                      type: string
+                      format: email
+                      examples: ["username@gmail.com"]
+                links:
+                  type: object
+                  properties:
+                    self:
+                      type: string
+                      examples: ["/admins/register"]
+                    login:
+                      type: string
+                      examples: ["/admins/login"]
+
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '500':
+          $ref: '#/components/responses/500'
+  "/admins/login":
+    post:
+      summary: "Login New Seller"
+      tags: [Seller Authentication]
+      requestBody:
+        content:
+          "application/json":
+            schema:
+              type: object
+              properties: 
+                email:
+                  type: string
+                  format: email
+                  examples: ["username@gmail.com"]
+                password:
+                  type: string
+                  format: password
+                  examples: ["username12345"]
+              required: 
+                - email
+                - password
+                - 
+      responses:
+        '201':
+          description: Seller LogIn successfully!
+          content:
+           "application/json":
+             schema: 
+               type: object
+               properties:
+                statusCode:
+                  type: integer
+                  format: int32
+                  examples: 
+                    - 201
+                success:
+                  type: boolean
+                  format: boolean
+                  examples: 
+                    - true
+                    - false
+                message:
+                  type: string
+                  examples: ["Seller LogIn successfully!"]
+                data:
+                  type: object
+                  properties:
+                    accessToken:
+                      type: string
+                      examples: ["eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c"]
+                    _id:
+                      type: string
+                      examples: ["56cb91bdc3464f14678934ca"]
+                    username:
+                      type: string
+                      examples: ["username"]
+                    email:
+                      type: string
+                      format: email
+                      examples: ["username@gmail.com"]
+                links:
+                  type: object
+                  properties:
+                    self:
+                      type: string
+                      examples: ["/admins/login"]
+                    register:
+                      type: string
+                      examples: ["/admins/register"]
+
+
   "/advertise-banners":
     post:
       security:
@@ -368,7 +520,7 @@ paths:
             type: string
       requestBody:
         content:
-          "application/json":
+          "multipart/form-data":
             schema:
               $ref: "#/components/schemas/AdvertiseBanner"
       responses:
@@ -639,7 +791,7 @@ paths:
             type: string
       requestBody:
         content:
-          "application/json":
+          "multipart/form-data":
             schema:
               $ref: "#/components/schemas/Brand"
       responses:
@@ -906,7 +1058,7 @@ paths:
             type: string
       requestBody:
         content:
-          "application/json":
+          "multipart/form-data":
             schema:
               $ref: "#/components/schemas/Category"
       responses:
@@ -1175,12 +1327,12 @@ paths:
             type: string
       requestBody:
         content:
-          "application/json":
+         "multipart/form-data":
             schema:
               $ref: "#/components/schemas/SubCategory"
       responses:
         '200':
-          description: Single SubCategoy Updated Successfully!
+          description: Single SubCategory Updated Successfully!
           content:
             "application/json":
               schema: 
@@ -2206,10 +2358,10 @@ paths:
       summary: "Get Single Product By Id"
       tags: [Product]
       parameters:
-        - name: id
+        - name: slug
           in: path
           required: true
-          description: Product Id of the Product to get.
+          description: Product Slug of the Product to get.
           schema:
             type: string
 
@@ -2265,7 +2417,7 @@ paths:
             type: string
       requestBody:
         content:
-          "application/json":
+          "multipart/form-data":
             schema:
               $ref: "#/components/schemas/Products"
       responses:

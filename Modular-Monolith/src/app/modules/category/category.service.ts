@@ -6,7 +6,7 @@ import Category from './category.model';
 import QueryBuilder from '../../builder/query.builder';
 import ApiError from '../../errors/ApiError';
 
-import { ICreateCategory, ICategory } from './category.interface';
+import { ICreateCategory, ICategory, IUpdateCategory } from './category.interface';
 import { categorySearchableFields } from './category.constant';
 import { ImageUploadHelpers } from '../../helpers/image-upload.helper';
 import { IFile } from '../../interfaces';
@@ -83,14 +83,14 @@ class CategoryServiceClass {
 
   // get single category method
   readonly getSingleCategory = async (payload: string) => {
-    const result = await this.#CategoryModel.findOne({ name: payload }).exec();
+    const result = await this.#CategoryModel.findOne({ _id: payload }).exec();
     return result;
   };
 
   // update category method
   readonly updateCategory = async (
     id: string,
-    payload: Partial<ICategory>,
+    payload: Partial<IUpdateCategory>,
     categoryImageFile: IFile[] | null
   ) => {
     // start transaction
@@ -106,13 +106,13 @@ class CategoryServiceClass {
         throw new ApiError(httpStatus.NOT_FOUND, 'Category Not Found!');
       }
 
-      const { ...updatedCategoryData }: Partial<ICategory> = payload;
+      const { ...updatedCategoryData}: Partial<ICategory> = payload;
 
       // upload image if image file has
-      if (categoryImageFile) {
+      if (categoryImageFile && payload?.imageURLs) {
         // image update
-        const updatedImages = updatedCategoryData?.imageURLs as string[];
-        const oldImages = isExitCategory.imageURLs;
+        const updatedImages = JSON.parse(payload?.imageURLs) as string[];
+        const oldImages = isExitCategory.imageURLs as string[];
 
         const newImageUrls =
           await ImageUploadHelpers.imageUploadsToS3BucketForUpdate__V2(
