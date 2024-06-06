@@ -12,7 +12,7 @@ servers:
   - description: Production AWS
     url: "http://54.204.167.67/api/v1"
   - description: Production Vercel
-    url: "https://aladin-e-commerce-server-monolith.vercel.app/"
+    url: "https://aladin-e-commerce-server-monolith.vercel.app/api/v1"
   - description: Development
     url: "http://localhost:9000/api/v1"
 
@@ -314,7 +314,7 @@ paths:
           required: true
           description: Advertise Banner Id of the Advertise Banner to get.
           schema:
-            type: integer
+            type: string
 
       responses:
         '200':
@@ -365,7 +365,7 @@ paths:
           required: true
           description: Advertise Banner Id of the Advertise Banner to update.
           schema:
-            type: integer
+            type: string
       requestBody:
         content:
           "application/json":
@@ -420,7 +420,7 @@ paths:
           required: true
           description: Advertise Banner Id of the Advertise Banner to Delete.
           schema:
-            type: integer
+            type: string
 
       responses:
         '200':
@@ -585,7 +585,7 @@ paths:
           required: true
           description: Brand Id of the Brand to get.
           schema:
-            type: integer
+            type: string
 
       responses:
         '200':
@@ -636,7 +636,7 @@ paths:
           required: true
           description: Brand Id of the Brand to update.
           schema:
-            type: integer
+            type: string
       requestBody:
         content:
           "application/json":
@@ -691,7 +691,7 @@ paths:
           required: true
           description: Brand Id of the Brand to Delete.
           schema:
-            type: integer
+            type: string
 
       responses:
         '200':
@@ -852,7 +852,7 @@ paths:
           required: true
           description: Category Id of the Category to get.
           schema:
-            type: integer
+            type: string
 
       responses:
         '200':
@@ -903,7 +903,7 @@ paths:
           required: true
           description: Category Id of the Category to update.
           schema:
-            type: integer
+            type: string
       requestBody:
         content:
           "application/json":
@@ -958,7 +958,7 @@ paths:
           required: true
           description: Category Id of the Category to Delete.
           schema:
-            type: integer
+            type: string
 
       responses:
         '200':
@@ -1121,7 +1121,7 @@ paths:
           required: true
           description: Sub Category Id of the Sub Category to get.
           schema:
-            type: integer
+            type: string
 
       responses:
         '200':
@@ -1170,9 +1170,9 @@ paths:
         - name: id
           in: path
           required: true
-          description: Sub Category Id of the Sub Categoy to update.
+          description: Sub Category Id of the Sub Category to update.
           schema:
-            type: integer
+            type: string
       requestBody:
         content:
           "application/json":
@@ -1227,7 +1227,7 @@ paths:
           required: true
           description: Sub Category Id of the Sub Category to Delete.
           schema:
-            type: integer
+            type: string
 
       responses:
         '200':
@@ -1393,7 +1393,7 @@ paths:
           required: true
           description: Color Id of the Color to get.
           schema:
-            type: integer
+            type: string
 
       responses:
         '200':
@@ -1442,9 +1442,9 @@ paths:
         - name: id
           in: path
           required: true
-          description: Color Id of the Sub Categoy to update.
+          description: Color Id of the Color to update.
           schema:
-            type: integer
+            type: string
       requestBody:
         content:
           "application/json":
@@ -1499,7 +1499,7 @@ paths:
           required: true
           description: Color Id of the Color to Delete.
           schema:
-            type: integer
+            type: string
 
       responses:
         '200':
@@ -1665,7 +1665,7 @@ paths:
           required: true
           description: Size Id of the Size to get.
           schema:
-            type: integer
+            type: string
 
       responses:
         '200':
@@ -1714,9 +1714,9 @@ paths:
         - name: id
           in: path
           required: true
-          description: Size Id of the Sub Categoy to update.
+          description: Size Id of the Size to update.
           schema:
-            type: integer
+            type: string
       requestBody:
         content:
           "application/json":
@@ -1771,7 +1771,7 @@ paths:
           required: true
           description: Size Id of the Size to Delete.
           schema:
-            type: integer
+            type: string
 
       responses:
         '200':
@@ -1933,7 +1933,7 @@ paths:
           required: true
           description: Coupon Id of the Coupon to get.
           schema:
-            type: integer
+            type: string
 
       responses:
         '200':
@@ -1982,9 +1982,9 @@ paths:
         - name: id
           in: path
           required: true
-          description: Coupon Id of the Sub Categoy to update.
+          description: Coupon Id of the Coupon to update.
           schema:
-            type: integer
+            type: string
       requestBody:
         content:
           "application/json":
@@ -2039,7 +2039,7 @@ paths:
           required: true
           description: Coupon Id of the Coupon to Delete.
           schema:
-            type: integer
+            type: string
 
       responses:
         '200':
@@ -2211,7 +2211,7 @@ paths:
           required: true
           description: Product Id of the Product to get.
           schema:
-            type: integer
+            type: string
 
       responses:
         '200':
@@ -2260,9 +2260,9 @@ paths:
         - name: id
           in: path
           required: true
-          description: Product Id of the Sub Categoy to update.
+          description: Product Id of the Product to update.
           schema:
-            type: integer
+            type: string
       requestBody:
         content:
           "application/json":
@@ -2317,7 +2317,7 @@ paths:
           required: true
           description: Product Id of the Product to Delete.
           schema:
-            type: integer
+            type: string
 
       responses:
         '200':
@@ -2480,7 +2480,7 @@ paths:
           required: true
           description: Review Id of the Review to get.
           schema:
-            type: integer
+            type: string
 
       responses:
         '200':
@@ -2529,9 +2529,9 @@ paths:
         - name: id
           in: path
           required: true
-          description: Review Id of the Sub Categoy to update.
+          description: Review Id of the Review to update.
           schema:
-            type: integer
+            type: string
       requestBody:
         content:
           "application/json":
@@ -2586,7 +2586,7 @@ paths:
           required: true
           description: Review Id of the Review to Delete.
           schema:
-            type: integer
+            type: string
 
       responses:
         '200':
