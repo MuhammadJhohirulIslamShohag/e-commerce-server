@@ -28,9 +28,9 @@ const couponCreateZodSchema = z.object({
           // convert discount amount to a number
           const discountAmountNumber = parseInt(data.discountAmount, 10);
           // check if discountType is percentage and discount amount is less than or equal to 100
-          return (
-            discountAmountNumber <= 100 || data.discountType !== discountType[1]
-          );
+          return discountAmountNumber <= 100;
+        } else {
+          return true;
         }
       },
       {
@@ -41,21 +41,38 @@ const couponCreateZodSchema = z.object({
 });
 
 const couponUpdateZodSchema = z.object({
-  body: z.object({
-    isActive: z.boolean().optional(),
-    discountAmount: z.coerce.number().int().min(1).optional(),
-    discountType: z
-      .enum([...discountType] as [string, ...string[]], {
-        required_error: 'Discount Type is Required!',
-      })
-      .optional(),
-    expiresAt: z
-      .preprocess(
-        value => (value === '' ? undefined : value),
-        z.coerce.date().min(new Date()).optional()
-      )
-      .optional(),
-  }),
+  body: z
+    .object({
+      code: z.string().optional(),
+      discountAmount: z.coerce.string(),
+      discountType: z
+        .enum([...discountType] as [string, ...string[]], {
+          required_error: 'Discount Type is Required!',
+        })
+        .optional(),
+      expiresAt: z
+        .preprocess(
+          value => (value === '' ? undefined : value),
+          z.coerce.date().min(new Date()).optional()
+        )
+        .optional(),
+    })
+    .refine(
+      data => {
+        if (data.discountAmount && data.discountType === discountType[1]) {
+          // convert discount amount to a number
+          const discountAmountNumber = parseInt(data.discountAmount, 10);
+          // check if discountType is percentage and discount amount is less than or equal to 100
+          return discountAmountNumber <= 100;
+        } else {
+          return true;
+        }
+      },
+      {
+        message: 'Percentage discount must be less than or equal to 100',
+        path: ['discountAmount'],
+      }
+    ),
 });
 
 export const CouponValidation = {
