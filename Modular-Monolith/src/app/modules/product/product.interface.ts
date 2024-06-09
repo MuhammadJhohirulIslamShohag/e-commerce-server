@@ -24,7 +24,6 @@ export type IProduct = {
   sold: number;
   imageURLs: string[];
   isFeatured: boolean;
-  shipping: string;
   status: ProductStatus;
   category: {
     name: string;

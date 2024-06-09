@@ -7,6 +7,7 @@ export const productSearchableFields = [
   'description',
   'status',
   'keyFeature',
+  'category.name',
 ];
 // filterable fields
 export const productFilterableFields = [

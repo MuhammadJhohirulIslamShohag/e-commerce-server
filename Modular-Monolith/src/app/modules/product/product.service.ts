@@ -175,6 +175,7 @@ class ProductServiceClass {
       paginationOption,
       filters
     );
+    
     const result = await this.#ProductModel.aggregate(aggregateArray);
 
     // get total products

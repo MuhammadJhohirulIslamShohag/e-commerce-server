@@ -71,11 +71,6 @@ const productSchema = new Schema<IProduct, ProductModel>(
       required: [true, 'Please provide a is it featured product!'],
       default: false,
     },
-    shipping: {
-      type: String,
-      enum: ['Yes', 'No'],
-      default: 'No',
-    },
     status: {
       type: String,
       enum: productStatus,
