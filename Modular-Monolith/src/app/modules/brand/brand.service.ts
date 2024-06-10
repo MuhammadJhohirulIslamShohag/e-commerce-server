@@ -183,28 +183,18 @@ class BrandServiceClass {
         throw new ApiError(httpStatus.NOT_FOUND, 'Brand Not Found!');
       }
 
-      // get all products
-      const allProducts = await this.#ProductModel.find({
-        'brand.brandId': payload,
-      });
-
-      // update products brand
-      for (let i = 0; allProducts?.length; i++) {
-        await this.#ProductModel.findOneAndUpdate(
+      // Update products brand
+      await this.#ProductModel.updateMany(
+          { 'brand.brandId': payload },
           {
-            _id: allProducts?.[i]?._id,
-          },
-          {
-            $set: {
-              brand: {
-                name: null,
-                brandId: null,
+              $set: {
+                  'brand.name': null,
+                  'brand.brandId': null,
               },
-            },
           },
           { session }
-        );
-      }
+      );
+
       // delete the brand
       const resultBrand = await this.#BrandModel.findOneAndDelete(
         { _id: payload },
