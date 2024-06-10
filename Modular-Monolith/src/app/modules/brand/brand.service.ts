@@ -49,6 +49,9 @@ class BrandServiceClass {
       throw new ApiError(httpStatus.BAD_REQUEST, `Brand Create Failed!`);
     }
 
+    // remove index
+    this.#BrandModel.collection.dropIndexes();
+
     return result;
   };
 

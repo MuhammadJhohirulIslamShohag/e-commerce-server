@@ -1,5 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
-/* eslint-disable @typescript-eslint/no-this-alias */
 import { Schema, model } from 'mongoose'
 import validator from 'validator'
 import { BrandModel, IBrand } from './brand.interface'
@@ -12,7 +10,6 @@ const brandSchema = new Schema<IBrand, BrandModel>(
       type: String,
       trim: true,
       unique: true,
-      lowercase:true,
       required: [true, 'Please provide a name!'],
       minLength: [2, 'Name must be at least 3 characters'],
       maxLength: [120, 'Name is to large!'],
@@ -21,7 +18,6 @@ const brandSchema = new Schema<IBrand, BrandModel>(
       type: String,
       unique: true,
       trim: true,
-      lowercase: true,
       validate: [validator.isEmail, 'Provide a valid email!'],
       required: [true, 'Please provide a email!'],
     },
