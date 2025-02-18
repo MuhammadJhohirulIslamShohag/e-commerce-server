@@ -9,6 +9,8 @@ info:
     email: "muhammad.islam19982023@gmail.com"
 
 servers: 
+  - description: Production Microsoft Azure
+    url: "https://modular-monolith-server-fthnacgvf4dje8bb.canadacentral-01.azurewebsites.net/api/v1"
   - description: Production AWS
     url: "http://54.204.167.67/api/v1"
   - description: Production Vercel
